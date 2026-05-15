@@ -29,7 +29,7 @@ const PrivacyPolicy = () => {
                             Introduction
                         </h2>
                         <p className="text-muted-foreground leading-relaxed mb-4">
-                            Welcome to Sole-ly ("we", "our", or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our shoe marketplace platform at solelyshoes.co.ke (the "Platform").
+                            Welcome to Sole-ly ("we", "our", or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our social commerce marketplace platform at solelyshoes.co.ke (the "Platform").
                         </p>
                         <p className="text-muted-foreground leading-relaxed">
                             Please read this privacy policy carefully. By using our Platform, you consent to the collection, use, and disclosure of your information in accordance with this policy. If you do not agree with our policies and practices, please do not use our Platform.

@@ -6,571 +6,450 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Filter, X, Search } from "lucide-react";
-import { CATEGORIES, getCategoryName } from "@/lib/categories";
-import { ACCESSORY_TYPES, getAccessoryTypeName } from "@/lib/accessoryTypes";
+import { Filter, Shield, X } from "lucide-react";
+import { ALL_CATEGORIES, getCategoryByKey, getCategoryName } from "@/lib/categories";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { SEO } from "@/components/SEO";
-import { Input } from "@/components/ui/input";
-import { saveSearch, rankBySearchHistory } from "@/lib/searchHistory";
+
+import { saveSearch } from "@/lib/searchHistory";
+import { rankByInterests, trackCategoryClick } from "@/lib/userInterests";
+
+// ─── Max price per category ────────────────────────────────────────────────────
+const MAX_PRICE_BY_CATEGORY: Record<string, number> = {
+  electronics: 500_000,
+  home: 200_000,
+  sports: 100_000,
+  default: 50_000,
+};
+
+const getMaxPrice = (cat: string) =>
+  MAX_PRICE_BY_CATEGORY[cat] ?? MAX_PRICE_BY_CATEGORY.default;
+
+// ─── Condition badge colours ───────────────────────────────────────────────────
+const CONDITION_DOT: Record<string, string> = {
+  new: "bg-green-500",
+  like_new: "bg-blue-500",
+  good: "bg-yellow-500",
+  fair: "bg-orange-500",
+};
 
 const Shop = () => {
-  const [searchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [products, setProducts] = useState<any[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [priceRange, setPriceRange] = useState([0, 20000]);
-  const [selectedBrand, setSelectedBrand] = useState("all");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedSize, setSelectedSize] = useState("all");
-  const [selectedCondition, setSelectedCondition] = useState("all");
-  const [selectedAccessoryType, setSelectedAccessoryType] = useState("all");
-  const [sortBy, setSortBy] = useState("smart");
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [searchQuery, setSearchQuery]         = useState("");
+  const [products, setProducts]               = useState<any[]>([]);
+  const [filteredProducts, setFiltered]       = useState<any[]>([]);
+  const [loading, setLoading]                 = useState(true);
+  const [priceRange, setPriceRange]           = useState([0, MAX_PRICE_BY_CATEGORY.default]);
+  const [selectedBrand, setSelectedBrand]     = useState("all");
+  const [selectedCategory, setSelectedCat]   = useState("all");
+  const [selectedSub, setSelectedSub]         = useState("all");
+  const [selectedCondition, setSelectedCond] = useState("all");
+  const [sortBy, setSortBy]                   = useState("smart");
+  const [page, setPage]                       = useState(1);
   const itemsPerPage = 20;
 
-  // Extract unique values from products
+  // Derived data
   const uniqueBrands = Array.from(new Set(products.map((p) => p.brand).filter(Boolean)));
+  const activeCategoryObj = selectedCategory !== "all" ? getCategoryByKey(selectedCategory) : null;
 
-  // Use only predefined categories (not database categories)
-  const allCategoryKeys = CATEGORIES.map(c => c.key);
-
-  const uniqueSizes = Array.from(new Set(products.flatMap((p) => p.sizes || []).filter(Boolean))).sort((a, b) => Number(a) - Number(b));
-
+  // ─── Fetch products ONCE on mount ──────────────────────────────────────────
   useEffect(() => {
-    // Scroll to top when page loads
     window.scrollTo(0, 0);
-
     fetchProducts();
+  }, []);
 
-    // Set search from URL params if present (from hero search bar)
-    const searchParam = searchParams.get('search');
-    if (searchParam) {
-      setSearchQuery(searchParam);
-      saveSearch(searchParam);
-    }
+  // ─── Sync filter state from URL params ────────────────────────────────────
+  // This runs on every URL change (category nav, sub pills, search).
+  // It does NOT re-fetch products — the product list is stable after mount.
+  // It does NOT scroll to top — that only happens on mount above.
+  useEffect(() => {
+    const search   = searchParams.get("search");
+    const category = searchParams.get("category") ?? "all";
+    const sub      = searchParams.get("sub")      ?? "all";
 
-    // Set category from URL params if present
-    const categoryParam = searchParams.get('category');
-    if (categoryParam) {
-      setSelectedCategory(categoryParam);
-    }
+    if (search) { setSearchQuery(search); saveSearch(search); }
+    setSelectedCat(category);
+    setSelectedSub(sub);
 
-    // Set size from URL params if present (for links from cart)
-    const sizeParam = searchParams.get('size');
-    if (sizeParam) {
-      setSelectedSize(sizeParam);
-    }
+    // Clamp price ceiling to the new category's max
+    const maxP = getMaxPrice(category);
+    setPriceRange((prev) => [prev[0], Math.min(prev[1], maxP)]);
+    setPage(1);
   }, [searchParams]);
 
+  // ─── Apply filters ─────────────────────────────────────────────────────────
   useEffect(() => {
     applyFilters();
-  }, [products, searchQuery, priceRange, selectedBrand, selectedCategory, selectedSize, selectedCondition, selectedAccessoryType, sortBy]);
+  }, [products, searchQuery, priceRange, selectedBrand, selectedCategory, selectedSub, selectedCondition, sortBy]);
 
   const fetchProducts = async () => {
     try {
-      // Fetch products
-      const { data: productsData, error: productsError } = await supabase
+      const { data: productsData, error } = await supabase
         .from("products")
         .select("*")
         .eq("status", "active");
+      if (error) throw error;
 
-      if (productsError) throw productsError;
-
-      // Fetch all reviews to calculate ratings per product
-      const { data: reviewsData, error: reviewsError } = await supabase
+      const { data: reviewsData } = await supabase
         .from("reviews")
         .select("product_id, rating");
 
-      if (reviewsError) {
-        console.error("Error fetching reviews:", reviewsError);
-      }
-
-      // Group reviews by product_id and calculate stats
       const reviewStats: Record<string, { sum: number; count: number }> = {};
-      (reviewsData || []).forEach(review => {
-        if (!reviewStats[review.product_id]) {
-          reviewStats[review.product_id] = { sum: 0, count: 0 };
-        }
-        reviewStats[review.product_id].sum += review.rating;
-        reviewStats[review.product_id].count += 1;
+      (reviewsData || []).forEach((r) => {
+        if (!reviewStats[r.product_id]) reviewStats[r.product_id] = { sum: 0, count: 0 };
+        reviewStats[r.product_id].sum += r.rating;
+        reviewStats[r.product_id].count += 1;
       });
 
-      // Map products with their actual rating stats
-      const productsWithStats = (productsData || []).map(product => {
-        const stats = reviewStats[product.id];
-        return {
-          ...product,
-          averageRating: stats ? stats.sum / stats.count : null,
-          reviewCount: stats ? stats.count : 0,
-        };
-      });
-
-      setProducts(productsWithStats);
-    } catch (error) {
-      console.error("Error fetching products:", error);
+      setProducts(
+        (productsData || []).map((p) => {
+          const s = reviewStats[p.id];
+          return { ...p, averageRating: s ? s.sum / s.count : null, reviewCount: s?.count ?? 0 };
+        })
+      );
+    } catch (err) {
+      console.error("Error fetching products:", err);
     } finally {
       setLoading(false);
     }
   };
 
   const applyFilters = () => {
-    let filtered = [...products];
+    let f = [...products];
 
-    // Search filter
+    // Text search
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(
+      const q = searchQuery.toLowerCase();
+      f = f.filter(
         (p) =>
-          p.name?.toLowerCase().includes(query) ||
-          p.brand?.toLowerCase().includes(query) ||
-          p.description?.toLowerCase().includes(query)
+          p.name?.toLowerCase().includes(q) ||
+          p.brand?.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q)
       );
     }
 
-    // Price filter
-    filtered = filtered.filter(
-      (p) => p.price_ksh >= priceRange[0] && p.price_ksh <= priceRange[1]
-    );
+    // Price
+    f = f.filter((p) => p.price_ksh >= priceRange[0] && p.price_ksh <= priceRange[1]);
 
-    // Brand filter
-    if (selectedBrand !== "all") {
-      filtered = filtered.filter((p) => p.brand?.toLowerCase() === selectedBrand);
-    }
+    // Brand
+    if (selectedBrand !== "all") f = f.filter((p) => p.brand?.toLowerCase() === selectedBrand);
 
-    // Category filter
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((p) => p.category?.toLowerCase() === selectedCategory.toLowerCase());
-    }
+    // Category
+    if (selectedCategory !== "all")
+      f = f.filter((p) => p.category?.toLowerCase() === selectedCategory.toLowerCase());
 
-    // Size filter (only for non-accessories)
-    if (selectedSize !== "all" && selectedCategory !== "accessories") {
-      filtered = filtered.filter((p) => p.sizes?.includes(selectedSize));
-    }
+    // Subcategory
+    if (selectedSub !== "all")
+      f = f.filter((p) => p.subcategory?.toLowerCase() === selectedSub.toLowerCase());
 
-    // Accessory type filter (only for accessories)
-    if (selectedAccessoryType !== "all" && selectedCategory === "accessories") {
-      filtered = filtered.filter((p) => (p as any).accessory_type === selectedAccessoryType);
-    }
+    // Condition
+    if (selectedCondition !== "all") f = f.filter((p) => p.condition === selectedCondition);
 
-    // Condition filter
-    if (selectedCondition !== "all") {
-      filtered = filtered.filter((p) => p.condition === selectedCondition);
-    }
-
-    // Save active search query to history
     if (searchQuery.trim()) saveSearch(searchQuery.trim());
 
     // Sort
     switch (sortBy) {
-      case "price-low":
-        filtered.sort((a, b) => a.price_ksh - b.price_ksh);
-        break;
-      case "price-high":
-        filtered.sort((a, b) => b.price_ksh - a.price_ksh);
-        break;
-      case "newest":
-        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        break;
-      case "smart":
-      default:
-        filtered = rankBySearchHistory(filtered);
-        break;
+      case "price-low":  f.sort((a, b) => a.price_ksh - b.price_ksh); break;
+      case "price-high": f.sort((a, b) => b.price_ksh - a.price_ksh); break;
+      case "newest":     f.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()); break;
+      case "trusted":    f.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0)); break;
+      default:           f = rankByInterests(f);
     }
 
-    setFilteredProducts(filtered);
+    setFiltered(f);
+    setPage(1);
+  };
+
+  const handleCategoryClick = (key: string) => {
+    trackCategoryClick(key);
+    // Update URL — this triggers the [searchParams] effect which sets state.
+    // Sub is explicitly removed from URL so the effect will reset it to "all".
+    const p = new URLSearchParams(searchParams);
+    if (key === "all") { p.delete("category"); p.delete("sub"); }
+    else { p.set("category", key); p.delete("sub"); }
+    setSearchParams(p, { replace: true });
+  };
+
+  const handleSubClick = (key: string) => {
+    // Just update the URL — the [searchParams] effect will sync selectedSub.
+    const p = new URLSearchParams(searchParams);
+    if (key === "all") p.delete("sub");
+    else p.set("sub", key);
+    setSearchParams(p, { replace: true });
   };
 
   const resetFilters = () => {
     setSearchQuery("");
-    setPriceRange([0, 20000]);
+    setPriceRange([0, MAX_PRICE_BY_CATEGORY.default]);
     setSelectedBrand("all");
-    setSelectedCategory("all");
-    setSelectedSize("all");
-    setSelectedCondition("all");
-    setSelectedAccessoryType("all");
+    setSelectedCat("all");
+    setSelectedSub("all");
+    setSelectedCond("all");
     setSortBy("smart");
     setPage(1);
-
-    // Clear URL parameters
-    const newParams = new URLSearchParams(searchParams);
-    newParams.delete("search");
-    newParams.delete("category");
-    if (newParams.toString() !== searchParams.toString()) {
-      window.history.replaceState({}, '', `${window.location.pathname}?${newParams}`);
-    }
+    setSearchParams({}, { replace: true });
   };
 
-  // Determine if we're showing accessories
-  const isAccessoriesView = selectedCategory === "accessories";
+  // ─── Dynamic heading / SEO ─────────────────────────────────────────────────
+  const headingCat  = activeCategoryObj?.name ?? "All Items";
+  const headingSub  = selectedSub !== "all" ? getCategoryName(selectedSub) : null;
+  const heading     = headingSub ?? headingCat;
+  const subHeading  = `${filteredProducts.length} item${filteredProducts.length !== 1 ? "s" : ""} from trusted vendors across Kenya`;
 
+  const seoTitle       = `${heading} for Sale in Kenya | Solely`;
+  const seoDescription = `Browse ${filteredProducts.length} ${heading.toLowerCase()} listings with full escrow protection. Verified vendors. Pay only when you're happy.`;
+  const seoCanonical   = selectedCategory !== "all"
+    ? `https://solelyshoes.co.ke/shop?category=${selectedCategory}${selectedSub !== "all" ? `&sub=${selectedSub}` : ""}`
+    : "https://solelyshoes.co.ke/shop";
 
-  if (loading) {
-    return <SneakerLoader message="Loading products..." />;
-  }
+  const activeFilterCount = [
+    selectedCategory !== "all",
+    selectedSub !== "all",
+    selectedBrand !== "all",
+    selectedCondition !== "all",
+    priceRange[0] > 0 || priceRange[1] < getMaxPrice(selectedCategory),
+  ].filter(Boolean).length;
+
+  if (loading) return <SneakerLoader message="Loading products..." />;
+
+  // ─── Shared filter content (used in sidebar + mobile sheet) ───────────────
+  const FilterContent = ({ mobile = false }: { mobile?: boolean }) => (
+    <div className={mobile ? "space-y-6 pb-6" : "space-y-6"}>
+      {/* Brand */}
+      <div>
+        <label className="text-sm font-semibold mb-2 block">Brand</label>
+        <Select value={selectedBrand} onValueChange={setSelectedBrand}>
+          <SelectTrigger className={mobile ? "h-12" : ""}>
+            <SelectValue placeholder="All Brands" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Brands</SelectItem>
+            {uniqueBrands.map((b) => (
+              <SelectItem key={b} value={b.toLowerCase()}>{b}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Category */}
+      <div>
+        <label className="text-sm font-semibold mb-2 block">Category</label>
+        <Select value={selectedCategory} onValueChange={handleCategoryClick}>
+          <SelectTrigger className={mobile ? "h-12" : ""}>
+            <SelectValue placeholder="All Categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {ALL_CATEGORIES.map((c) => (
+              <SelectItem key={c.key} value={c.key}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Subcategory — only shown when a category is active */}
+      {activeCategoryObj && activeCategoryObj.subcategories.length > 0 && (
+        <div>
+          <label className="text-sm font-semibold mb-2 block">Subcategory</label>
+          <Select value={selectedSub} onValueChange={handleSubClick}>
+            <SelectTrigger className={mobile ? "h-12" : ""}>
+              <SelectValue placeholder={`All ${activeCategoryObj.name}`} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All {activeCategoryObj.name}</SelectItem>
+              {activeCategoryObj.subcategories.map((s) => (
+                <SelectItem key={s.key} value={s.key}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Condition */}
+      <div>
+        <label className="text-sm font-semibold mb-2 block">Condition</label>
+        <Select value={selectedCondition} onValueChange={setSelectedCond}>
+          <SelectTrigger className={mobile ? "h-12" : ""}>
+            <SelectValue placeholder="All Conditions" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Conditions</SelectItem>
+            {Object.entries({ new: "Mint / New", like_new: "Like New", good: "Good", fair: "Fair" }).map(([v, label]) => (
+              <SelectItem key={v} value={v}>
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${CONDITION_DOT[v]}`} />
+                  {label}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Price Range */}
+      <div>
+        <label className="text-sm font-semibold mb-2 block">
+          Price: KES {priceRange[0].toLocaleString()} – KES {priceRange[1].toLocaleString()}
+        </label>
+        <Slider
+          min={0}
+          max={getMaxPrice(selectedCategory)}
+          step={selectedCategory === "electronics" ? 5_000 : 500}
+          value={priceRange}
+          onValueChange={setPriceRange}
+          className="mt-3"
+        />
+      </div>
+
+      <Button className={`w-full ${mobile ? "h-12" : ""}`} variant="outline" onClick={resetFilters}>
+        {activeFilterCount > 0 ? `Clear ${activeFilterCount} Filter${activeFilterCount > 1 ? "s" : ""}` : "Reset Filters"}
+      </Button>
+    </div>
+  );
 
   return (
     <div className="min-h-screen py-4 sm:py-8 overflow-x-hidden">
       <SEO
-        title={isAccessoriesView ? "Shoe Care Accessories Kenya" : selectedCategory !== "all" ? `${getCategoryName(selectedCategory)} Shoes for Sale Kenya` : "Shop Shoes Online Kenya"}
-        description={isAccessoriesView
-          ? `Shop ${filteredProducts.length} shoe care products & accessories in Kenya. Cleaners, protectors, laces & more from trusted vendors.`
-          : `Browse ${filteredProducts.length} ${selectedCategory !== "all" ? getCategoryName(selectedCategory).toLowerCase() : ""} shoes for sale in Nairobi & Kenya. Nike, Adidas, Jordan & more. Filter by brand, size, condition. Escrow-protected payments.`
-        }
-        canonical={selectedCategory !== "all" ? `https://solelyshoes.co.ke/shop?category=${selectedCategory}` : "https://solelyshoes.co.ke/shop"}
+        title={seoTitle}
+        description={seoDescription}
+        canonical={seoCanonical}
         breadcrumbs={[
           { name: "Home", url: "/" },
           { name: "Shop", url: "/shop" },
-          ...(selectedCategory !== "all" ? [{ name: getCategoryName(selectedCategory), url: `/shop?category=${selectedCategory}` }] : [])
+          ...(activeCategoryObj ? [{ name: activeCategoryObj.name, url: `/shop?category=${selectedCategory}` }] : []),
+          ...(selectedSub !== "all" ? [{ name: getCategoryName(selectedSub), url: `/shop?category=${selectedCategory}&sub=${selectedSub}` }] : []),
         ]}
       />
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
-            {isAccessoriesView ? "Shop Accessories" : "Shop All Shoes"}
+        {/* ── Page Header (compact on mobile) ── */}
+        <div className="mb-4 pt-3 sm:pt-2 sm:mb-6">
+          <h1 className="text-xl sm:text-3xl font-bold mb-0.5">
+            {headingSub ? (
+              <>
+                <button onClick={() => handleCategoryClick(selectedCategory)} className="text-primary hover:underline">{headingCat}</button>
+                <span className="text-muted-foreground font-normal mx-2">›</span>
+                {headingSub}
+              </>
+            ) : heading === "All Items" ? "Shop All Items" : `Shop ${heading}`}
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Browse our collection of {filteredProducts.length} {isAccessoriesView ? "shoe care products and accessories" : "amazing shoes"} from trusted vendors across Kenya
+          <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
+            <Shield className="h-3 w-3 text-primary shrink-0" />
+            {filteredProducts.length} items — every order escrow-protected
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
-          {/* Filters Sidebar - Desktop */}
+
+          {/* ── Sidebar (desktop only) ── */}
           <aside className="hidden lg:block lg:col-span-1">
-            <div className="bg-card border-2 border-border rounded-xl p-6 shadow-soft sticky top-24">
-              <div className="flex items-center gap-2 mb-6">
-                <Filter className="h-5 w-5 text-primary" />
-                <h2 className="text-xl font-semibold">Filters</h2>
-              </div>
-
-              {/* Brand Filter */}
-              <div className="mb-6">
-                <label className="text-sm font-semibold mb-3 block">Brand</label>
-                <Select value={selectedBrand} onValueChange={setSelectedBrand}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select brand" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Brands</SelectItem>
-                    {uniqueBrands.map((brand) => (
-                      <SelectItem key={brand} value={brand.toLowerCase()}>
-                        {brand}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Category Filter */}
-              <div className="mb-6">
-                <label className="text-sm font-semibold mb-3 block">Category</label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {allCategoryKeys.map((catKey) => (
-                      <SelectItem key={catKey} value={catKey}>
-                        {getCategoryName(catKey)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Size Filter - Hidden for accessories */}
-              {!isAccessoriesView && (
-                <div className="mb-6">
-                  <label className="text-sm font-semibold mb-3 block">Size</label>
-                  <Select value={selectedSize} onValueChange={setSelectedSize}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Sizes</SelectItem>
-                      {uniqueSizes.map((size) => (
-                        <SelectItem key={size} value={size}>
-                          {size}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            <div className="bg-card border border-border rounded-xl p-5 shadow-sm sticky top-24">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-primary" />
+                  <h2 className="text-base font-bold">Filters</h2>
                 </div>
-              )}
-
-              {/* Accessory Type Filter - Only for accessories */}
-              {isAccessoriesView && (
-                <div className="mb-6">
-                  <label className="text-sm font-semibold mb-3 block">Accessory Type</label>
-                  <Select value={selectedAccessoryType} onValueChange={setSelectedAccessoryType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      {ACCESSORY_TYPES.map((type) => (
-                        <SelectItem key={type.key} value={type.key}>
-                          {type.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              {/* Condition Filter */}
-              <div className="mb-6">
-                <label className="text-sm font-semibold mb-3 block">Condition</label>
-                <Select value={selectedCondition} onValueChange={setSelectedCondition}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select condition" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Conditions</SelectItem>
-                    <SelectItem value="new">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                        Mint
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="like_new">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                        Like New
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="good">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                        Good
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="fair">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-                        Fair
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                {activeFilterCount > 0 && (
+                  <span className="text-xs font-bold bg-primary text-primary-foreground rounded-full px-2 py-0.5">
+                    {activeFilterCount}
+                  </span>
+                )}
               </div>
-
-              {/* Price Range */}
-              <div className="mb-6">
-                <label className="text-sm font-semibold mb-3 block">
-                  Price Range: KES {priceRange[0].toLocaleString()} - KES {priceRange[1].toLocaleString()}
-                </label>
-                <Slider
-                  defaultValue={[0, 20000]}
-                  max={20000}
-                  step={500}
-                  value={priceRange}
-                  onValueChange={setPriceRange}
-                  className="mt-4"
-                />
-              </div>
-
-              <Button className="w-full mt-2" variant="outline" onClick={resetFilters}>
-                Reset Filters
-              </Button>
+              <FilterContent />
             </div>
           </aside>
 
-          {/* Mobile Filter Button */}
-          <div className="lg:hidden fixed bottom-20 right-4 z-40">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button size="lg" className="rounded-full shadow-lg h-14 px-6 min-h-[48px] tap-active">
-                  <Filter className="h-5 w-5 mr-2" />
-                  Filters
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
-                <SheetHeader className="mb-6">
-                  <SheetTitle className="flex items-center gap-2">
-                    <Filter className="h-5 w-5 text-primary" />
-                    Filter Shoes
-                  </SheetTitle>
-                </SheetHeader>
+          {/* ── Main content ── */}
+          <main className="lg:col-span-3 min-w-0 pb-24 lg:pb-0">
 
-                <div className="space-y-6 pb-6">
-                  {/* Brand Filter */}
-                  <div>
-                    <label className="text-sm font-semibold mb-3 block">Brand</label>
-                    <Select value={selectedBrand} onValueChange={setSelectedBrand}>
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Select brand" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Brands</SelectItem>
-                        {uniqueBrands.map((brand) => (
-                          <SelectItem key={brand} value={brand.toLowerCase()}>
-                            {brand}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Category Filter */}
-                  <div>
-                    <label className="text-sm font-semibold mb-3 block">Category</label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        {allCategoryKeys.map((catKey) => (
-                          <SelectItem key={catKey} value={catKey}>
-                            {getCategoryName(catKey)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Size Filter - Hidden for accessories */}
-                  {!isAccessoriesView && (
-                    <div>
-                      <label className="text-sm font-semibold mb-3 block">Size</label>
-                      <Select value={selectedSize} onValueChange={setSelectedSize}>
-                        <SelectTrigger className="h-12">
-                          <SelectValue placeholder="Select size" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Sizes</SelectItem>
-                          {uniqueSizes.map((size) => (
-                            <SelectItem key={size} value={size}>
-                              {size}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {/* Accessory Type Filter - Only for accessories */}
-                  {isAccessoriesView && (
-                    <div>
-                      <label className="text-sm font-semibold mb-3 block">Accessory Type</label>
-                      <Select value={selectedAccessoryType} onValueChange={setSelectedAccessoryType}>
-                        <SelectTrigger className="h-12">
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Types</SelectItem>
-                          {ACCESSORY_TYPES.map((type) => (
-                            <SelectItem key={type.key} value={type.key}>
-                              {type.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {/* Condition Filter */}
-                  <div>
-                    <label className="text-sm font-semibold mb-3 block">Condition</label>
-                    <Select value={selectedCondition} onValueChange={setSelectedCondition}>
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Select condition" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Conditions</SelectItem>
-                        <SelectItem value="new">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                            Mint
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="like_new">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                            Like New
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="good">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                            Good
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="fair">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-                            Fair
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Price Range */}
-                  <div>
-                    <label className="text-sm font-semibold mb-3 block">
-                      Price Range: KES {priceRange[0].toLocaleString()} - KES {priceRange[1].toLocaleString()}
-                    </label>
-                    <Slider
-                      defaultValue={[0, 20000]}
-                      max={20000}
-                      step={500}
-                      value={priceRange}
-                      onValueChange={setPriceRange}
-                      className="mt-4"
-                    />
-                  </div>
-
-                  <Button className="w-full h-12" variant="outline" onClick={resetFilters}>
-                    Reset Filters
-                  </Button>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-
-          {/* Products Grid */}
-          <main className="lg:col-span-3">
-            {/* Search and Sort Options */}
-            <div className="flex flex-col gap-4 mb-6">
-              {/* Search Bar */}
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, brand, or description..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-11 w-full"
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-                <p className="text-sm sm:text-base text-foreground font-medium">Showing {filteredProducts.length} of {products.length} results</p>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-full sm:w-[200px] h-11">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="smart">✨ For You</SelectItem>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* ── Category pills — single scrollable row, never wraps ── */}
+            <div className="flex flex-nowrap gap-2 overflow-x-auto scrollbar-hide pb-1 mb-3">
+              <button
+                onClick={() => handleCategoryClick("all")}
+                className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 whitespace-nowrap
+                  ${selectedCategory === "all"
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-background text-foreground border-border hover:border-foreground/40"
+                  }`}
+              >
+                All Items
+              </button>
+              {ALL_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.key}
+                  onClick={() => handleCategoryClick(cat.key)}
+                  className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 whitespace-nowrap
+                    ${selectedCategory === cat.key
+                      ? "bg-foreground text-background border-foreground"
+                      : "bg-background text-foreground border-border hover:border-foreground/40"
+                    }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
             </div>
 
-            {/* Products */}
+            {/* ── Subcategory pills — same pattern ── */}
+            {activeCategoryObj && (
+              <div className="flex flex-nowrap gap-2 overflow-x-auto scrollbar-hide pb-1 mb-4">
+                <button
+                  onClick={() => handleSubClick("all")}
+                  className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all whitespace-nowrap
+                    ${selectedSub === "all"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                    }`}
+                >
+                  All {activeCategoryObj.name}
+                </button>
+                {activeCategoryObj.subcategories.map((sub) => (
+                  <button
+                    key={sub.key}
+                    onClick={() => handleSubClick(sub.key)}
+                    className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all whitespace-nowrap
+                      ${selectedSub === sub.key
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                      }`}
+                  >
+                    {sub.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* ── Sort + result count row ── */}
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <p className="text-xs sm:text-sm text-foreground/70 font-medium shrink-0">
+                <span className="font-bold text-foreground">{Math.min(page * itemsPerPage, filteredProducts.length)}</span>
+                {" "}/  {" "}
+                <span className="font-bold text-foreground">{filteredProducts.length}</span> results
+              </p>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[160px] sm:w-[200px] h-9 text-xs sm:text-sm">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="smart">✨ For You</SelectItem>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="trusted">Most Trusted</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* ── Product grid ── */}
             {filteredProducts.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No products found matching your filters.</p>
+              <div className="text-center py-16">
+                <p className="text-4xl mb-3">🔍</p>
+                <p className="font-semibold text-foreground mb-1">No products found</p>
+                <p className="text-sm text-muted-foreground mb-4">Try adjusting your filters or search term</p>
+                <Button variant="outline" onClick={resetFilters}>Clear Filters</Button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
                 {filteredProducts.slice(0, page * itemsPerPage).map((product) => (
                   <ProductCard
                     key={product.id}
@@ -589,18 +468,42 @@ const Shop = () => {
               </div>
             )}
 
-            {/* Load More Button */}
+            {/* Load More */}
             {filteredProducts.length > page * itemsPerPage && (
               <div className="flex justify-center mt-8">
-                <Button onClick={() => setPage(prev => prev + 1)} variant="outline" size="lg">
-                  Load More ({filteredProducts.length - (page * itemsPerPage)} remaining)
+                <Button onClick={() => setPage((p) => p + 1)} variant="outline" size="lg">
+                  Load More ({filteredProducts.length - page * itemsPerPage} remaining)
                 </Button>
               </div>
             )}
-
-            {/* Pagination would go here */}
           </main>
         </div>
+      </div>
+
+      {/* ── Mobile filter button + sheet ── */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border px-4 py-3">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button className="w-full h-11 rounded-xl font-semibold" size="lg">
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="ml-2 bg-white text-primary text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
+            <SheetHeader className="mb-6">
+              <SheetTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5 text-primary" />
+                Filters
+              </SheetTitle>
+            </SheetHeader>
+            <FilterContent mobile />
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );

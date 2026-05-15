@@ -12,6 +12,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { SEO } from "@/components/SEO";
+import { trackProductView, trackCartAddition } from "@/lib/userInterests";
 import { ShoeSizeChart } from "@/components/ShoeSizeChart";
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
@@ -103,6 +104,9 @@ const Product = () => {
       }
 
       setProduct(productData);
+
+      // Track for personalization
+      trackProductView(productData.category, productData.brand);
 
       // Fetch vendor profile
       const { data: profileData } = await supabase
@@ -287,13 +291,15 @@ const Product = () => {
         name: product.name,
         priceKsh: product.price_ksh,
         imageUrl: product.images?.[0] || null,
-        size: selectedSize, // Pass the selected size from product page
-        availableSizes: product.sizes || [], // Pass available sizes for validation
-        color: selectedColor, // Pass selected color
-        availableColors: product.colors || [], // Pass available colors
+        size: selectedSize,
+        availableSizes: product.sizes || [],
+        color: selectedColor,
+        availableColors: product.colors || [],
       },
       1
     );
+    // Track for personalization
+    trackCartAddition(product.category, product.brand);
     if (showToast) {
       toast.success("Added to cart");
     }
@@ -321,7 +327,7 @@ const Product = () => {
   };
 
   if (loading) {
-    return <SneakerLoader message="Finding your perfect pair..." />;
+    return <SneakerLoader message="Loading product..." />;
   }
 
   if (!product) {
@@ -578,7 +584,7 @@ const Product = () => {
                         </WhatsappShareButton>
                         <FacebookShareButton
                           url={window.location.href}
-                          hashtag="#SolelyShoes"
+                          hashtag="#Solely"
                           className="hover:scale-110 transition-transform"
                         >
                           <FacebookIcon size={40} round />
@@ -586,7 +592,7 @@ const Product = () => {
                         <TwitterShareButton
                           url={window.location.href}
                           title={`Check out ${product.name} on Sole-ly!`}
-                          hashtags={["SolelyShoes", "Sneakers"]}
+                          hashtags={["Solely", "SolelyKenya"]}
                           className="hover:scale-110 transition-transform"
                         >
                           <XIcon size={40} round />

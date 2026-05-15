@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { VendorNavbar } from "@/components/vendor/VendorNavbar";
@@ -7,394 +7,352 @@ import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import { VendorBalanceCard } from "@/components/vendor/VendorBalanceCard";
 import { PayoutHistory } from "@/components/vendor/PayoutHistory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Star, TrendingUp, Eye, ShoppingCart, DollarSign } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
+import {
+  Package, Star, Eye, ShoppingCart, TrendingUp,
+  DollarSign, AlertTriangle, ArrowRight, Clock,
+  CheckCircle, Zap,
+} from "lucide-react";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+
+// ── Status badge colour map ───────────────────────────────────────────────────
+const STATUS_COLOR: Record<string, string> = {
+  completed:                   "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400",
+  arrived:                     "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400",
+  pending_vendor_confirmation: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
+  processing:                  "bg-blue-100  text-blue-700  dark:bg-blue-900/40  dark:text-blue-400",
+  shipped:                     "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400",
+  cancelled:                   "bg-red-100   text-red-700   dark:bg-red-900/40   dark:text-red-400",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  completed:                   "Completed",
+  arrived:                     "Arrived",
+  pending_vendor_confirmation: "Needs Action",
+  processing:                  "Processing",
+  shipped:                     "Shipped",
+  cancelled:                   "Cancelled",
+};
 
 const VendorDashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<any>(null);
-  const [dataLoading, setDataLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    averageRating: 0,
-    totalViews: 0,
-    ordersReceived: 0,
-    totalEarned: 0,
-    paidOut: 0,
-    pendingBalance: 0,
-    pendingOrders: 0,
-  });
-  const [viewsData, setViewsData] = useState<Array<{ date: string; views: number }>>([]);
-  const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
 
-  // All plans see analytics now (commission model)
+  const [profile, setProfile]               = useState<any>(null);
+  const [dataLoading, setDataLoading]       = useState(true);
+  const [stats, setStats] = useState({
+    totalProducts:  0,
+    averageRating:  0,
+    totalViews:     0,
+    ordersReceived: 0,
+    totalEarned:    0,
+    paidOut:        0,
+    pendingBalance: 0,
+    pendingOrders:  0,
+  });
+  const [viewsData, setViewsData]           = useState<Array<{ date: string; views: number }>>([]);
+  const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
+  const [recentOrders, setRecentOrders]     = useState<any[]>([]);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
+    if (!loading && !user) navigate("/auth");
   }, [user, loading, navigate]);
 
   useEffect(() => {
-    if (user) {
-      loadData();
-    }
+    if (user) loadData();
   }, [user]);
 
   const loadData = async () => {
     setDataLoading(true);
     try {
-      await Promise.all([
-        fetchProfile(),
-        fetchStats(),
-        fetchViewsData(),
-      ]);
-    } catch (error) {
-      console.error("Error loading dashboard data:", error);
+      await Promise.all([fetchProfile(), fetchStats(), fetchViewsData()]);
+    } catch (e) {
+      console.error("Dashboard load error:", e);
     } finally {
       setDataLoading(false);
     }
   };
 
   const fetchProfile = async () => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user?.id)
-      .single();
-
+    const { data } = await supabase.from("profiles").select("*").eq("id", user?.id).single();
     setProfile(data);
   };
 
   const fetchStats = async () => {
-    // Products stats
     const { data: products } = await supabase
-      .from("products")
-      .select("id, name, stock, views")
-      .eq("vendor_id", user?.id);
+      .from("products").select("id, name, stock, views").eq("vendor_id", user?.id);
 
-    const totalViews = products?.reduce((sum, p) => sum + (p.views || 0), 0) || 0;
+    const totalViews = products?.reduce((s, p) => s + (p.views || 0), 0) || 0;
+    setLowStockProducts(products?.filter(p => p.stock < 5 && p.stock > 0).slice(0, 5) || []);
 
-    // Low stock alerts (stock < 5)
-    const lowStock = products?.filter(p => p.stock < 5 && p.stock > 0).slice(0, 5) || [];
-    setLowStockProducts(lowStock);
-
-    // Fetch vendor ratings
     const { data: ratings } = await supabase
-      .from("vendor_ratings")
-      .select("rating")
-      .eq("vendor_id", user?.id);
+      .from("vendor_ratings").select("rating").eq("vendor_id", user?.id);
+    const averageRating = ratings?.length
+      ? ratings.reduce((s, r) => s + r.rating, 0) / ratings.length : 0;
 
-    const averageRating = ratings && ratings.length > 0
-      ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
-      : 0;
-
-    // Orders stats
     const { data: orders } = await supabase
-      .from("orders")
-      .select("*")
-      .eq("vendor_id", user?.id)
-      .order('created_at', { ascending: false });
+      .from("orders").select("*").eq("vendor_id", user?.id)
+      .order("created_at", { ascending: false });
 
-    const ordersCount = orders?.length || 0;
-    const pendingOrdersCount = orders?.filter(o => o.status === 'pending_vendor_confirmation').length || 0;
+    const pendingOrdersCount = orders?.filter(o => o.status === "pending_vendor_confirmation").length || 0;
     setRecentOrders(orders?.slice(0, 5) || []);
 
-    // Financials - Calculate from completed orders for accurate real-time earnings
-    // Don't rely on payout status since payouts are created as 'pending' and not auto-updated
-    const completedOrders = orders?.filter(o =>
-      o.status === 'completed' || o.status === 'arrived'
-    ) || [];
+    const completedOrders = orders?.filter(o => o.status === "completed" || o.status === "arrived") || [];
+    const totalEarnings = completedOrders.reduce((s, o) => s + (o.payout_amount || 0), 0);
 
-    const totalEarnings = completedOrders.reduce((sum, o) =>
-      sum + (o.payout_amount || 0), 0
-    );
-
-    // Still fetch payouts for additional info
     const { data: payouts } = await supabase
-      .from("payouts")
-      .select("amount_ksh, status")
-      .eq("vendor_id", user?.id);
-
+      .from("payouts").select("amount_ksh, status").eq("vendor_id", user?.id);
     const paidOut = (payouts || [])
-      .filter((p: any) => p.status === 'paid')
-      .reduce((sum: number, p: any) => sum + (p.amount_ksh || 0), 0);
+      .filter((p: any) => p.status === "paid")
+      .reduce((s: number, p: any) => s + (p.amount_ksh || 0), 0);
 
-    const pendingPayouts = (payouts || [])
-      .filter((p: any) => p.status === 'pending' || p.status === 'processing')
-      .reduce((sum: number, p: any) => sum + (p.amount_ksh || 0), 0);
-
-    // Available balance = earnings from completed orders minus already paid out
-    // const availableBalance = totalEarnings - paidOut;
-
-    // FETCH REAL AUTHORITATIVE BALANCE FROM DB
-    // This ensures dashboard matches the actual wallet balance
     const { data: balanceData } = await supabase
-      .from("vendor_balances")
-      .select("pending_balance")
-      .eq("vendor_id", user?.id)
-      .single();
-
-    const authoritativePending = balanceData?.pending_balance || 0;
+      .from("vendor_balances").select("pending_balance").eq("vendor_id", user?.id).single();
 
     setStats({
-      totalProducts: products?.length || 0,
-      averageRating: Number(averageRating.toFixed(1)),
+      totalProducts:  products?.length || 0,
+      averageRating:  Number(averageRating.toFixed(1)),
       totalViews,
-      ordersReceived: ordersCount,
-      totalEarned: totalEarnings,  // Total earnings from completed orders
-      paidOut: paidOut,           // Money sent to M-Pesa
-      pendingBalance: authoritativePending,  // ACTUAL WALLET BALANCE
-      pendingOrders: pendingOrdersCount
+      ordersReceived: orders?.length || 0,
+      totalEarned:    totalEarnings,
+      paidOut,
+      pendingBalance: balanceData?.pending_balance || 0,
+      pendingOrders:  pendingOrdersCount,
     });
   };
 
   const fetchViewsData = async () => {
     const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0);
 
     const { data: views } = await supabase
-      .from("product_views")
-      .select("viewed_at, product_id")
+      .from("product_views").select("viewed_at, product_id")
       .gte("viewed_at", startOfMonth.toISOString())
       .order("viewed_at", { ascending: true });
 
-    if (!views) {
-      setViewsData([]);
-      return;
-    }
+    if (!views) { setViewsData([]); return; }
 
-    // Filter views for this vendor's products
     const { data: vendorProducts } = await supabase
-      .from("products")
-      .select("id")
-      .eq("vendor_id", user?.id);
+      .from("products").select("id").eq("vendor_id", user?.id);
 
-    const vendorProductIds = new Set(vendorProducts?.map(p => p.id) || []);
-    const vendorViews = views.filter(v => vendorProductIds.has(v.product_id));
+    const ids = new Set(vendorProducts?.map(p => p.id) || []);
+    const filtered = views.filter(v => ids.has(v.product_id));
 
-    // Group by date
-    const viewsByDate: Record<string, number> = {};
-    vendorViews.forEach(view => {
-      const date = new Date(view.viewed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      viewsByDate[date] = (viewsByDate[date] || 0) + 1;
+    const byDate: Record<string, number> = {};
+    filtered.forEach(v => {
+      const d = new Date(v.viewed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      byDate[d] = (byDate[d] || 0) + 1;
     });
 
-    const chartData = Object.entries(viewsByDate).map(([date, views]) => ({
-      date,
-      views,
-    }));
-
-    setViewsData(chartData);
+    setViewsData(Object.entries(byDate).map(([date, views]) => ({ date, views })));
   };
 
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
+  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading…</div>;
+
+  // ── Greeting ─────────────────────────────────────────────────────────────────
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const vendorName = profile?.full_name?.split(" ")[0] || "Vendor";
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="min-h-screen bg-muted/30 overflow-x-hidden">
       <VendorNavbar />
       <div className="flex">
         <VendorSidebar />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Dashboard Overview</h1>
 
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 pb-10">
 
-          {/* Push Notification Prompt - shows if vendor hasn't enabled notifications */}
+          {/* ── Header ── */}
+          <div className="flex items-start justify-between mb-5 sm:mb-6">
+            <div>
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium">{greeting},</p>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{vendorName} 👋</h1>
+            </div>
+            <Button size="sm" onClick={() => navigate("/vendor/add-product")} className="shrink-0 gap-1.5 text-xs sm:text-sm">
+              <Package className="h-3.5 w-3.5" /> Add Product
+            </Button>
+          </div>
+
+          {/* ── Push notification prompt ── */}
           <PushNotificationPrompt variant="banner" />
 
           {dataLoading ? (
-            <div className="text-center py-12 text-muted-foreground">
-              Loading dashboard data...
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-24 rounded-2xl bg-muted animate-pulse" />
+              ))}
             </div>
           ) : (
             <>
-              {/* Rating Notice Alert */}
-              <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Star className="h-5 w-5 text-amber-500 mt-0.5" />
-                  <div>
-                    <h3 className="font-semibold text-amber-800">Your Ratings Matter!</h3>
-                    <p className="text-sm text-amber-700 mt-1">
-                      Buyers rate you after receiving their orders. Higher ratings = better visibility and more sales.
-                      Provide excellent service, fast shipping, and quality products to improve your ratings.
-                    </p>
-                    {stats.averageRating > 0 && (
-                      <p className="text-sm font-medium text-amber-800 mt-2">
-                        Current rating: <span className="text-lg">{stats.averageRating} ★</span>
-                      </p>
-                    )}
+              {/* ── Urgent action banner (only when needed) ── */}
+              {stats.pendingOrders > 0 && (
+                <Link
+                  to="/vendor/orders"
+                  className="flex items-center gap-3 px-4 py-3 mb-4 rounded-xl bg-amber-500/10 border border-amber-400/30 hover:bg-amber-500/15 transition-colors"
+                >
+                  <Zap className="h-4 w-4 text-amber-600 shrink-0" />
+                  <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 flex-1">
+                    {stats.pendingOrders} order{stats.pendingOrders !== 1 ? "s" : ""} need your confirmation
+                  </p>
+                  <ArrowRight className="h-4 w-4 text-amber-600 shrink-0" />
+                </Link>
+              )}
+
+              {/* ── 4 KPI cards in 2×2 (mobile) / 4×1 (desktop) ── */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
+                {/* Products */}
+                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col gap-1.5 hover:shadow-sm transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Products</span>
+                    <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Package className="h-3.5 w-3.5 text-primary" />
+                    </div>
                   </div>
+                  <p className="text-2xl font-bold">{stats.totalProducts}</p>
+                  <Link to="/vendor/products" className="text-[11px] text-primary font-medium flex items-center gap-0.5 hover:underline">
+                    Manage <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
+
+                {/* Rating */}
+                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col gap-1.5 hover:shadow-sm transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Rating</span>
+                    <div className="h-7 w-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <Star className="h-3.5 w-3.5 text-amber-500" />
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold">
+                    {stats.averageRating > 0 ? stats.averageRating : "—"}
+                  </p>
+                  <span className="text-[11px] text-muted-foreground">
+                    {stats.averageRating > 0 ? "out of 5 ★" : "No ratings yet"}
+                  </span>
+                </div>
+
+                {/* Views */}
+                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col gap-1.5 hover:shadow-sm transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Views</span>
+                    <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <Eye className="h-3.5 w-3.5 text-blue-500" />
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</p>
+                  <span className="text-[11px] text-muted-foreground">Product page views</span>
+                </div>
+
+                {/* Orders */}
+                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col gap-1.5 hover:shadow-sm transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Orders</span>
+                    <div className="h-7 w-7 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                      <ShoppingCart className="h-3.5 w-3.5 text-purple-500" />
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold">{stats.ordersReceived}</p>
+                  <Link to="/vendor/orders" className="text-[11px] text-primary font-medium flex items-center gap-0.5 hover:underline">
+                    View all <ArrowRight className="h-3 w-3" />
+                  </Link>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stats.totalProducts}</div>
-                  </CardContent>
-                </Card>
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
-                    <Star className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {stats.averageRating > 0 ? `${stats.averageRating} ★` : "No ratings yet"}
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* ── Earnings summary row ── */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-5">
+                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Earned</span>
+                  </div>
+                  <p className="text-xl font-bold">KES {stats.totalEarned.toLocaleString()}</p>
+                  <span className="text-[11px] text-muted-foreground">From completed orders</span>
+                </div>
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stats.totalViews}</div>
-                  </CardContent>
-                </Card>
-
-                <Card className={stats.pendingOrders > 0 ? "border-primary" : ""}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Action Items</CardTitle>
-                    <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stats.pendingOrders}</div>
-                    <p className="text-xs text-muted-foreground">Orders awaiting confirmation</p>
-                  </CardContent>
-                </Card>
+                <div className="bg-green-50 dark:bg-green-950/30 rounded-2xl border border-green-200 dark:border-green-800 p-4 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                    <span className="text-xs font-medium text-green-700 dark:text-green-400 uppercase tracking-wide">Paid Out</span>
+                  </div>
+                  <p className="text-xl font-bold text-green-700 dark:text-green-400">KES {stats.paidOut.toLocaleString()}</p>
+                  <span className="text-[11px] text-green-600 dark:text-green-500">Sent to M-Pesa</span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Orders Received</CardTitle>
-                    <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stats.ordersReceived}</div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Earned</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">KES {stats.totalEarned.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">From completed orders</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">Paid Out</CardTitle>
-                    <DollarSign className="h-4 w-4 text-green-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-green-700 dark:text-green-300">KES {stats.paidOut.toLocaleString()}</div>
-                    <p className="text-xs text-green-600 dark:text-green-400">Sent to your M-Pesa</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* New Payout Management Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              {/* ── Wallet + Payout History ── */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
                 <VendorBalanceCard vendorId={user?.id!} />
                 <PayoutHistory vendorId={user?.id!} />
               </div>
 
+              {/* ── Chart + Sidebar (alerts & recent orders) ── */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <Card className="lg:col-span-2">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle>Product Views This Month</CardTitle>
+                {/* Chart */}
+                <Card className="lg:col-span-2 rounded-2xl border-border">
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="text-sm font-semibold">Product Views</CardTitle>
+                      <p className="text-xs text-muted-foreground mt-0.5">This month</p>
+                    </div>
                     <Eye className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     {viewsData.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <Eye className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                        <p className="text-muted-foreground">No views recorded this month yet</p>
+                      <div className="flex flex-col items-center justify-center py-10 text-center">
+                        <Eye className="h-10 w-10 text-muted-foreground/30 mb-3" />
+                        <p className="text-sm text-muted-foreground">No views recorded this month</p>
                       </div>
                     ) : (
-                      <ChartContainer
-                        config={{
-                          views: {
-                            label: "Views",
-                            color: "hsl(var(--primary))",
-                          },
-                        }}
-                        className="h-[300px]"
-                      >
-                        <AreaChart data={viewsData}>
+                      <ResponsiveContainer width="100%" height={220}>
+                        <AreaChart data={viewsData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                           <defs>
                             <linearGradient id="fillViews" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                              <stop offset="5%"  stopColor="hsl(var(--primary))" stopOpacity={0.25} />
                               <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                          <XAxis
-                            dataKey="date"
-                            tickLine={false}
-                            axisLine={false}
-                            tickMargin={8}
-                            className="text-xs"
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={6} tick={{ fontSize: 11 }} />
+                          <YAxis tickLine={false} axisLine={false} tickMargin={4} tick={{ fontSize: 11 }} />
+                          <Tooltip
+                            contentStyle={{ borderRadius: 10, border: "1px solid hsl(var(--border))", fontSize: 12 }}
+                            cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "4 4" }}
                           />
-                          <YAxis
-                            tickLine={false}
-                            axisLine={false}
-                            tickMargin={8}
-                            className="text-xs"
-                          />
-                          <ChartTooltip content={<ChartTooltipContent />} />
                           <Area
-                            type="monotone"
-                            dataKey="views"
-                            stroke="hsl(var(--primary))"
-                            strokeWidth={2}
-                            fill="url(#fillViews)"
+                            type="monotone" dataKey="views"
+                            stroke="hsl(var(--primary))" strokeWidth={2}
+                            fill="url(#fillViews)" dot={false}
                           />
                         </AreaChart>
-                      </ChartContainer>
+                      </ResponsiveContainer>
                     )}
                   </CardContent>
                 </Card>
 
-                <div className="space-y-6">
-                  {/* Low Stock Alert */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base font-semibold text-destructive flex items-center gap-2">
-                        Alert: Low Stock
+                {/* Right column: Low stock + Recent orders */}
+                <div className="space-y-4">
+
+                  {/* Low stock */}
+                  <Card className="rounded-2xl border-border">
+                    <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
+                        <AlertTriangle className="h-4 w-4 text-destructive" />
+                        Low Stock
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       {lowStockProducts.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">All products are well stocked.</p>
+                        <p className="text-xs text-muted-foreground py-2">All products well stocked ✓</p>
                       ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-2">
                           {lowStockProducts.map((p: any) => (
-                            <div key={p.id} className="flex items-center justify-between text-sm border-b pb-2 last:border-0 last:pb-0">
-                              <span className="truncate max-w-[70%] font-medium">{p.name}</span>
-                              <span className="text-destructive font-bold">{p.stock} left</span>
+                            <div key={p.id} className="flex items-center justify-between text-xs">
+                              <span className="truncate max-w-[65%] font-medium">{p.name}</span>
+                              <span className="font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full">
+                                {p.stock} left
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -402,34 +360,44 @@ const VendorDashboard = () => {
                     </CardContent>
                   </Card>
 
-                  {/* Recent Orders */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base font-semibold">Recent Orders</CardTitle>
+                  {/* Recent orders */}
+                  <Card className="rounded-2xl border-border">
+                    <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        Recent Orders
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       {recentOrders.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No orders yet.</p>
+                        <p className="text-xs text-muted-foreground py-2">No orders yet.</p>
                       ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-2.5">
                           {recentOrders.map((order: any) => (
-                            <div key={order.id} className="flex items-center justify-between text-sm border-b pb-2 last:border-0 last:pb-0">
+                            <div key={order.id} className="flex items-center justify-between gap-2">
                               <div>
-                                <p className="font-medium">#{order.id.slice(0, 6)}</p>
-                                <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
+                                <p className="text-xs font-semibold">#{order.id.slice(0, 8)}</p>
+                                <p className="text-[11px] text-muted-foreground">
+                                  {new Date(order.created_at).toLocaleDateString("en-KE", { day: "numeric", month: "short" })}
+                                </p>
                               </div>
-                              <Badge variant={order.status === 'completed' ? 'default' : 'secondary'}>
-                                {order.status.replace(/_/g, " ")}
-                              </Badge>
+                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[order.status] ?? "bg-muted text-muted-foreground"}`}>
+                                {STATUS_LABEL[order.status] ?? order.status.replace(/_/g, " ")}
+                              </span>
                             </div>
                           ))}
-                          <Button variant="link" className="w-full h-auto p-0 text-xs" onClick={() => navigate('/vendor/orders')}>
-                            View All Orders
+                          <Button
+                            variant="outline" size="sm"
+                            className="w-full mt-1 text-xs h-8 rounded-lg"
+                            onClick={() => navigate("/vendor/orders")}
+                          >
+                            View all orders
                           </Button>
                         </div>
                       )}
                     </CardContent>
                   </Card>
+
                 </div>
               </div>
             </>

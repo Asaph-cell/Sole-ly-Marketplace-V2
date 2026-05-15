@@ -200,12 +200,13 @@ create index commission_vendor_idx on commission_ledger(vendor_id);
 create trigger orders_updated_at
 before update on orders
 for each row
-execute procedure supabase_functions.handle_updated_at();
+execute procedure public.handle_updated_at();
 
 create trigger order_shipping_details_updated_at
 before update on order_shipping_details
 for each row
-execute procedure supabase_functions.handle_updated_at();
+execute procedure public.handle_updated_at();
+
 
 -- 5. RLS ---------------------------------------------------------------
 
@@ -224,7 +225,7 @@ create policy "orders_select" on orders
   for select using (
     auth.uid() = customer_id
     or auth.uid() = vendor_id
-    or has_role('admin', auth.uid())
+    or has_role(auth.uid(), 'admin')
   );
 
 create policy "orders_update_customer" on orders
@@ -242,7 +243,7 @@ create policy "order_items_select" on order_items
     exists (
       select 1 from orders o
       where o.id = order_id
-        and (auth.uid() = o.customer_id or auth.uid() = o.vendor_id or has_role('admin', auth.uid()))
+        and (auth.uid() = o.customer_id or auth.uid() = o.vendor_id or has_role(auth.uid(), 'admin'))
     )
   );
 
@@ -253,7 +254,7 @@ create policy "order_shipping_select" on order_shipping_details
     exists (
       select 1 from orders o
       where o.id = order_id
-        and (auth.uid() = o.customer_id or auth.uid() = o.vendor_id or has_role('admin', auth.uid()))
+        and (auth.uid() = o.customer_id or auth.uid() = o.vendor_id or has_role(auth.uid(), 'admin'))
     )
   );
 
@@ -277,7 +278,7 @@ create policy "payments_select" on payments
     exists (
       select 1 from orders o
       where o.id = order_id
-        and (auth.uid() = o.customer_id or auth.uid() = o.vendor_id or has_role('admin', auth.uid()))
+        and (auth.uid() = o.customer_id or auth.uid() = o.vendor_id or has_role(auth.uid(), 'admin'))
     )
   );
 
@@ -286,14 +287,14 @@ create policy "escrow_select" on escrow_transactions
     exists (
       select 1 from orders o
       where o.id = order_id
-        and (auth.uid() = o.customer_id or auth.uid() = o.vendor_id or has_role('admin', auth.uid()))
+        and (auth.uid() = o.customer_id or auth.uid() = o.vendor_id or has_role(auth.uid(), 'admin'))
     )
   );
 
 -- Payouts
 
 create policy "payouts_select_vendor" on payouts
-  for select using (auth.uid() = vendor_id or has_role('admin', auth.uid()));
+  for select using (auth.uid() = vendor_id or has_role(auth.uid(), 'admin'));
 
 -- Disputes
 
@@ -301,19 +302,19 @@ create policy "disputes_select" on disputes
   for select using (
     auth.uid() = customer_id
     or auth.uid() = vendor_id
-    or has_role('admin', auth.uid())
+    or has_role(auth.uid(), 'admin')
   );
 
 create policy "disputes_insert_customer" on disputes
   for insert with check (auth.uid() = customer_id);
 
 create policy "disputes_update_admin" on disputes
-  for update using (has_role('admin', auth.uid()))
-  with check (has_role('admin', auth.uid()));
+  for update using (has_role(auth.uid(), 'admin'))
+  with check (has_role(auth.uid(), 'admin'));
 
 -- Commission ledger (viewable by vendor & admin)
 
 create policy "commission_select" on commission_ledger
-  for select using (auth.uid() = vendor_id or has_role('admin', auth.uid()));
+  for select using (auth.uid() = vendor_id or has_role(auth.uid(), 'admin'));
 
 

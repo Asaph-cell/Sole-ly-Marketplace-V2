@@ -22,7 +22,7 @@ const About = () => {
     <div className="min-h-screen py-12">
       <SEO
         title="About Us"
-        description="Kenya's friendly shoe marketplace. Learn about Sole-ly Marketplace's mission to connect shoe lovers with trusted vendors across Kenya through secure escrow-protected transactions."
+        description="Learn about Sole-ly Marketplace's mission to connect buyers with trusted vendors across Kenya through secure escrow-protected transactions — shoes, electronics, fashion, beauty & more."
         canonical="https://solelyshoes.co.ke/about"
         breadcrumbs={[
           { name: "Home", url: "/" },
@@ -39,7 +39,7 @@ const About = () => {
           />
           <h1 className="text-5xl font-bold mb-6">About Sole-ly Marketplace</h1>
           <p className="text-xl text-muted-foreground leading-relaxed">
-            Kenya's friendly shoe marketplace where buying and selling shoes is simple, safe, and exciting. We're on a mission to connect shoe lovers with amazing vendors across Kenya.
+           Kenya's safest social commerce marketplace — where buying and selling anything is simple, safe, and exciting. We're on a mission to connect shoppers with amazing vendors across Kenya.
           </p>
         </div>
 

@@ -77,10 +77,10 @@ const Footer = () => {
                 alt="Sole-ly Marketplace"
                 className="h-14 w-auto transition-transform group-hover:scale-105 brightness-0 invert"
               />
-              <span className="text-[10px] text-secondary-foreground/60 tracking-wide uppercase -mt-3 pl-1">the shoe marketplace</span>
+              <span className="text-[10px] text-secondary-foreground/60 tracking-wide uppercase -mt-3 pl-1">Kenya's Trusted Marketplace</span>
             </Link>
             <p className="text-sm text-secondary-foreground/80">
-              Kenya's Premier Secure Marketplace for Authentic Footwear.
+              Kenya's Premier Secure Marketplace — Shoes, Fashion, Electronics &amp; More.
             </p>
           </div>
 
@@ -94,8 +94,13 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/how-it-works" className="text-sm hover:text-primary transition-colors">
+                  How It Works
+                </Link>
+              </li>
+              <li>
                 <Link to="/vendor" className="text-sm hover:text-primary transition-colors">
-                  Sell Your Shoes
+                  Start Selling
                 </Link>
               </li>
               <li>

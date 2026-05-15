@@ -28,7 +28,8 @@ WITH CHECK (
 );
 
 -- Allow users to update their own reviews
-CREATE POLICY IF NOT EXISTS "Users can update their own reviews" 
+DROP POLICY IF EXISTS "Users can update their own reviews" ON public.reviews;
+CREATE POLICY "Users can update their own reviews" 
 ON public.reviews 
 FOR UPDATE 
 USING (auth.uid() = user_id OR has_role(auth.uid(), 'admin'::app_role))

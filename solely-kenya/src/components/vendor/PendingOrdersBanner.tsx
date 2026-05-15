@@ -33,7 +33,8 @@ export const PendingOrdersBanner = () => {
             if (!user) return;
 
             try {
-                // Only fetch orders that have been fully paid
+                // Only fetch orders under 48 hours old — expired ones are already missed
+                const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
                 const { data: orders, error } = await supabase
                     .from("orders")
                     .select(`
@@ -44,12 +45,15 @@ export const PendingOrdersBanner = () => {
           `)
                     .eq("vendor_id", user.id)
                     .eq("status", "pending_vendor_confirmation")
+                    .gte("created_at", cutoff)
                     .order("created_at", { ascending: true });
 
                 if (error) throw error;
 
-                // Filter to only include fully paid orders
+                // Filter to only include fully paid orders that are under 48 hours old
                 const paidOrders = (orders || []).filter((order: any) => {
+                    // Double-check age client-side (DB filter is primary, this is safety net)
+                    if (differenceInHours(new Date(), new Date(order.created_at)) >= 48) return false;
                     const totalPaid = (order.payments || [])
                         .filter((p: any) => p.status === "captured")
                         .reduce((sum: number, p: any) => sum + Number(p.amount_ksh || 0), 0);

@@ -7,7 +7,7 @@ VALUES ('dispute-evidence', 'dispute-evidence', true)
 ON CONFLICT (id) DO UPDATE SET public = true;
 
 -- Allow authenticated users to upload to their folder
-CREATE POLICY IF NOT EXISTS "Users can upload dispute evidence"
+CREATE POLICY "Users can upload dispute evidence"
 ON storage.objects FOR INSERT
 TO authenticated
 WITH CHECK (
@@ -15,13 +15,13 @@ WITH CHECK (
 );
 
 -- Allow anyone to view dispute evidence (needed for admin viewing)
-CREATE POLICY IF NOT EXISTS "Public read access for dispute evidence"
+CREATE POLICY "Public read access for dispute evidence"
 ON storage.objects FOR SELECT
 TO public
 USING (bucket_id = 'dispute-evidence');
 
 -- Allow authenticated users to delete their own uploads
-CREATE POLICY IF NOT EXISTS "Users can delete own evidence"
+CREATE POLICY "Users can delete own evidence"
 ON storage.objects FOR DELETE
 TO authenticated
 USING (

@@ -139,12 +139,14 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
     if (!user) return;
 
     const fetchAlertCounts = async () => {
-      // Fetch pending orders count (orders awaiting vendor action)
+      // Fetch pending orders count — only genuinely actionable ones (under 48 hours old)
+      const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
       const { count: pendingOrdersCount } = await supabase
         .from("orders")
         .select("*", { count: "exact", head: true })
         .eq("vendor_id", user.id)
-        .eq("status", "pending_vendor_confirmation");
+        .eq("status", "pending_vendor_confirmation")
+        .gte("created_at", cutoff);
 
       // Fetch open disputes count
       const { count: openDisputesCount } = await supabase

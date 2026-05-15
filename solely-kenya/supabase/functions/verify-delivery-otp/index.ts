@@ -1,12 +1,16 @@
 /**
- * Verify Delivery OTP & Release Funds
- * 
- * Called when vendor enters the OTP they collected from buyer at delivery.
+ * Verify 6-Digit OTP & Release Funds (V2)
+ *
+ * Called when the VENDOR enters the 6-digit OTP shown on the buyer's screen.
+ * The buyer receives this OTP after entering the 3-digit Package PIN.
  * If OTP matches:
- * 1. Updates order status to 'completed'
- * 2. Updates escrow transaction to 'released'
- * 3. Creates a PAYOUT record for the vendor
- * 4. Transfers funds to vendor wallet
+ * 1. Order status → 'completed'
+ * 2. Escrow → 'released'
+ * 3. Payout record created for the vendor
+ * 4. Funds transferred to vendor's IntaSend wallet
+ *
+ * Works for BOTH delivery and pickup orders.
+ * For pickup: buyer enters PIN (skipped), gets OTP, shows vendor → vendor enters here.
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -60,12 +64,18 @@ serve(async (req: Request) => {
             .single();
 
         if (orderError || !order) throw new Error('Order not found');
-        if (order.vendor_id !== userId) throw new Error('Unauthorized - not your order');
+        if (order.vendor_id !== userId) throw new Error('Unauthorized — not your order');
         if (order.status === 'completed') throw new Error('Order already completed');
+
+        // Order must be in 'delivered' status (buyer already entered the PIN)
+        const validStatuses = ['delivered', 'arrived', 'shipped']; // backwards-compat
+        if (!validStatuses.includes(order.status)) {
+            throw new Error(`Cannot verify OTP for order in status: ${order.status}. Buyer must receive package first.`);
+        }
 
         // Check if OTP exists
         if (!order.delivery_otp) {
-            throw new Error('No OTP generated for this order. Please generate one first.');
+            throw new Error('No OTP available for this order. Buyer must enter the Package PIN first.');
         }
 
         // Check if OTP was already verified
@@ -147,7 +157,7 @@ serve(async (req: Request) => {
                 vendor_id: order.vendor_id,
                 commission_rate: order.commission_rate || 10,
                 commission_amount: commissionAmount,
-                notes: "Delivery confirmed via OTP",
+                notes: "Funds released via vendor OTP entry",
             });
 
         if (commissionError) {

@@ -1,4 +1,4 @@
-project_id = "cqcklvdblhcdowisjnsf"
+project_id = "ktoodrjfytteppnpyhvi"
 
 [functions.mpesa-stk-push]
 verify_jwt = true
@@ -9,17 +9,11 @@ verify_jwt = false
 [functions.check-payment-status]
 verify_jwt = true
 
-[functions.pesapal-callback]
-verify_jwt = false
-
-[functions.pesapal-ipn-listener]
-verify_jwt = false
-
-[functions.pesapal-initiate-payment]
-verify_jwt = true
-
-[functions.pesapal-register-ipn]
-verify_jwt = true
-
 [functions.intasend-webhook]
 verify_jwt = false
+
+[functions.verify-package-pin]
+verify_jwt = true
+
+[functions.report-stolen-item]
+verify_jwt = true

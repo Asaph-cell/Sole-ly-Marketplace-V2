@@ -104,7 +104,7 @@ const ProductCard = ({
               {/* Image (always visible as base layer) - with blur lazy load */}
               <LazyLoadImage
                 src={image}
-                alt={`${brand ? brand + ' ' : ''}${name} Shoes for Sale in Kenya`}
+                alt={`${brand ? brand + ' ' : ''}${name} for Sale in Kenya`}
                 effect="blur"
                 className={`w-full h-full object-cover transition-opacity duration-300 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"
                   }`}

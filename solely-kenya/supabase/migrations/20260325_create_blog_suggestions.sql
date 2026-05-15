@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS public.blog_suggestions (
 );
 
 -- Enable RLS
-ALTER TABLE public.blog_suggestions ENABLE CONTROL;
+ALTER TABLE public.blog_suggestions ENABLE ROW LEVEL SECURITY;
 
 -- Allow anyone to insert suggestions (publicly accessible)
 CREATE POLICY "Anyone can suggest a topic" ON public.blog_suggestions

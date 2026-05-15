@@ -9,8 +9,8 @@ const Vendor = () => {
   return (
     <div className="min-h-screen py-12">
       <SEO 
-        title="Sell Shoes Online Kenya | Become a Vendor"
-        description="Join Kenya's secure shoe marketplace. Sell authentic sneakers, formal shoes & more with zero upfront fees. Reach thousands of buyers across Kenya with escrow protection."
+        title="Sell Online in Kenya | Become a Vendor on Solely"
+        description="Join Kenya's secure social commerce marketplace. Sell shoes, electronics, fashion, beauty & more with zero upfront fees. Reach thousands of buyers across Kenya with escrow protection."
         canonical="https://solelyshoes.co.ke/vendor"
       />
       <div className="container mx-auto px-4">
@@ -107,7 +107,7 @@ const Vendor = () => {
               </div>
               <h3 className="font-semibold mb-2">List Your Products</h3>
               <p className="text-sm text-muted-foreground">
-                Upload photos, set prices, and publish your shoes to the marketplace
+                Upload photos, set prices, and publish your products to the marketplace
               </p>
             </div>
             <div className="text-center">
@@ -208,7 +208,7 @@ const Vendor = () => {
             </Card>
             <Card className="border-2">
               <CardHeader>
-                <CardTitle className="text-lg">Can I sell used shoes?</CardTitle>
+                <CardTitle className="text-lg">Can I sell used or pre-owned items?</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">

@@ -73,9 +73,9 @@ const VendorProducts = () => {
     }
   };
 
-  // Separate shoes from accessories
-  const shoes = products.filter(p => p.category !== "accessories");
-  const accessories = products.filter(p => p.category === "accessories");
+  // Separate regular products from legacy accessories
+  const regularProducts  = products.filter(p => p.category !== "accessories");
+  const accessories      = products.filter(p => p.category === "accessories");
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -172,7 +172,7 @@ const VendorProducts = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
               <Button className="w-full sm:w-auto" onClick={() => navigate("/vendor/add-product")}>
                 <Package className="h-4 w-4 mr-2" />
-                Add Shoe
+                Add Product
               </Button>
               <Button variant="outline" className="w-full sm:w-auto" onClick={() => navigate("/vendor/add-accessory")}>
                 <ShoppingBag className="h-4 w-4 mr-2" />
@@ -181,11 +181,11 @@ const VendorProducts = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="shoes" className="w-full">
+          <Tabs defaultValue="products" className="w-full">
             <TabsList className="mb-4 sm:mb-6">
-              <TabsTrigger value="shoes" className="flex items-center gap-2">
+              <TabsTrigger value="products" className="flex items-center gap-2">
                 <Package className="h-4 w-4" />
-                Shoes ({shoes.length})
+                Products ({regularProducts.length})
               </TabsTrigger>
               <TabsTrigger value="accessories" className="flex items-center gap-2">
                 <ShoppingBag className="h-4 w-4" />
@@ -193,9 +193,9 @@ const VendorProducts = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="shoes">
+            <TabsContent value="products">
               <div className="overflow-x-auto -mx-3 sm:mx-0">
-                <ProductTable items={shoes} />
+                <ProductTable items={regularProducts} />
               </div>
             </TabsContent>
 

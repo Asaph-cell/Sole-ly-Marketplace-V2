@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { ShoeSizeChart } from "@/components/ShoeSizeChart";
 import { VideoUploader } from "@/components/VideoUploader";
 import { AlertTriangle } from "lucide-react";
-import { CATEGORIES, getCategoryName } from "@/lib/categories";
+import { CATEGORIES, ALL_CATEGORIES, getCategoryName } from "@/lib/categories";
 
 const VendorAddProduct = () => {
   const { user, loading } = useAuth();
@@ -30,6 +30,7 @@ const VendorAddProduct = () => {
     stock: "",
     brand: "",
     category: "",
+    subcategory: "",
     key_features: "",
     sizes: "",
     colors: "",
@@ -139,19 +140,21 @@ const VendorAddProduct = () => {
       if (!formData.stock || parseInt(formData.stock) < 0) throw new Error("Valid stock number is required");
       if (!formData.category) throw new Error("Category is required");
 
-      // Validation: Shoes (everything except accessories) MUST have sizes and colors
-      if (formData.category !== "accessories") {
+      // Validation: Only require sizes/colors for wearable categories
+      const wearableCategories = ["shoes", "womens-fashion", "mens-fashion", "kids", "sports"];
+      const needsSizing = wearableCategories.includes(formData.category);
+      if (needsSizing) {
         if (sizesArray.length === 0) {
-          throw new Error("Please add at least one size for this shoe");
+          throw new Error("Please add at least one size for this product");
         }
         if (colorsArray.length === 0) {
-          throw new Error("Please add at least one color for this shoe");
+          throw new Error("Please add at least one color for this product");
         }
       }
 
       // Validation: At least one image is required
       if (imageFiles.length === 0) {
-        throw new Error("Please upload at least one image of the shoe");
+        throw new Error("Please upload at least one image of this product");
       }
 
       // Upload images
@@ -166,6 +169,7 @@ const VendorAddProduct = () => {
         stock: parseInt(formData.stock),
         brand: formData.brand,
         category: formData.category,
+        subcategory: formData.subcategory || null,
         key_features: keyFeaturesArray,
         status: "draft",
         sizes: sizesArray,
@@ -185,7 +189,7 @@ const VendorAddProduct = () => {
 
       if (publishError) throw publishError;
 
-      toast.success("Shoe listed successfully! It is now live on the marketplace.");
+      toast.success("Product listed successfully! It is now live on the marketplace.");
       navigate("/vendor/products");
     } catch (error: any) {
       toast.error(error.message);
@@ -204,16 +208,16 @@ const VendorAddProduct = () => {
       <div className="flex">
         <VendorSidebar />
         <main className="flex-1 p-8">
-          <h1 className="text-3xl font-bold mb-8">Add New Shoe</h1>
+          <h1 className="text-3xl font-bold mb-8">Add New Product</h1>
 
           <Card className="max-w-2xl">
             <CardHeader>
-              <CardTitle>Shoe Details</CardTitle>
+              <CardTitle>Product Details</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Shoe Name *</Label>
+                  <Label htmlFor="name">Product Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -285,10 +289,36 @@ const VendorAddProduct = () => {
                   </Select>
                 </div>
 
+                {/* Subcategory — driven by selected category */}
+                {formData.category && (() => {
+                  const cat = ALL_CATEGORIES.find(c => c.key === formData.category);
+                  if (!cat || cat.subcategories.length === 0) return null;
+                  return (
+                    <div>
+                      <Label htmlFor="subcategory">Subcategory (Optional)</Label>
+                      <Select
+                        value={formData.subcategory}
+                        onValueChange={(value) => setFormData({ ...formData, subcategory: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={`Select ${cat.name} type`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cat.subcategories.map((sub) => (
+                            <SelectItem key={sub.key} value={sub.key}>
+                              {sub.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  );
+                })()}
+
                 {/* Condition Selector */}
                 <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
                   <div>
-                    <Label htmlFor="condition" className="text-base font-medium">Shoe Condition *</Label>
+                    <Label htmlFor="condition" className="text-base font-medium">Item Condition *</Label>
                     <p className="text-sm text-muted-foreground mb-2">Is this new or pre-owned?</p>
                     <Select
                       value={formData.condition}
@@ -386,7 +416,7 @@ const VendorAddProduct = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="images">Shoe Images (Max 4)</Label>
+                  <Label htmlFor="images">Product Images (Max 4)</Label>
                   <Input
                     id="images"
                     type="file"
@@ -432,12 +462,12 @@ const VendorAddProduct = () => {
 
                 <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
                   <p className="text-sm text-green-800">
-                    ✅ Your shoe will go <strong>live immediately</strong> after submission! Make sure your details and images are accurate to attract more buyers.
+                    ✅ Your product will go <strong>live immediately</strong> after submission! Make sure your details and images are accurate to attract more buyers.
                   </p>
                 </div>
 
                 <Button type="submit" className="w-full" disabled={submitting || uploading}>
-                  {uploading ? "Uploading Images..." : submitting ? "Adding Shoe..." : "Add Shoe"}
+                  {uploading ? "Uploading Images..." : submitting ? "Listing Product..." : "List Product"}
                 </Button>
               </form>
             </CardContent>

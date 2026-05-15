@@ -5,6 +5,7 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/Sole-ly-Shoe-Marketplace/' : '/',
   server: {
     host: "::",
     port: 8080,

@@ -19,21 +19,27 @@ export const SneakerLoader = ({
 
     return (
         <div className={`flex flex-col items-center justify-center gap-6 ${fullScreen ? "min-h-screen" : "py-12"}`}>
-            {/* Premium Shoe Loader */}
+            {/* Marketplace Loader */}
             <div className="relative">
                 {/* Outer spinning ring */}
                 <div className={`${ring} rounded-full border-4 border-muted`}></div>
                 <div className={`absolute inset-0 ${ring} rounded-full border-4 border-primary border-t-transparent animate-spin`}></div>
 
-                {/* Floating sneaker icon in center */}
+                {/* Shopping bag icon in center */}
                 <div className="absolute inset-0 flex items-center justify-center">
                     <div className="animate-bounce">
                         <svg
                             className={`${icon} text-primary`}
-                            viewBox="0 0 64 64"
-                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                         >
-                            <path d="M60 38c0 0-4-2-8-2s-8 2-12 2-8-2-12-2-8 2-12 2-8-2-8-2c-2 0-4 2-4 4v4c0 2 2 4 4 4h48c2 0 4-2 4-4v-4c0-2-2-4-4-4zM12 44c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm10 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm10 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM56 32l-8-16c-1-2-3-4-6-4H22c-3 0-5 2-6 4L8 32h48z" />
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 0 1-8 0" />
                         </svg>
                     </div>
                 </div>

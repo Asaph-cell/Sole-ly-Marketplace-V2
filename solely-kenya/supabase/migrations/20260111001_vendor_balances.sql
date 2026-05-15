@@ -3,7 +3,7 @@
 
 -- Create vendor_balances table
 CREATE TABLE IF NOT EXISTS vendor_balances (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   vendor_id UUID REFERENCES profiles(id) ON DELETE CASCADE UNIQUE NOT NULL,
   pending_balance DECIMAL(10, 2) DEFAULT 0 CHECK (pending_balance >= 0),
   total_earned DECIMAL(10, 2) DEFAULT 0,

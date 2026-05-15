@@ -7,7 +7,7 @@ VALUES ('product-images', 'product-images', true)
 ON CONFLICT (id) DO UPDATE SET public = true;
 
 -- Allow authenticated vendors to upload product images
-CREATE POLICY IF NOT EXISTS "Vendors can upload product images"
+CREATE POLICY "Vendors can upload product images"
 ON storage.objects FOR INSERT
 TO authenticated
 WITH CHECK (
@@ -15,13 +15,13 @@ WITH CHECK (
 );
 
 -- Allow public read access to product images
-CREATE POLICY IF NOT EXISTS "Public read access for product images"
+CREATE POLICY "Public read access for product images"
 ON storage.objects FOR SELECT
 TO public
 USING (bucket_id = 'product-images');
 
 -- Allow vendors to update their own product images
-CREATE POLICY IF NOT EXISTS "Vendors can update own product images"
+CREATE POLICY "Vendors can update own product images"
 ON storage.objects FOR UPDATE
 TO authenticated
 USING (
@@ -30,7 +30,7 @@ USING (
 );
 
 -- Allow vendors to delete their own product images
-CREATE POLICY IF NOT EXISTS "Vendors can delete own product images"
+CREATE POLICY "Vendors can delete own product images"
 ON storage.objects FOR DELETE
 TO authenticated
 USING (

@@ -18,7 +18,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Find orders that are arrived and have passed the auto-release date
+    // V2: Find 'delivered' orders where the auto_release timer has fired.
+    // auto_release_at is set when buyer enters the 3-digit Package PIN (+6h).
+    // Pickup orders have auto_release_at = null, so they are never auto-released.
     const now = new Date().toISOString();
     const { data: ordersToRelease, error: ordersError } = await supabase
       .from('orders')
@@ -26,15 +28,14 @@ serve(async (req) => {
         id,
         vendor_id,
         status,
-        shipped_at,
         auto_release_at,
         payout_amount,
         commission_amount,
         escrow_transactions(id, status, release_amount, commission_amount)
       `)
-      .eq('status', 'arrived')
+      .eq('status', 'delivered')
       .lte('auto_release_at', now)
-      .is('escrow_transactions.status', 'held');
+      .not('auto_release_at', 'is', null);
 
     if (ordersError) {
       throw ordersError;
@@ -104,9 +105,9 @@ serve(async (req) => {
           .insert({
             order_id: order.id,
             vendor_id: order.vendor_id,
-            commission_rate: 11, // 11% commission
+            commission_rate: 11,
             commission_amount: escrow.commission_amount,
-            notes: 'Auto-released 24 hours after marked arrived (no buyer action)',
+            notes: 'Auto-released 6 hours after buyer entered Package PIN (no vendor OTP)',
           });
 
         if (commissionError) {
