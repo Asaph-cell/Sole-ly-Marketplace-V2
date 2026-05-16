@@ -125,9 +125,10 @@ const Navbar = () => {
               />
               <button
                 type="submit"
-                className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-3 sm:px-4 py-1.5 rounded-full transition-colors"
+                className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground h-7 w-7 flex items-center justify-center rounded-full transition-colors"
+                aria-label="Search"
               >
-                Search
+                <Search className="h-3.5 w-3.5" />
               </button>
             </div>
           </form>
