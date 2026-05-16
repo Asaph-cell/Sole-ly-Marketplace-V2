@@ -96,7 +96,11 @@ const VendorDashboard = () => {
       .from("orders").select("*").eq("vendor_id", user?.id)
       .order("created_at", { ascending: false });
 
-    const pendingOrdersCount = orders?.filter(o => o.status === "pending_vendor_confirmation").length || 0;
+    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const pendingOrdersCount = orders?.filter(o =>
+      o.status === "pending_vendor_confirmation" &&
+      new Date(o.created_at) >= cutoff
+    ).length || 0;
     setRecentOrders(orders?.slice(0, 5) || []);
 
     const completedOrders = orders?.filter(o => o.status === "completed" || o.status === "arrived") || [];
@@ -170,9 +174,35 @@ const VendorDashboard = () => {
               <p className="text-xs sm:text-sm text-muted-foreground font-medium">{greeting},</p>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{vendorName} 👋</h1>
             </div>
-            <Button size="sm" onClick={() => navigate("/vendor/add-product")} className="shrink-0 gap-1.5 text-xs sm:text-sm">
-              <Package className="h-3.5 w-3.5" /> Add Product
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                title="Preview notification sound"
+                onClick={() => {
+                  try {
+                    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                    const play = (freq: number, t: number, dur: number) => {
+                      const osc = ctx.createOscillator();
+                      const gain = ctx.createGain();
+                      osc.connect(gain); gain.connect(ctx.destination);
+                      osc.type = "sine";
+                      osc.frequency.setValueAtTime(freq, t);
+                      gain.gain.setValueAtTime(0, t);
+                      gain.gain.linearRampToValueAtTime(0.3, t + 0.02);
+                      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+                      osc.start(t); osc.stop(t + dur);
+                    };
+                    const t = ctx.currentTime;
+                    play(880, t, 0.3); play(1108, t + 0.18, 0.4); play(1318, t + 0.36, 0.5);
+                  } catch {}
+                }}
+                className="h-8 w-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center text-base transition-colors"
+              >
+                🔔
+              </button>
+              <Button size="sm" onClick={() => navigate("/vendor/list-item")} className="gap-1.5 text-xs sm:text-sm">
+                <Package className="h-3.5 w-3.5" /> List Item
+              </Button>
+            </div>
           </div>
 
           {/* ── Push notification prompt ── */}

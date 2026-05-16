@@ -54,6 +54,7 @@ const VendorDashboard = lazyRetry(() => import("./pages/vendor/VendorDashboard")
 const VendorProducts = lazyRetry(() => import("./pages/vendor/VendorProducts"));
 const VendorAddProduct = lazyRetry(() => import("./pages/vendor/VendorAddProduct"));
 const VendorAddAccessory = lazyRetry(() => import("./pages/vendor/VendorAddAccessory"));
+const VendorListItem = lazyRetry(() => import("./pages/vendor/VendorListItem"));
 const VendorEditProduct = lazyRetry(() => import("./pages/vendor/VendorEditProduct"));
 const VendorEditAccessory = lazyRetry(() => import("./pages/vendor/VendorEditAccessory"));
 // Subscription flow removed in commission model
@@ -106,8 +107,9 @@ const AnimatedRoutes = () => {
         <Route path="/privacy-policy" element={<PageWrapper><PrivacyPolicy /></PageWrapper>} />
         <Route path="/vendor/dashboard" element={<PageWrapper><VendorDashboard /></PageWrapper>} />
         <Route path="/vendor/products" element={<PageWrapper><VendorProducts /></PageWrapper>} />
-        <Route path="/vendor/add-product" element={<PageWrapper><VendorAddProduct /></PageWrapper>} />
-        <Route path="/vendor/add-accessory" element={<PageWrapper><VendorAddAccessory /></PageWrapper>} />
+        <Route path="/vendor/list-item" element={<PageWrapper><VendorListItem /></PageWrapper>} />
+        <Route path="/vendor/add-product" element={<PageWrapper><VendorListItem /></PageWrapper>} />
+        <Route path="/vendor/add-accessory" element={<PageWrapper><VendorListItem /></PageWrapper>} />
         <Route path="/vendor/edit-product/:id" element={<PageWrapper><VendorEditProduct /></PageWrapper>} />
         <Route path="/vendor/edit-accessory/:id" element={<PageWrapper><VendorEditAccessory /></PageWrapper>} />
         {null}

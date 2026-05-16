@@ -29,8 +29,7 @@ interface AlertCounts {
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/vendor/dashboard", alertKey: null, action: null },
   { icon: Package, label: "My Products", path: "/vendor/products", alertKey: null, action: null },
-  { icon: PlusCircle, label: "Add Shoe", path: "/vendor/add-product", alertKey: null, action: null },
-  { icon: ShoppingBag, label: "Add Accessory", path: "/vendor/add-accessory", alertKey: null, action: null },
+  { icon: PlusCircle, label: "List Item", path: "/vendor/list-item", alertKey: null, action: null },
   { icon: ShoppingBag, label: "Orders", path: "/vendor/orders", alertKey: "pendingOrders" as const, action: null },
   { icon: Star, label: "Ratings", path: "/vendor/ratings", alertKey: null, action: null },
   { icon: AlertTriangle, label: "Disputes", path: "/vendor/disputes", alertKey: "openDisputes" as const, action: null },
@@ -165,6 +164,43 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
       setAppBadge(totalAlerts);
     };
 
+    // Play a pleasant chime when a new order arrives
+    const playNewOrderSound = () => {
+      try {
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const play = (freq: number, startTime: number, duration: number) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, startTime);
+          gain.gain.setValueAtTime(0, startTime);
+          gain.gain.linearRampToValueAtTime(0.3, startTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+          osc.start(startTime);
+          osc.stop(startTime + duration);
+        };
+        const t = ctx.currentTime;
+        play(880, t, 0.3);        // A5
+        play(1108, t + 0.18, 0.4); // C#6
+        play(1318, t + 0.36, 0.5); // E6
+      } catch (e) {
+        // Audio context not available (e.g. no user interaction yet) — silent fail
+      }
+    };
+
+    // Show a browser notification if permission already granted
+    const showOrderNotification = () => {
+      if (Notification.permission === "granted") {
+        new Notification("🛒 New Order!", {
+          body: "A customer just placed an order. Tap to review.",
+          icon: "/favicon.ico",
+          tag: "new-order",
+        });
+      }
+    };
+
     fetchAlertCounts();
 
     // Subscribe to real-time updates for orders
@@ -178,7 +214,17 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
           table: "orders",
           filter: `vendor_id=eq.${user.id}`,
         },
-        () => fetchAlertCounts()
+        (payload) => {
+          fetchAlertCounts();
+          // Play sound + notify only on brand-new pending orders
+          if (
+            payload.eventType === "INSERT" &&
+            payload.new?.status === "pending_vendor_confirmation"
+          ) {
+            playNewOrderSound();
+            showOrderNotification();
+          }
+        }
       )
       .subscribe();
 
