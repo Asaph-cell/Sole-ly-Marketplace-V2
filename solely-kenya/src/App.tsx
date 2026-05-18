@@ -67,6 +67,7 @@ const AdminDisputes = lazyRetry(() => import("./pages/admin/AdminDisputes"));
 const Blog = lazyRetry(() => import("./pages/Blog"));
 const BlogPost = lazyRetry(() => import("./pages/BlogPost"));
 const HowItWorks = lazyRetry(() => import("./pages/HowItWorks"));
+const BuyNow = lazyRetry(() => import("./pages/BuyNow"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
 const WhatsAppButton = lazyRetry(() => import("./components/WhatsAppButton"));
 
@@ -130,6 +131,17 @@ const AnimatedRoutes = () => {
   );
 };
 
+// ── Standalone routes (no Navbar/Footer) ─────────────────────────────────────
+const StandaloneRoutes = () => (
+  <Routes>
+    <Route path="/buy/:productId" element={
+      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
+        <BuyNow />
+      </React.Suspense>
+    } />
+  </Routes>
+);
+
 const Maintenance = lazyRetry(() => import("./pages/Maintenance"));
 
 const AppLayout = () => {
@@ -145,6 +157,11 @@ const AppLayout = () => {
         <Maintenance />
       </React.Suspense>
     );
+  }
+
+  // Standalone pages — no Navbar/Footer
+  if (location.pathname.startsWith("/buy/")) {
+    return <StandaloneRoutes />;
   }
 
   // Hide main navbar/footer on vendor and admin pages (they have their own)
