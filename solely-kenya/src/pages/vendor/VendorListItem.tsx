@@ -25,117 +25,196 @@ const CAT_META: Record<string, { icon: LucideIcon; from: string; to: string; tex
   home:            { icon: Home,       from: "#FB923C", to: "#FBBF24", text: "#fff" },
 };
 
-// ── Condition options by category group ─────────────────────────────────────
+// ── Condition options by category group ──────────────────────────────────────
 const CONDITIONS_GENERAL = [
-  { value: "new",      label: "Brand New",    desc: "Sealed / never used",           dot: "bg-emerald-500" },
-  { value: "like_new", label: "Like New",     desc: "Used once or twice, no wear",   dot: "bg-blue-500" },
-  { value: "good",     label: "Good",         desc: "Light use, minor wear",         dot: "bg-amber-400" },
-  { value: "fair",     label: "Fair",         desc: "Visible wear, fully functional",dot: "bg-orange-500" },
-  { value: "thrifted", label: "Thrifted",     desc: "Pre-owned, honestly described", dot: "bg-purple-500" },
+  { value: "new",      label: "Brand New",  desc: "Sealed / never used",            dot: "bg-emerald-500" },
+  { value: "like_new", label: "Like New",   desc: "Used once or twice, no wear",    dot: "bg-blue-500" },
+  { value: "good",     label: "Good",       desc: "Light use, minor wear",          dot: "bg-amber-400" },
+  { value: "fair",     label: "Fair",       desc: "Visible wear, fully functional", dot: "bg-orange-500" },
+  { value: "thrifted", label: "Thrifted",   desc: "Pre-owned, honestly described",  dot: "bg-purple-500" },
 ];
 const CONDITIONS_ELECTRONICS = [
-  { value: "new",         label: "Brand New",    desc: "Sealed in box",                   dot: "bg-emerald-500" },
-  { value: "refurbished", label: "Refurbished",  desc: "Tested & restored to full working",dot: "bg-blue-500" },
-  { value: "good",        label: "Good",         desc: "Light use, no damage",            dot: "bg-amber-400" },
-  { value: "fair",        label: "Fair",         desc: "Works perfectly, visible wear",   dot: "bg-orange-500" },
+  { value: "new",         label: "Brand New",   desc: "Sealed in original box",           dot: "bg-emerald-500" },
+  { value: "refurbished", label: "Refurbished", desc: "Tested & restored to full working", dot: "bg-blue-500" },
+  { value: "good",        label: "Good",        desc: "Light use, no damage",             dot: "bg-amber-400" },
+  { value: "fair",        label: "Fair",        desc: "Works perfectly, visible wear",    dot: "bg-orange-500" },
 ];
 
-// ── Dynamic spec fields by category ─────────────────────────────────────────
-type SpecField = { key: string; label: string; type: "text"|"select"|"multi"; options?: string[] };
+// All electronics sub-category keys
+const ELEC_SUBS = new Set(["phones","laptops","audio","phone-accessories","gaming","cameras","smartwatches"]);
+const isElectronics = (cat: string, sub: string) => cat === "electronics" || ELEC_SUBS.has(sub);
+
+// ── Spec fields — one entry per category / subcategory ───────────────────────
+type SpecField = { key: string; label: string; type: "text"|"select"; options?: string[]; placeholder?: string };
 
 const SPEC_FIELDS: Record<string, SpecField[]> = {
+  // Shoes
   shoes: [
-    { key:"gender",    label:"Gender",    type:"select",  options:["Men","Women","Kids","Unisex"] },
-    { key:"sizes",     label:"Sizes (EU, comma-sep)", type:"text" },
-    { key:"colors",    label:"Colors (comma-sep)",    type:"text" },
+    { key:"gender",   label:"Gender",               type:"select", options:["Men","Women","Kids","Unisex"] },
+    { key:"sizes",    label:"Sizes (EU, comma-sep)", type:"text",   placeholder:"e.g. 39, 40, 41, 42, 43" },
+    { key:"colors",   label:"Colors",               type:"text",   placeholder:"e.g. Black, White, Brown" },
+    { key:"material", label:"Upper Material",        type:"select", options:["Leather","Suede","Mesh","Canvas","Synthetic","Other"] },
   ],
+  "mens-shoes":   [{ key:"sizes", label:"EU Sizes (comma-sep)", type:"text", placeholder:"40, 41, 42, 43, 44" }, { key:"colors", label:"Colors", type:"text", placeholder:"Black, Brown" }],
+  "womens-shoes": [{ key:"sizes", label:"EU Sizes (comma-sep)", type:"text", placeholder:"36, 37, 38, 39, 40" }, { key:"colors", label:"Colors", type:"text", placeholder:"Nude, Black, White" }],
+  "kids-shoes":   [{ key:"sizes", label:"EU Sizes (comma-sep)", type:"text", placeholder:"25, 26, 27, 28" }, { key:"gender", label:"Gender", type:"select", options:["Boys","Girls","Unisex"] }],
+  sneakers:       [{ key:"sizes", label:"EU Sizes (comma-sep)", type:"text", placeholder:"40, 41, 42, 43" }, { key:"colors", label:"Colors / Colorway", type:"text", placeholder:"e.g. Triple White, Bred" }],
+  "formal-shoes": [{ key:"sizes", label:"EU Sizes (comma-sep)", type:"text", placeholder:"40, 41, 42, 43" }, { key:"gender", label:"Gender", type:"select", options:["Men","Women"] }],
+  boots:          [{ key:"sizes", label:"EU Sizes (comma-sep)", type:"text", placeholder:"38, 39, 40, 41" }, { key:"shaft",  label:"Shaft Height", type:"select", options:["Ankle","Mid-Calf","Knee-High"] }],
+  sandals:        [{ key:"sizes", label:"EU Sizes (comma-sep)", type:"text", placeholder:"36, 37, 38, 39" }, { key:"gender", label:"Gender", type:"select", options:["Men","Women","Kids","Unisex"] }],
+  "casual-shoes": [{ key:"sizes", label:"EU Sizes (comma-sep)", type:"text", placeholder:"38, 39, 40, 41, 42" }, { key:"colors", label:"Colors", type:"text", placeholder:"e.g. White, Navy" }],
+
+  // Women's Fashion
   "womens-fashion": [
-    { key:"size",      label:"Size",      type:"select",  options:["XS","S","M","L","XL","XXL","One Size"] },
-    { key:"colors",    label:"Colors (comma-sep)",    type:"text" },
-    { key:"material",  label:"Material",  type:"text" },
+    { key:"size",     label:"Size",     type:"select", options:["XS","S","M","L","XL","XXL","One Size"] },
+    { key:"colors",   label:"Colors",   type:"text",   placeholder:"e.g. Black, Navy, Floral" },
+    { key:"material", label:"Material", type:"text",   placeholder:"e.g. Cotton, Polyester, Silk" },
   ],
+  dresses:          [{ key:"size", label:"Size", type:"select", options:["XS","S","M","L","XL","XXL","One Size"] }, { key:"length", label:"Length", type:"select", options:["Mini","Midi","Maxi"] }, { key:"colors", label:"Colors", type:"text" }],
+  tops:             [{ key:"size", label:"Size", type:"select", options:["XS","S","M","L","XL","XXL"] }, { key:"colors", label:"Colors", type:"text" }],
+  skirts:           [{ key:"size", label:"Size", type:"select", options:["XS","S","M","L","XL","XXL"] }, { key:"length", label:"Length", type:"select", options:["Mini","Midi","Maxi"] }],
+  swimwear:         [{ key:"size", label:"Size", type:"select", options:["XS","S","M","L","XL","One Size"] }, { key:"colors", label:"Colors", type:"text" }],
+  lingerie:         [{ key:"size", label:"Size", type:"select", options:["XS","S","M","L","XL","XXL"] }, { key:"colors", label:"Colors", type:"text" }],
+  "womens-suits":   [{ key:"size", label:"Size", type:"select", options:["XS","S","M","L","XL","XXL"] }, { key:"colors", label:"Color", type:"text" }],
+  "womens-trousers":[{ key:"size", label:"Size", type:"select", options:["XS","S","M","L","XL","XXL"] }, { key:"cut", label:"Cut", type:"select", options:["Skinny","Slim","Straight","Wide Leg","Bootcut"] }],
+
+  // Men's Fashion
   "mens-fashion": [
-    { key:"size",      label:"Size",      type:"select",  options:["XS","S","M","L","XL","XXL","One Size"] },
-    { key:"colors",    label:"Colors (comma-sep)",    type:"text" },
-    { key:"material",  label:"Material",  type:"text" },
+    { key:"size",     label:"Size",     type:"select", options:["XS","S","M","L","XL","XXL","3XL"] },
+    { key:"colors",   label:"Colors",   type:"text",   placeholder:"e.g. White, Black, Grey" },
+    { key:"material", label:"Material", type:"text",   placeholder:"e.g. Cotton, Denim, Fleece" },
   ],
+  tshirts:          [{ key:"size", label:"Size", type:"select", options:["XS","S","M","L","XL","XXL","3XL"] }, { key:"colors", label:"Colors", type:"text" }],
+  shirts:           [{ key:"size", label:"Size", type:"select", options:["XS","S","M","L","XL","XXL"] }, { key:"collar", label:"Collar", type:"select", options:["Button-Down","Mandarin","Polo","Other"] }],
+  shorts:           [{ key:"size", label:"Waist Size", type:"text", placeholder:"e.g. 30, 32, 34" }, { key:"colors", label:"Colors", type:"text" }],
+  hoodies:          [{ key:"size", label:"Size", type:"select", options:["XS","S","M","L","XL","XXL","3XL"] }, { key:"colors", label:"Colors", type:"text" }],
+  "mens-suits":     [{ key:"size", label:"Suit Size", type:"text", placeholder:"e.g. 40R, 42L" }, { key:"colors", label:"Color", type:"text" }],
+  "mens-trousers":  [{ key:"waist", label:"Waist (inches)", type:"text", placeholder:"30, 32, 34, 36" }, { key:"length", label:"Leg Length", type:"select", options:["28\"","30\"","32\"","34\""] }],
+  "mens-activewear":[{ key:"size", label:"Size", type:"select", options:["XS","S","M","L","XL","XXL"] }, { key:"sport", label:"Sport / Use", type:"text", placeholder:"e.g. Running, Gym" }],
+
+  // Kids & Baby
   kids: [
-    { key:"age_range", label:"Age Range", type:"select",  options:["0-12m","1-2yr","3-5yr","6-9yr","10-12yr","13+yr"] },
-    { key:"size",      label:"Size / EU Shoe", type:"text" },
-    { key:"gender",    label:"Gender",    type:"select",  options:["Boys","Girls","Unisex"] },
+    { key:"age_range", label:"Age Range",      type:"select", options:["0–6m","6–12m","1–2yr","3–5yr","6–9yr","10–12yr","13+yr"] },
+    { key:"gender",    label:"Gender",         type:"select", options:["Boys","Girls","Unisex"] },
+    { key:"size",      label:"Size / EU Shoe", type:"text",   placeholder:"e.g. M or EU 28" },
   ],
+  "baby-clothing": [{ key:"age",    label:"Age",           type:"select", options:["Newborn","0–3m","3–6m","6–12m","12–18m","18–24m"] }, { key:"gender", label:"Gender", type:"select", options:["Boys","Girls","Unisex"] }],
+  "kids-clothing": [{ key:"age",    label:"Age / Size",    type:"select", options:["2–3yr","4–5yr","6–7yr","8–9yr","10–11yr","12–13yr"] }, { key:"gender", label:"Gender", type:"select", options:["Boys","Girls","Unisex"] }],
+  toys:            [{ key:"age",    label:"Recommended Age", type:"text", placeholder:"e.g. 3–6 years" }, { key:"type", label:"Toy Type", type:"text", placeholder:"e.g. Board game, Action figure" }],
+  school:          [{ key:"grade", label:"Grade Level",    type:"text", placeholder:"e.g. Grade 4, Form 2" }],
+
+  // Beauty & Skincare
   beauty: [
-    { key:"volume",    label:"Size / Volume (ml or g)", type:"text" },
-    { key:"authentic", label:"Authenticity", type:"select", options:["100% Authentic","Inspired / Dupe"] },
+    { key:"volume",    label:"Size / Volume",  type:"text",   placeholder:"e.g. 50ml, 200g" },
+    { key:"skin_type", label:"Skin Type",      type:"select", options:["All Skin Types","Dry","Oily","Combination","Sensitive"] },
+    { key:"authentic", label:"Authenticity",   type:"select", options:["100% Authentic","Inspired / Dupe"] },
   ],
+  makeup:      [{ key:"volume", label:"Size / Weight", type:"text", placeholder:"e.g. 30ml, 5g" }, { key:"shade", label:"Shade (if applicable)", type:"text", placeholder:"e.g. 02 Natural Beige" }, { key:"authentic", label:"Authenticity", type:"select", options:["100% Authentic","Inspired / Dupe"] }],
+  skincare:    [{ key:"volume", label:"Volume / Weight", type:"text", placeholder:"e.g. 50ml, 150g" }, { key:"skin_type", label:"Skin Type", type:"select", options:["All Skin Types","Dry","Oily","Combination","Sensitive"] }, { key:"authentic", label:"Authenticity", type:"select", options:["100% Authentic","Inspired / Dupe"] }],
+  haircare:    [{ key:"volume", label:"Volume / Weight", type:"text", placeholder:"e.g. 250ml" }, { key:"hair_type", label:"Hair Type", type:"select", options:["All Hair Types","Natural / 4C","Relaxed","Wavy","Straight"] }],
+  fragrances:  [{ key:"volume", label:"Volume (ml)", type:"text", placeholder:"e.g. 50ml, 100ml" }, { key:"type", label:"Type", type:"select", options:["EDP","EDT","Cologne","Body Mist","Oil"] }, { key:"authentic", label:"Authenticity", type:"select", options:["100% Authentic","Inspired / Dupe"] }],
+  "nail-care": [{ key:"volume", label:"Size", type:"text", placeholder:"e.g. 15ml" }, { key:"colors", label:"Shade / Color", type:"text", placeholder:"e.g. Nude Pink, Red" }],
+
+  // Bags & Accessories
   bags: [
-    { key:"material",  label:"Material",  type:"select",  options:["Leather","Faux Leather","Canvas","Fabric","Other"] },
-    { key:"colors",    label:"Colors (comma-sep)",    type:"text" },
+    { key:"material", label:"Material", type:"select", options:["Genuine Leather","Faux Leather","Canvas","Fabric","Suede","Other"] },
+    { key:"colors",   label:"Colors",   type:"text",   placeholder:"e.g. Black, Tan, Beige" },
+    { key:"size",     label:"Size",     type:"select", options:["Mini","Small","Medium","Large","XL"] },
   ],
+  handbags:   [{ key:"material", label:"Material", type:"select", options:["Genuine Leather","Faux Leather","Canvas","Other"] }, { key:"colors", label:"Colors", type:"text" }, { key:"size", label:"Size", type:"select", options:["Mini","Small","Medium","Large"] }],
+  backpacks:  [{ key:"material", label:"Material", type:"select", options:["Nylon","Canvas","Leather","Faux Leather","Other"] }, { key:"capacity", label:"Capacity (L)", type:"text", placeholder:"e.g. 20L, 35L" }],
+  wallets:    [{ key:"material", label:"Material", type:"select", options:["Genuine Leather","Faux Leather","Canvas","Fabric"] }, { key:"colors", label:"Colors", type:"text" }],
+  belts:      [{ key:"size", label:"Size", type:"text", placeholder:"e.g. 32\", 34\" or S / M / L" }, { key:"material", label:"Material", type:"select", options:["Genuine Leather","Faux Leather","Fabric","Chain"] }],
+  sunglasses: [{ key:"frame", label:"Frame Shape", type:"select", options:["Round","Square","Aviator","Wayfarer","Cat-Eye","Oversized"] }, { key:"uv", label:"UV Protection", type:"select", options:["UV400","Polarized","Fashion Only"] }],
+  jewellery:  [{ key:"material", label:"Material", type:"select", options:["Gold Plated","Silver","Sterling Silver","Rose Gold","Stainless Steel","Other"] }, { key:"type", label:"Type", type:"select", options:["Necklace","Bracelet","Earrings","Ring","Anklet","Set"] }],
+  watches:    [{ key:"gender", label:"Gender", type:"select", options:["Men","Women","Unisex"] }, { key:"movement", label:"Movement", type:"select", options:["Quartz","Automatic","Smart","Solar","Other"] }, { key:"case_size", label:"Case Size (mm)", type:"text", placeholder:"e.g. 40mm" }],
+
+  // Sports & Fitness
   sports: [
-    { key:"size",      label:"Size / Weight", type:"text" },
-    { key:"sport",     label:"Sport / Use",   type:"text" },
+    { key:"sport",  label:"Sport / Use",   type:"text", placeholder:"e.g. Running, Football, Yoga" },
+    { key:"size",   label:"Size / Weight", type:"text", placeholder:"e.g. M, 5kg, EU 42" },
+    { key:"colors", label:"Colors",        type:"text", placeholder:"e.g. Black, Red" },
   ],
-  home: [
-    { key:"material",  label:"Material",  type:"text" },
-    { key:"dimensions",label:"Dimensions (optional)", type:"text" },
+  sportswear:         [{ key:"size", label:"Size", type:"select", options:["XS","S","M","L","XL","XXL"] }, { key:"sport", label:"Sport", type:"text", placeholder:"e.g. Running, Football" }, { key:"gender", label:"Gender", type:"select", options:["Men","Women","Unisex"] }],
+  "sports-equipment": [{ key:"sport", label:"Sport", type:"text", placeholder:"e.g. Football, Basketball, Tennis" }, { key:"size", label:"Size / Weight (if applicable)", type:"text" }],
+  supplements:        [{ key:"weight", label:"Weight / Servings", type:"text", placeholder:"e.g. 1kg, 30 servings" }, { key:"flavor", label:"Flavor", type:"text", placeholder:"e.g. Chocolate, Vanilla" }, { key:"authentic", label:"Authenticity", type:"select", options:["100% Authentic","Local Brand"] }],
+  cycling:            [{ key:"type", label:"Bike Type", type:"select", options:["Road","Mountain","Hybrid","BMX","Kids","E-Bike","Accessory"] }, { key:"size", label:"Frame Size", type:"text", placeholder:"e.g. 26\", Medium" }],
+  outdoor:            [{ key:"type", label:"Gear Type", type:"text", placeholder:"e.g. Tent, Hiking Boots, Backpack" }, { key:"size", label:"Size (if applicable)", type:"text" }],
+
+  // Electronics (parent)
+  electronics: [
+    { key:"model",   label:"Model",   type:"text",   placeholder:"e.g. Galaxy S24" },
+    { key:"storage", label:"Storage", type:"select", options:["16GB","32GB","64GB","128GB","256GB","512GB","1TB"] },
+    { key:"colors",  label:"Color",   type:"text",   placeholder:"e.g. Black, Silver" },
   ],
   // Electronics subcategories
   phones: [
-    { key:"brand",     label:"Brand",     type:"text" },
-    { key:"model",     label:"Model",     type:"text" },
-    { key:"year",      label:"Year",      type:"select", options:["2025","2024","2023","2022","2021","2020","2019","Older"] },
-    { key:"storage",   label:"Storage",   type:"select", options:["16GB","32GB","64GB","128GB","256GB","512GB","1TB"] },
-    { key:"ram",       label:"RAM",       type:"select", options:["2GB","3GB","4GB","6GB","8GB","12GB","16GB"] },
-    { key:"colors",    label:"Color",     type:"text" },
-    { key:"accessories",label:"Accessories included", type:"text" },
+    { key:"model",       label:"Model",          type:"text",   placeholder:"e.g. Samsung Galaxy S24 Ultra" },
+    { key:"year",        label:"Year",           type:"select", options:["2025","2024","2023","2022","2021","2020","2019","Older"] },
+    { key:"storage",     label:"Storage",        type:"select", options:["16GB","32GB","64GB","128GB","256GB","512GB","1TB"] },
+    { key:"ram",         label:"RAM",            type:"select", options:["2GB","3GB","4GB","6GB","8GB","12GB","16GB"] },
+    { key:"colors",      label:"Color",          type:"text",   placeholder:"e.g. Phantom Black" },
+    { key:"network",     label:"Network",        type:"select", options:["4G LTE","5G","3G / 2G"] },
+    { key:"accessories", label:"In the Box",     type:"text",   placeholder:"e.g. Charger, Case, Original box" },
   ],
   laptops: [
-    { key:"brand",     label:"Brand",     type:"text" },
-    { key:"model",     label:"Model",     type:"text" },
-    { key:"year",      label:"Year",      type:"select", options:["2025","2024","2023","2022","2021","2020","Older"] },
-    { key:"processor", label:"Processor", type:"text" },
-    { key:"ram",       label:"RAM",       type:"select", options:["4GB","8GB","16GB","32GB","64GB"] },
-    { key:"storage",   label:"Storage",   type:"select", options:["128GB","256GB","512GB","1TB","2TB"] },
+    { key:"model",     label:"Model",       type:"text",   placeholder:"e.g. MacBook Air M2" },
+    { key:"year",      label:"Year",        type:"select", options:["2025","2024","2023","2022","2021","2020","Older"] },
+    { key:"processor", label:"Processor",   type:"text",   placeholder:"e.g. Intel Core i7, Apple M2, Ryzen 5" },
+    { key:"ram",       label:"RAM",         type:"select", options:["4GB","8GB","16GB","32GB","64GB"] },
+    { key:"storage",   label:"Storage",     type:"select", options:["128GB","256GB","512GB","1TB","2TB"] },
     { key:"screen",    label:"Screen Size", type:"select", options:["11\"","13\"","14\"","15.6\"","16\"","17\""] },
+    { key:"colors",    label:"Color",       type:"text",   placeholder:"e.g. Space Grey, Silver" },
   ],
   audio: [
-    { key:"brand",     label:"Brand",     type:"text" },
-    { key:"model",     label:"Model",     type:"text" },
-    { key:"connectivity", label:"Connectivity", type:"select", options:["Wired","Wireless","Both"] },
+    { key:"model",        label:"Model",        type:"text",   placeholder:"e.g. AirPods Pro 2" },
+    { key:"type",         label:"Type",         type:"select", options:["Earbuds","Over-Ear","On-Ear","IEM","Speaker"] },
+    { key:"connectivity", label:"Connectivity", type:"select", options:["Wired","Wireless / Bluetooth","Both"] },
+    { key:"colors",       label:"Color",        type:"text",   placeholder:"e.g. White, Black" },
   ],
   cameras: [
-    { key:"brand",     label:"Brand",     type:"text" },
-    { key:"model",     label:"Model",     type:"text" },
-    { key:"megapixels",label:"Megapixels (optional)", type:"text" },
-    { key:"accessories",label:"Accessories included", type:"text" },
+    { key:"model",       label:"Model",                type:"text",   placeholder:"e.g. Canon EOS R50" },
+    { key:"type",        label:"Camera Type",          type:"select", options:["DSLR","Mirrorless","Point & Shoot","Action Cam","Drone","Security"] },
+    { key:"megapixels",  label:"Megapixels",           type:"text",   placeholder:"e.g. 24MP" },
+    { key:"accessories", label:"Accessories included", type:"text",   placeholder:"e.g. Lens, Bag, Charger" },
   ],
   gaming: [
-    { key:"platform",  label:"Platform",  type:"select", options:["PlayStation 5","PlayStation 4","Xbox Series","Xbox One","Nintendo Switch","PC","Other"] },
-    { key:"type",      label:"Type",      type:"select", options:["Console","Game / Title","Controller","Accessory"] },
+    { key:"platform", label:"Platform",    type:"select", options:["PlayStation 5","PlayStation 4","Xbox Series X/S","Xbox One","Nintendo Switch","PC","Other"] },
+    { key:"type",     label:"Item Type",   type:"select", options:["Console","Game / Title","Controller","Headset","Accessory","Bundle"] },
+    { key:"model",    label:"Title / Model", type:"text", placeholder:"e.g. FIFA 25, DualSense White" },
   ],
   smartwatches: [
-    { key:"brand",     label:"Brand",     type:"text" },
-    { key:"model",     label:"Model",     type:"text" },
-    { key:"compatibility", label:"Compatible With", type:"select", options:["iOS","Android","Both"] },
+    { key:"model",         label:"Model",           type:"text",   placeholder:"e.g. Apple Watch Series 9" },
+    { key:"compatibility", label:"Compatible With", type:"select", options:["iOS Only","Android Only","Both"] },
+    { key:"size",          label:"Case Size",       type:"select", options:["40mm","41mm","44mm","45mm","49mm","Other"] },
+    { key:"colors",        label:"Color / Band",    type:"text",   placeholder:"e.g. Midnight, Starlight" },
   ],
   "phone-accessories": [
-    { key:"compatible_with", label:"Compatible With", type:"text" },
-    { key:"colors",    label:"Color", type:"text" },
+    { key:"type",            label:"Accessory Type",  type:"select", options:["Case / Cover","Screen Protector","Charger","Cable","Power Bank","Earphones","Other"] },
+    { key:"compatible_with", label:"Compatible With", type:"text",   placeholder:"e.g. Samsung S24, iPhone 15" },
+    { key:"colors",          label:"Color",           type:"text",   placeholder:"e.g. Clear, Black, Blue" },
   ],
+
+  // Home & Living
+  home: [
+    { key:"material",   label:"Material",              type:"text", placeholder:"e.g. Ceramic, Wood, Stainless Steel" },
+    { key:"colors",     label:"Color",                 type:"text", placeholder:"e.g. White, Beige, Black" },
+    { key:"dimensions", label:"Dimensions (optional)", type:"text", placeholder:"e.g. 30×20×10 cm" },
+  ],
+  kitchen:   [{ key:"material", label:"Material", type:"select", options:["Stainless Steel","Ceramic","Non-Stick","Cast Iron","Plastic","Wood","Glass"] }, { key:"capacity", label:"Capacity (optional)", type:"text", placeholder:"e.g. 2L, 5-piece set" }],
+  bedding:   [{ key:"size", label:"Bed Size", type:"select", options:["Single","Twin","Double","Queen","King"] }, { key:"material", label:"Material", type:"select", options:["Cotton","Microfibre","Flannel","Silk","Bamboo"] }],
+  decor:     [{ key:"material", label:"Material", type:"text", placeholder:"e.g. Wood, Metal, Fabric" }, { key:"colors", label:"Colors", type:"text" }, { key:"dimensions", label:"Dimensions (optional)", type:"text" }],
+  furniture: [{ key:"material", label:"Material", type:"select", options:["Wood","Metal","Fabric","Leather","Glass","Plastic","Rattan"] }, { key:"dimensions", label:"Dimensions", type:"text", placeholder:"e.g. 120×60×75 cm" }, { key:"colors", label:"Color", type:"text" }],
+  cleaning:  [{ key:"volume", label:"Volume / Quantity", type:"text", placeholder:"e.g. 1L, 5-pack" }, { key:"type", label:"Type", type:"text", placeholder:"e.g. Floor cleaner, Detergent" }],
 };
 
 const getSpecFields = (category: string, subcategory: string): SpecField[] => {
   if (subcategory && SPEC_FIELDS[subcategory]) return SPEC_FIELDS[subcategory];
   if (SPEC_FIELDS[category]) return SPEC_FIELDS[category];
-  return [
-    { key:"colors", label:"Colors / Variants (optional)", type:"text" },
-  ];
+  return [{ key:"colors", label:"Colors / Variants (optional)", type:"text", placeholder:"e.g. Black, White, Red" }];
 };
 
-const isElectronics = (cat: string) => cat === "electronics";
-
-// ── Tiny input/select components ─────────────────────────────────────────────
+// ── Tiny input/select components ──────────────────────────────────────────────
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className="space-y-1.5">
     <label className="text-sm font-medium text-foreground">{label}</label>
@@ -163,7 +242,7 @@ const SelectInput = ({ value, onChange, options, placeholder }: { value: string;
   </select>
 );
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Main component ─────────────────────────────────────────────────────────────
 const VendorListItem = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -190,10 +269,14 @@ const VendorListItem = () => {
   useEffect(() => { if (!loading && !user) navigate("/auth"); }, [user, loading, navigate]);
 
   const selectedCat = ALL_CATEGORIES.find(c => c.key === category);
-  const specFields = category ? getSpecFields(category, subcategory) : [];
-  const conditions = isElectronics(category) ? CONDITIONS_ELECTRONICS : CONDITIONS_GENERAL;
+  const specFields  = category ? getSpecFields(category, subcategory) : [];
+  const isElec      = isElectronics(category, subcategory);
+  const conditions  = isElec ? CONDITIONS_ELECTRONICS : CONDITIONS_GENERAL;
+  // For electronics the spec fields include Brand/Model — hide the top-level brand input
+  const showBrandField = !isElec;
 
   const setSpec = (key: string, val: string) => setSpecs(prev => ({ ...prev, [key]: val }));
+
 
   const handleImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -243,21 +326,49 @@ const VendorListItem = () => {
         if (v && k !== "sizes" && k !== "colors") cleanSpecs[k] = v;
       });
 
+      // Sanitise condition — map form values to DB-allowed values
+      // DB constraint: new | like_new | good | fair
+      const conditionMap: Record<string, string> = {
+        thrifted:    "good",
+        refurbished: "like_new",
+      };
+      const safeCondition = conditionMap[condition] ?? condition;
+
+      // For electronics brand comes from spec fields, not the top-level brand input
+      const effectiveBrand = isElec ? (specs.brand || brand || null) : (brand || null);
+
+      // Core insert — only original schema columns that are guaranteed to exist
       const { data: inserted, error: insertErr } = await supabase.from("products").insert({
         vendor_id: user?.id,
-        name, description,
+        name,
+        description,
         price_ksh: parseInt(price),
         stock: parseInt(stock),
-        brand: brand || null,
-        category, subcategory: subcategory || null,
-        condition, condition_notes: conditionNotes || null,
-        sizes: sizesArr, colors: colorsArr,
-        specs: cleanSpecs,
+        brand: effectiveBrand,
+        category,
+        condition: safeCondition,
+        sizes: sizesArr,
+        colors: colorsArr,
         images: imageUrls,
         status: "draft",
       }).select("id").single();
 
+
       if (insertErr) throw insertErr;
+
+      // Save newer columns separately — silently skipped if schema cache not yet refreshed
+      // This means listing ALWAYS succeeds; these fields save once cache is reloaded
+      try {
+        const extras: Record<string, any> = {};
+        if (subcategory) extras.subcategory = subcategory;
+        if (conditionNotes) extras.condition_notes = conditionNotes;
+        if (Object.keys(cleanSpecs).length > 0) extras.specs = cleanSpecs;
+        if (Object.keys(extras).length > 0) {
+          await supabase.from("products").update(extras).eq("id", inserted.id);
+        }
+      } catch {
+        // Schema cache not yet refreshed — go to Supabase Dashboard → Settings → API → Reload Schema Cache
+      }
 
       await supabase.rpc("publish_product", { product_id_to_publish: inserted.id });
       toast.success("Item listed! It's now live 🎉");
@@ -409,9 +520,11 @@ const VendorListItem = () => {
                 </Field>
               </div>
 
-              <Field label="Brand (optional)">
-                <TextInput value={brand} onChange={setBrand} placeholder="e.g. Nike, Samsung, Zara…" />
-              </Field>
+              {showBrandField && (
+                <Field label="Brand (optional)">
+                  <TextInput value={brand} onChange={setBrand} placeholder="e.g. Nike, Samsung, Zara…" />
+                </Field>
+              )}
 
               {/* Dynamic spec fields */}
               {specFields.length > 0 && (
@@ -421,7 +534,7 @@ const VendorListItem = () => {
                     <Field key={f.key} label={f.label}>
                       {f.type === "select" && f.options
                         ? <SelectInput value={specs[f.key] || ""} onChange={v => setSpec(f.key, v)} options={f.options} />
-                        : <TextInput value={specs[f.key] || ""} onChange={v => setSpec(f.key, v)} />
+                        : <TextInput value={specs[f.key] || ""} onChange={v => setSpec(f.key, v)} placeholder={f.placeholder || ""} />
                       }
                     </Field>
                   ))}

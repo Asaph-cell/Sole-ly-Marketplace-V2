@@ -159,15 +159,9 @@ const VendorEditProduct = () => {
       const colorsArray = formData.colors.split(",").map((c) => c.trim()).filter(Boolean);
       const keyFeaturesArray = formData.key_features.split(",").map((s) => s.trim()).filter(Boolean);
 
-      // Validation: Shoes must have sizes and colors
-      if (formData.category !== "accessories") {
-        if (sizesArray.length === 0) {
-          throw new Error("Please add at least one size for shoes");
-        }
-        if (colorsArray.length === 0) {
-          throw new Error("Please add at least one color for shoes");
-        }
-      }
+      // Sanitise condition so it always matches the DB constraint
+      const conditionMap: Record<string, string> = { thrifted: "good", refurbished: "like_new" };
+      const safeCondition = conditionMap[formData.condition] ?? formData.condition;
 
       const newImageUrls = await uploadImages();
       const allImages = [...existingImages, ...newImageUrls];
@@ -186,7 +180,7 @@ const VendorEditProduct = () => {
           colors: colorsArray,
           images: allImages,
           video_url: videoUrl,
-          condition: formData.condition,
+          condition: safeCondition,
           condition_notes: formData.condition_notes || null,
         })
         .eq("id", id)
@@ -275,7 +269,7 @@ const VendorEditProduct = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="category">Category / Type of Shoe</Label>
+                  <Label htmlFor="category">Category</Label>
                   <Select
                     value={formData.category}
                     onValueChange={(value) => setFormData({ ...formData, category: value })}
@@ -293,10 +287,10 @@ const VendorEditProduct = () => {
                   </Select>
                 </div>
 
-                {/* Condition Selector */}
+                {/* Condition Selector — options change based on category */}
                 <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
                   <div>
-                    <Label htmlFor="condition" className="text-base font-medium">Shoe Condition *</Label>
+                    <Label htmlFor="condition" className="text-base font-medium">Condition *</Label>
                     <p className="text-sm text-muted-foreground mb-2">Is this new or pre-owned?</p>
                     <Select
                       value={formData.condition}
@@ -309,27 +303,44 @@ const VendorEditProduct = () => {
                         <SelectItem value="new">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                            Mint - Brand new
+                            Brand New — sealed / never used
                           </div>
                         </SelectItem>
-                        <SelectItem value="like_new">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                            Like New - Worn 1-2 times, no visible wear
-                          </div>
-                        </SelectItem>
+                        {formData.category === "electronics" || formData.category === "phones" ? (
+                          <SelectItem value="like_new">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                              Refurbished — tested &amp; fully working
+                            </div>
+                          </SelectItem>
+                        ) : (
+                          <SelectItem value="like_new">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                              Like New — used once or twice, no wear
+                            </div>
+                          </SelectItem>
+                        )}
                         <SelectItem value="good">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                            Good - Light wear, minor scuffs
+                            Good — light use, minor wear
                           </div>
                         </SelectItem>
                         <SelectItem value="fair">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-                            Fair - Visible wear, still functional
+                            Fair — visible wear, fully functional
                           </div>
                         </SelectItem>
+                        {formData.category !== "electronics" && formData.category !== "phones" && (
+                          <SelectItem value="good">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                              Thrifted — pre-owned, honestly described
+                            </div>
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -350,22 +361,36 @@ const VendorEditProduct = () => {
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="sizes">Available Sizes (EU - comma-separated)</Label>
-                    <ShoeSizeChart />
+                    <Label htmlFor="sizes">
+                      {formData.category === "electronics" || formData.category === "phones"
+                        ? "Available Variants (comma-separated)"
+                        : formData.category === "apparel"
+                        ? "Available Sizes (e.g. XS, S, M, L, XL)"
+                        : "Available Sizes (EU — comma-separated)"}
+                    </Label>
+                    {(formData.category === "shoes" || !formData.category) && <ShoeSizeChart />}
                   </div>
                   <Input
                     id="sizes"
-                    placeholder="36, 37, 38, 39, 40, 41, 42, 43"
+                    placeholder={
+                      formData.category === "electronics" || formData.category === "phones"
+                        ? "64GB, 128GB, 256GB"
+                        : formData.category === "apparel"
+                        ? "XS, S, M, L, XL, XXL"
+                        : "36, 37, 38, 39, 40, 41, 42, 43"
+                    }
                     value={formData.sizes}
                     onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
                   />
-                  <Alert className="bg-amber-50 border-amber-200">
-                    <AlertTriangle className="h-4 w-4 text-amber-600" />
-                    <AlertDescription className="text-amber-800 text-sm">
-                      <strong>Important:</strong> Enter exact EU sizes from the size chart (e.g., 36, 37, 38).
-                      Using correct sizes ensures customers can find their perfect fit.
-                    </AlertDescription>
-                  </Alert>
+                  {(formData.category === "shoes" || !formData.category) && (
+                    <Alert className="bg-amber-50 border-amber-200">
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <AlertDescription className="text-amber-800 text-sm">
+                        <strong>Important:</strong> Enter exact EU sizes from the size chart (e.g., 36, 37, 38).
+                        Using correct sizes ensures customers can find their perfect fit.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
 
                 <div className="space-y-3">
