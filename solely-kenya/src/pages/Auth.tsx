@@ -26,7 +26,15 @@ const Auth = () => {
   const [registeredEmail, setRegisteredEmail] = useState("");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/";
+  let redirectTo = searchParams.get("redirect") || "/";
+  
+  // Fix double base path on GitHub Pages
+  const baseUrl = import.meta.env.BASE_URL;
+  if (baseUrl && baseUrl !== '/' && redirectTo.startsWith(baseUrl)) {
+    redirectTo = '/' + redirectTo.slice(baseUrl.length);
+  }
+  // Ensure it starts with a single slash
+  redirectTo = redirectTo.replace(/(?<!:)\/+/g, '/');
 
   const handleGoogleSignIn = async () => {
     try {

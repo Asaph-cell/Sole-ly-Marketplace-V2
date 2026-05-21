@@ -151,7 +151,7 @@ export const MobileNav = ({
             {!user ? (
               <>
                 <Link
-                  to={`/auth?redirect=${window.location.pathname}`}
+                  to={`/auth?redirect=${location.pathname}`}
                   onClick={close}
                   className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors"
                 >

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Mail, LogOut, LayoutDashboard, ShoppingBag } from "lucide-react";
 
@@ -11,6 +11,7 @@ interface AuthButtonsProps {
 
 export const AuthButtons = ({ user, isVendor, isVendorPage, onLogout }: AuthButtonsProps) => {
   const supportEmail = "contact@solelyshoes.co.ke";
+  const location = useLocation();
   return (
     <>
       <Button variant="outline" size="sm" asChild>
@@ -26,7 +27,7 @@ export const AuthButtons = ({ user, isVendor, isVendorPage, onLogout }: AuthButt
       {!user ? (
         <>
           <Button variant="outline" size="sm" asChild>
-            <Link to={`/auth?redirect=${window.location.pathname}`}>Login</Link>
+            <Link to={`/auth?redirect=${location.pathname}`}>Login</Link>
           </Button>
           <Button size="sm" asChild>
             <Link to={`/auth?redirect=/vendor/register`}>Become a Vendor</Link>
