@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/Sole-ly-Marketplace-V2/sw.js', { scope: '/Sole-ly-Marketplace-V2/' })})}

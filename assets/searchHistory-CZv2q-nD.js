@@ -1,0 +1,1 @@
+const r="solely_search_history";const a=()=>{try{const t=localStorage.getItem(r);return t?JSON.parse(t):[]}catch{return[]}},n=t=>{const e=t.trim().toLowerCase();if(!e)return;const s=a().filter(o=>o!==e),c=[e,...s].slice(0,15);try{localStorage.setItem(r,JSON.stringify(c))}catch{}};export{n as s};
