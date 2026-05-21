@@ -25,19 +25,14 @@ const CAT_META: Record<string, { icon: LucideIcon; from: string; to: string; tex
   home:            { icon: Home,       from: "#FB923C", to: "#FBBF24", text: "#fff" },
 };
 
-// ── Condition options by category group ──────────────────────────────────────
+// ── Condition options — simple 2-choice per group ────────────────────────────
 const CONDITIONS_GENERAL = [
-  { value: "new",      label: "Brand New",  desc: "Sealed / never used",            dot: "bg-emerald-500" },
-  { value: "like_new", label: "Like New",   desc: "Used once or twice, no wear",    dot: "bg-blue-500" },
-  { value: "good",     label: "Good",       desc: "Light use, minor wear",          dot: "bg-amber-400" },
-  { value: "fair",     label: "Fair",       desc: "Visible wear, fully functional", dot: "bg-orange-500" },
-  { value: "thrifted", label: "Thrifted",   desc: "Pre-owned, honestly described",  dot: "bg-purple-500" },
+  { value: "new",      label: "New",       dot: "bg-emerald-500" },
+  { value: "thrifted", label: "Thrifted",  dot: "bg-purple-500" },
 ];
 const CONDITIONS_ELECTRONICS = [
-  { value: "new",         label: "Brand New",   desc: "Sealed in original box",           dot: "bg-emerald-500" },
-  { value: "refurbished", label: "Refurbished", desc: "Tested & restored to full working", dot: "bg-blue-500" },
-  { value: "good",        label: "Good",        desc: "Light use, no damage",             dot: "bg-amber-400" },
-  { value: "fair",        label: "Fair",        desc: "Works perfectly, visible wear",    dot: "bg-orange-500" },
+  { value: "new",         label: "Brand New",   dot: "bg-emerald-500" },
+  { value: "refurbished", label: "Refurbished",  dot: "bg-blue-500" },
 ];
 
 // All electronics sub-category keys
@@ -541,38 +536,26 @@ const VendorListItem = () => {
                 </div>
               )}
 
-              {/* Condition */}
-              <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+              {/* Condition — 2 clean pill buttons */}
+              <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Condition *</p>
-                <div className="space-y-2">
+                <div className="flex gap-2">
                   {conditions.map(c => (
                     <button
                       key={c.value}
                       type="button"
                       onClick={() => setCondition(c.value)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
-                        condition === c.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                        condition === c.value
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-card hover:border-primary/50"
                       }`}
                     >
-                      <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${c.dot}`} />
-                      <div>
-                        <p className="text-sm font-semibold">{c.label}</p>
-                        <p className="text-xs text-muted-foreground">{c.desc}</p>
-                      </div>
+                      <span className={`h-2 w-2 rounded-full ${c.dot}`} />
+                      {c.label}
                     </button>
                   ))}
                 </div>
-                {condition !== "new" && (
-                  <Field label="Condition notes (optional)">
-                    <textarea
-                      value={conditionNotes}
-                      onChange={e => setConditionNotes(e.target.value)}
-                      placeholder="Describe any wear, scratches or defects. Honesty builds trust."
-                      rows={2}
-                      className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 resize-none transition-all"
-                    />
-                  </Field>
-                )}
               </div>
 
               <button

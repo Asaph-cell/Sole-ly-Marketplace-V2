@@ -27,10 +27,12 @@ const getMaxPrice = (cat: string) =>
 
 // ─── Condition badge colours ───────────────────────────────────────────────────
 const CONDITION_DOT: Record<string, string> = {
-  new: "bg-green-500",
-  like_new: "bg-blue-500",
-  good: "bg-yellow-500",
-  fair: "bg-orange-500",
+  new:         "bg-emerald-500",
+  thrifted:    "bg-purple-500",
+  refurbished: "bg-blue-500",
+  like_new:    "bg-blue-400",
+  good:        "bg-amber-400",
+  fair:        "bg-orange-500",
 };
 
 const Shop = () => {
@@ -275,7 +277,13 @@ const Shop = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Conditions</SelectItem>
-            {Object.entries({ new: "Mint / New", like_new: "Like New", good: "Good", fair: "Fair" }).map(([v, label]) => (
+            {Object.entries({
+              new: "New",
+              thrifted: "Thrifted",
+              refurbished: "Refurbished",
+              like_new: "Like New",
+              good: "Good",
+            }).map(([v, label]) => (
               <SelectItem key={v} value={v}>
                 <div className="flex items-center gap-2">
                   <span className={`w-2 h-2 rounded-full ${CONDITION_DOT[v]}`} />

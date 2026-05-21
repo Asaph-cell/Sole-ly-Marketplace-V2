@@ -17,15 +17,18 @@ interface ProductCardProps {
   averageRating?: number | null;
   reviewCount?: number;
   createdAt: string;
-  condition?: "new" | "like_new" | "good" | "fair";
+  condition?: "new" | "thrifted" | "refurbished" | "like_new" | "good" | "fair";
   videoUrl?: string | null;
 }
 
 const conditionLabels: Record<string, { label: string; color: string }> = {
-  new: { label: "Mint", color: "bg-green-500" },
+  new:         { label: "New",         color: "bg-emerald-500" },
+  thrifted:    { label: "Thrifted",    color: "bg-purple-500" },
+  refurbished: { label: "Refurbished", color: "bg-blue-500" },
+  // Legacy
   like_new: { label: "Like New", color: "bg-blue-500" },
-  good: { label: "Good", color: "bg-yellow-500" },
-  fair: { label: "Fair", color: "bg-orange-500" },
+  good:     { label: "Good",     color: "bg-amber-400" },
+  fair:     { label: "Fair",     color: "bg-orange-500" },
 };
 
 const ProductCard = ({

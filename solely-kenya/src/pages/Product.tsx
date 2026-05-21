@@ -36,11 +36,16 @@ import 'swiper/css/thumbs';
 
 // Condition labels for display - with footwear and accessory-specific descriptions
 const conditionLabels: Record<string, { label: string; color: string; footwearDesc: string; accessoryDesc: string }> = {
-  new: { label: "", color: "bg-green-500", footwearDesc: "Brand new condition", accessoryDesc: "Brand new condition" },
-  like_new: { label: "Like New", color: "bg-blue-500", footwearDesc: "Worn 1-2 times, no visible wear", accessoryDesc: "Used once, like new condition" },
-  good: { label: "Good", color: "bg-yellow-500", footwearDesc: "Light wear, minor scuffs", accessoryDesc: "Good condition, minor signs of use" },
-  fair: { label: "Fair", color: "bg-orange-500", footwearDesc: "Visible wear, still functional", accessoryDesc: "Visible wear, fully functional" },
+  new:         { label: "New",          color: "bg-emerald-500", footwearDesc: "Brand new, never worn",        accessoryDesc: "Sealed, never used" },
+  thrifted:    { label: "Thrifted",     color: "bg-purple-500",  footwearDesc: "Pre-owned, honestly described", accessoryDesc: "Pre-owned, good condition" },
+  refurbished: { label: "Refurbished",  color: "bg-blue-500",   footwearDesc: "Tested & fully working",        accessoryDesc: "Tested & fully working" },
+  // Legacy fallbacks for older listings
+  like_new:    { label: "Like New",     color: "bg-blue-500",   footwearDesc: "Used once or twice, no wear",   accessoryDesc: "Used once, like new" },
+  good:        { label: "Good",         color: "bg-amber-400",  footwearDesc: "Light use, minor wear",         accessoryDesc: "Light use, no damage" },
+  fair:        { label: "Fair",         color: "bg-orange-500", footwearDesc: "Visible wear, functional",      accessoryDesc: "Visible wear, fully working" },
 };
+
+
 
 // Helper to get condition description based on category
 const getConditionDescription = (condition: string, category: string): string => {
