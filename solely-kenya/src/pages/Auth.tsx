@@ -33,7 +33,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}${redirectTo}`,
+          redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}${redirectTo.replace(/^\/+/, '')}`.replace(/(?<!:)\/+/g, '/'),
         },
       });
       if (error) throw error;
@@ -71,7 +71,7 @@ const Auth = () => {
         password,
         options: {
           data: { full_name: fullName },
-          emailRedirectTo: `${window.location.origin}${redirectTo}`
+          emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}${redirectTo.replace(/^\/+/, '')}`.replace(/(?<!:)\/+/g, '/')
         }
       });
 
@@ -128,7 +128,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${SITE_URL}/reset-password`,
+        redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}reset-password`.replace(/(?<!:)\/+/g, '/'),
       });
 
       if (error) throw error;
