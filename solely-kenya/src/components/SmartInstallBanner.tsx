@@ -6,7 +6,7 @@ const DISMISSED_KEY = 'install_banner_dismissed';
 const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function SmartInstallBanner() {
-    const { canInstall, isInstalled, promptInstall } = usePWAInstall();
+    const { canInstall, isInstalled, isIOS, promptInstall } = usePWAInstall();
     const [isVisible, setIsVisible] = useState(false);
     const [lastScrollY, setLastScrollY] = useState(0);
     const [isDismissed, setIsDismissed] = useState(true);
@@ -54,6 +54,11 @@ export function SmartInstallBanner() {
     }
 
     const handleInstall = async () => {
+        if (isIOS) {
+            // For iOS we just dismiss the banner since we'll show them instructions
+            setIsVisible(false);
+            return;
+        }
         const installed = await promptInstall();
         if (installed) {
             setIsVisible(false);
@@ -87,12 +92,18 @@ export function SmartInstallBanner() {
 
                         {/* Actions - Install and X on same line */}
                         <div className="flex items-center gap-1 flex-shrink-0 flex-nowrap">
-                            <button
-                                onClick={handleInstall}
-                                className="px-4 py-1.5 text-sm font-semibold rounded-full bg-amber-500 hover:bg-amber-400 text-slate-900 transition-colors shadow-sm"
-                            >
-                                Install
-                            </button>
+                            {isIOS ? (
+                                <div className="text-[10px] text-amber-200 text-right leading-tight max-w-[100px] font-medium mr-1">
+                                    Tap <span className="inline-block px-1 bg-white/20 rounded">Share</span><br/>Add to Home
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={handleInstall}
+                                    className="px-4 py-1.5 text-sm font-semibold rounded-full bg-amber-500 hover:bg-amber-400 text-slate-900 transition-colors shadow-sm"
+                                >
+                                    Install
+                                </button>
+                            )}
                             <button
                                 onClick={handleDismiss}
                                 className="p-1 rounded-full hover:bg-slate-700 transition-colors ml-1"

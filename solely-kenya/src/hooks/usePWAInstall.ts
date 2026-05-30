@@ -8,6 +8,7 @@ interface BeforeInstallPromptEvent extends Event {
 interface UsePWAInstallReturn {
     canInstall: boolean;
     isInstalled: boolean;
+    isIOS: boolean;
     promptInstall: () => Promise<boolean>;
 }
 
@@ -18,17 +19,37 @@ export function usePWAInstall(): UsePWAInstallReturn {
     const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
     const [isInstalled, setIsInstalled] = useState(false);
 
+    const [isIOS, setIsIOS] = useState(false);
+
     useEffect(() => {
+        // Detect iOS
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+        setIsIOS(isIosDevice);
+
         // Check if already installed (standalone mode OR previously recorded)
-        const checkInstalled = () => {
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+        const checkInstalled = async () => {
+            let installed = window.matchMedia('(display-mode: standalone)').matches
                 || (window.navigator as any).standalone === true
                 || document.referrer.includes('android-app://')
                 || localStorage.getItem(INSTALLED_KEY) === 'true';
-            setIsInstalled(isStandalone);
+
+            // Modern API to check if PWA is installed (works in browser tabs too)
+            if (!installed && 'getInstalledRelatedApps' in navigator) {
+                try {
+                    const relatedApps = await (navigator as any).getInstalledRelatedApps();
+                    if (relatedApps && relatedApps.length > 0) {
+                        installed = true;
+                    }
+                } catch (e) {
+                    console.log('getInstalledRelatedApps error', e);
+                }
+            }
+
+            setIsInstalled(installed);
 
             // If standalone, record it for future browser visits
-            if (isStandalone) {
+            if (installed) {
                 localStorage.setItem(INSTALLED_KEY, 'true');
             }
         };
@@ -95,8 +116,9 @@ export function usePWAInstall(): UsePWAInstallReturn {
     }, [deferredPrompt]);
 
     return {
-        canInstall: !!deferredPrompt && !isInstalled,
+        canInstall: (!!deferredPrompt || isIOS) && !isInstalled,
         isInstalled,
+        isIOS,
         promptInstall,
     };
 }
