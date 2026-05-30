@@ -7,6 +7,12 @@ export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
+        // Force HTTPS for all production traffic
+        if (url.protocol === 'http:' && !url.hostname.includes('localhost') && !url.hostname.includes('127.0.0.1')) {
+            url.protocol = 'https:';
+            return Response.redirect(url.href, 301);
+        }
+
         // Debug endpoint to verify worker is running
         if (url.pathname === '/debug-worker') {
             return new Response(JSON.stringify({
