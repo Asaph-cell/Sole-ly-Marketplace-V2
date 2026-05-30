@@ -105,7 +105,7 @@ serve(async (req) => {
           .insert({
             order_id: order.id,
             vendor_id: order.vendor_id,
-            commission_rate: 11,
+            commission_rate: 6,
             commission_amount: escrow.commission_amount,
             notes: 'Auto-released 6 hours after buyer entered Package PIN (no vendor OTP)',
           });

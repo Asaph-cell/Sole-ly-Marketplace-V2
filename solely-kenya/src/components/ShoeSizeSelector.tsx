@@ -75,7 +75,7 @@ export const ShoeSizeSelector = ({
                 <Dialog open={chartOpen} onOpenChange={setChartOpen}>
                     <DialogTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-muted-foreground">
-                            <Info className="w-3 h-3 mr-1" />
+                            <Info strokeWidth={1.5} className="w-3 h-3 mr-1" />
                             Size Chart
                         </Button>
                     </DialogTrigger>

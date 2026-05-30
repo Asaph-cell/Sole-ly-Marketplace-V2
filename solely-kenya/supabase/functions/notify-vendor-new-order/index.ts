@@ -228,7 +228,7 @@ Deno.serve(async (req: Request) => {
                     total: order.total_ksh,
                     deliveryLocation: deliveryType,
                     customerName: customerName,
-                    dashboardUrl: "https://solelyshoes.co.ke/vendor/orders",
+                    dashboardUrl: "https://solelymarketplace.com/vendor/orders",
                     googleMapsLink: googleMapsLink,
                 }),
             });

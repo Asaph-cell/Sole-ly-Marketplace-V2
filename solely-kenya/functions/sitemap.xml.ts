@@ -30,22 +30,22 @@ export const onRequest: PagesFunction = async (context) => {
         const fallbackXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://solelyshoes.co.ke/</loc>
+    <loc>https://solelymarketplace.com/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://solelyshoes.co.ke/shop</loc>
+    <loc>https://solelymarketplace.com/shop</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://solelyshoes.co.ke/about</loc>
+    <loc>https://solelymarketplace.com/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://solelyshoes.co.ke/contact</loc>
+    <loc>https://solelymarketplace.com/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

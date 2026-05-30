@@ -13,7 +13,7 @@ const Blog = () => {
             <SEO 
                 title="Solely Blog | The Nairobi Footwear Guide"
                 description="Expert tips on sneaker care, escrow security, and scaling your shoe business in Kenya. Relatable stories for Nairobi's footwear culture."
-                canonical="https://solelyshoes.co.ke/blog"
+                canonical="https://solelymarketplace.com/blog"
             />
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
@@ -57,11 +57,11 @@ const Blog = () => {
                                     <CardContent className="p-6 flex-grow">
                                         <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
                                             <span className="flex items-center gap-1">
-                                                <Calendar className="h-3 w-3" />
+                                                <Calendar strokeWidth={1.5} className="h-3 w-3" />
                                                 {post.date}
                                             </span>
                                             <span className="flex items-center gap-1">
-                                                <Clock className="h-3 w-3" />
+                                                <Clock strokeWidth={1.5} className="h-3 w-3" />
                                                 {post.readTime}
                                             </span>
                                         </div>
@@ -75,7 +75,7 @@ const Blog = () => {
                                     <CardFooter className="p-6 pt-0 flex items-center justify-between border-t border-border/50 mt-auto">
                                         <div className="flex items-center gap-2">
                                             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                                <User className="h-4 w-4 text-primary" />
+                                                <User size={16} strokeWidth={1.5} className=" text-primary" />
                                             </div>
                                             <span className="text-xs font-semibold">{post.author}</span>
                                         </div>

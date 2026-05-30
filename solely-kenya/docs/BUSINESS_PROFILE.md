@@ -51,7 +51,7 @@ We provide a structured system for tracking orders and a formal dispute resoluti
 - **Market Access:** Instantly reach a targeted audience of shoe buyers across Kenya.
 - **Simple Management:** rigorous tools to manage inventory, track orders, and view earnings via a dedicated Vendor Dashboard.
 - **Risk-Free Model:** No upfront listing fees. We operate on a success-based model.
-- **Fair Commission:** We charge a flat **10% commission** on successful sales, ensuring our success is tied to yours.
+- **Fair Commission:** We charge a flat **6% commission** on successful sales, ensuring our success is tied to yours.
 
 ## Contact Information
 For partnerships, inquiries, or support, please contact us at:

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Mail, LogOut, LayoutDashboard, Menu, ShoppingBag,
   ShoppingCart, Download, Home, Info, HelpCircle, Tag, ChevronRight,
@@ -34,7 +35,7 @@ export const MobileNav = ({
   navLinks, user, isVendor, isVendorPage, onLogout, cartCount = 0,
 }: MobileNavProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const supportEmail = "contact@solelyshoes.co.ke";
+  const supportEmail = "contact@solelymarketplace.com";
   const { canInstall, promptInstall } = usePWAInstall();
   const location = useLocation();
 
@@ -56,7 +57,7 @@ export const MobileNav = ({
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
-          <Menu className="h-5 w-5" />
+          <Menu strokeWidth={1.5} size={24} className="text-foreground" />
           {cartCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center px-0.5">
               {cartCount}
@@ -67,7 +68,7 @@ export const MobileNav = ({
 
       <SheetContent
         side="right"
-        className="w-[280px] p-0 flex flex-col"
+        className="w-[280px] p-0 flex flex-col bg-sidebar border-l border-border"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {/* ── Header ── */}
@@ -86,7 +87,7 @@ export const MobileNav = ({
         <div className="flex-1 overflow-y-auto py-2">
 
           {/* Main nav links */}
-          <nav className="px-2">
+          <nav className="flex flex-col">
             {navLinks.map((link) => {
               const Icon = NAV_ICONS[link.path] ?? Home;
               return (
@@ -94,15 +95,16 @@ export const MobileNav = ({
                   key={link.path}
                   to={link.path}
                   onClick={close}
-                  className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-colors group
-                    ${isActive(link.path)
-                      ? "bg-primary/10 text-primary"
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-3 border-b border-border text-sm font-medium transition-colors group",
+                    isActive(link.path)
+                      ? "bg-muted text-primary"
                       : "text-foreground hover:bg-muted"
-                    }`}
+                  )}
                 >
-                  <Icon className={`h-4 w-4 shrink-0 ${isActive(link.path) ? "text-primary" : "text-muted-foreground"}`} />
+                  <Icon size={20} strokeWidth={1.5} className={cn("shrink-0", isActive(link.path) ? "text-primary" : "text-muted-foreground")} />
                   {link.name}
-                  <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
+                  <ChevronRight size={16} strokeWidth={1.5} className="ml-auto text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
                 </Link>
               );
             })}
@@ -118,14 +120,14 @@ export const MobileNav = ({
               onClick={close}
               className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors"
             >
-              <ShoppingCart className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <ShoppingCart size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
               Cart
               {cartCount > 0 ? (
                 <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold rounded-full px-2 py-0.5">
                   {cartCount}
                 </span>
               ) : (
-                <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground/50" />
+                <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
               )}
             </Link>
           </div>
@@ -137,7 +139,7 @@ export const MobileNav = ({
                 onClick={handleInstallClick}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-primary/10 to-amber-400/10 text-primary border border-primary/20 hover:bg-primary/10 transition-colors"
               >
-                <Download className="h-4 w-4 shrink-0" />
+                <Download size={16} strokeWidth={1.5} className=" shrink-0" />
                 Install App
               </button>
             </div>
@@ -156,14 +158,14 @@ export const MobileNav = ({
                   className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors"
                 >
                   Login
-                  <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground/50" />
+                  <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
                 </Link>
                 <Link
                   to="/auth?redirect=/vendor/register"
                   onClick={close}
                   className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-primary hover:bg-primary/10 transition-colors"
                 >
-                  <Tag className="h-4 w-4 shrink-0" />
+                  <Tag size={16} strokeWidth={1.5} className=" shrink-0" />
                   Become a Vendor
                 </Link>
               </>
@@ -171,34 +173,34 @@ export const MobileNav = ({
               isVendorPage ? (
                 <>
                   <Link to="/orders" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors">
-                    <ShoppingBag className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <ShoppingBag size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
                     My Purchases
-                    <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground/50" />
+                    <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
                   </Link>
                   <button onClick={handleLogoutClick} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
-                    <LogOut className="h-4 w-4 shrink-0" />
+                    <LogOut size={16} strokeWidth={1.5} className=" shrink-0" />
                     Logout
                   </button>
                 </>
               ) : (
                 <>
                   <Link to="/vendor/dashboard" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors">
-                    <LayoutDashboard className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <LayoutDashboard size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
                     Dashboard
-                    <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground/50" />
+                    <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
                   </Link>
                   <Link to="/vendor/orders" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors">
-                    <ShoppingBag className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <ShoppingBag size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
                     Vendor Orders
-                    <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground/50" />
+                    <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
                   </Link>
                   <Link to="/orders" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors">
-                    <ShoppingBag className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <ShoppingBag size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
                     My Purchases
-                    <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground/50" />
+                    <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
                   </Link>
                   <button onClick={handleLogoutClick} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
-                    <LogOut className="h-4 w-4 shrink-0" />
+                    <LogOut size={16} strokeWidth={1.5} className=" shrink-0" />
                     Logout
                   </button>
                 </>
@@ -206,16 +208,16 @@ export const MobileNav = ({
             ) : (
               <>
                 <Link to="/orders" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors">
-                  <ShoppingBag className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <ShoppingBag size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
                   My Orders
-                  <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground/50" />
+                  <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
                 </Link>
                 <Link to="/vendor/register" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-primary hover:bg-primary/10 transition-colors">
-                  <Tag className="h-4 w-4 shrink-0" />
+                  <Tag size={16} strokeWidth={1.5} className=" shrink-0" />
                   Become a Vendor
                 </Link>
                 <button onClick={handleLogoutClick} className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
-                  <LogOut className="h-4 w-4 shrink-0" />
+                  <LogOut size={16} strokeWidth={1.5} className=" shrink-0" />
                   Logout
                 </button>
               </>
@@ -229,7 +231,7 @@ export const MobileNav = ({
             href={`mailto:${supportEmail}`}
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            <Mail className="h-3.5 w-3.5 shrink-0" />
+            <Mail size={14} strokeWidth={1.5} className=" shrink-0" />
             {supportEmail}
           </a>
         </div>

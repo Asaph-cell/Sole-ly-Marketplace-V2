@@ -27,6 +27,7 @@ const VendorAddAccessory = () => {
         accessory_type: "",
         condition: "new",
         condition_notes: "",
+        free_delivery: false,
     });
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [imagePreview, setImagePreview] = useState<string[]>([]);
@@ -99,6 +100,8 @@ const VendorAddAccessory = () => {
             // Upload images
             const imageUrls = await uploadImages();
 
+            const safeCondition = formData.condition === "thrifted" ? "good" : formData.condition;
+
             const { error } = await supabase.from("products").insert({
                 vendor_id: user?.id,
                 name: formData.name,
@@ -110,8 +113,9 @@ const VendorAddAccessory = () => {
                 accessory_type: formData.accessory_type,
                 status: "active",
                 images: imageUrls,
-                condition: formData.condition,
+                condition: safeCondition,
                 condition_notes: formData.condition_notes || null,
+                free_delivery: formData.free_delivery,
             });
 
             if (error) throw error;
@@ -216,6 +220,22 @@ const VendorAddAccessory = () => {
                                     </div>
                                 </div>
 
+                                <div className="flex flex-col justify-center space-y-2 border rounded-md p-3">
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="free_delivery"
+                                            checked={formData.free_delivery}
+                                            onChange={(e) => setFormData({ ...formData, free_delivery: e.target.checked })}
+                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                        />
+                                        <Label htmlFor="free_delivery" className="font-medium cursor-pointer">Offers Free Delivery</Label>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground ml-6">
+                                        Check this if you are covering the delivery cost for the buyer.
+                                    </p>
+                                </div>
+
                                 {/* Brand */}
                                 <div>
                                     <Label htmlFor="brand">Brand (Optional)</Label>
@@ -243,25 +263,13 @@ const VendorAddAccessory = () => {
                                                 <SelectItem value="new">
                                                     <div className="flex items-center gap-2">
                                                         <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                                                        Mint - Brand new
+                                                        New - Brand new, unused
                                                     </div>
                                                 </SelectItem>
-                                                <SelectItem value="like_new">
+                                                <SelectItem value="thrifted">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                                                        Like New - Opened but unused
-                                                    </div>
-                                                </SelectItem>
-                                                <SelectItem value="good">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                                                        Good - Lightly used
-                                                    </div>
-                                                </SelectItem>
-                                                <SelectItem value="fair">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-                                                        Fair - Used, still functional
+                                                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                                                        Thrifted - Pre-owned / Used
                                                     </div>
                                                 </SelectItem>
                                             </SelectContent>

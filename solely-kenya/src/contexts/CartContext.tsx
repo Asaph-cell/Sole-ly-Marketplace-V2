@@ -24,6 +24,7 @@ interface CartContextValue {
   updateSize: (productId: string, newSize: string, oldSize?: string, color?: string) => void;
   updateColor: (productId: string, newColor: string, size?: string, oldColor?: string) => void;
   clearCart: () => void;
+  removeItemsByVendor: (vendorId: string) => void;
   hasAllSizes: () => boolean; // Check if all items have sizes selected (if required)
   hasAllColors: () => boolean; // Check if all items have colors selected (if required)
   hasAllValidSizes: () => boolean; // Check if all selected sizes are available
@@ -68,11 +69,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const addItem: CartContextValue["addItem"] = (item, quantity = 1) => {
     setItems((current) => {
-      // Vendor lock check
-      if (current.length > 0 && current[0].vendorId !== item.vendorId) {
-        toast.error("You can only checkout items from one vendor at a time. Complete your current cart first.");
-        return current;
-      }
 
       // Check for existing item with SAME variants
       const existingIndex = current.findIndex(
@@ -218,7 +214,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const clearCart = () => setItems([]);;
+  const clearCart = () => setItems([]);
+
+  const removeItemsByVendor: CartContextValue["removeItemsByVendor"] = (vendorId) => {
+    setItems((current) => current.filter((item) => item.vendorId !== vendorId));
+  };
 
   const { totalQuantity, subtotal } = useMemo(() => {
     const quantity = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -240,6 +240,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     hasAllValidSizes,
     getInvalidSizeItems,
     updateColor,
+    removeItemsByVendor,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

@@ -65,7 +65,7 @@ const ShareModal = ({ product, onClose }: { product: any; onClose: () => void })
             <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[220px]">{product.name}</p>
           </div>
           <button onClick={onClose} className="h-7 w-7 rounded-full bg-muted flex items-center justify-center">
-            <X className="h-4 w-4" />
+            <X size={16} strokeWidth={1.5}  />
           </button>
         </div>
 
@@ -74,8 +74,8 @@ const ShareModal = ({ product, onClose }: { product: any; onClose: () => void })
           <span className="text-xs text-muted-foreground truncate flex-1 font-mono">{payLink}</span>
           <button onClick={handleCopy} className="shrink-0">
             {copied
-              ? <Check className="h-4 w-4 text-emerald-500" />
-              : <Copy className="h-4 w-4 text-muted-foreground" />}
+              ? <Check size={16} strokeWidth={1.5} className=" text-emerald-500" />
+              : <Copy size={16} strokeWidth={1.5} className=" text-muted-foreground" />}
           </button>
         </div>
 
@@ -85,7 +85,7 @@ const ShareModal = ({ product, onClose }: { product: any; onClose: () => void })
             onClick={handleCopy}
             className="flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-border font-semibold text-sm hover:bg-muted transition-colors"
           >
-            {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+            {copied ? <Check size={16} strokeWidth={1.5} className=" text-emerald-500" /> : <Copy size={16} strokeWidth={1.5}  />}
             {copied ? "Copied!" : "Copy Link"}
           </button>
           <button
@@ -106,7 +106,7 @@ const ShareModal = ({ product, onClose }: { product: any; onClose: () => void })
             onClick={handleDownloadQR}
             className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
           >
-            <ExternalLink className="h-3.5 w-3.5" /> Download QR Code
+            <ExternalLink size={14} strokeWidth={1.5}  /> Download QR Code
           </button>
           <p className="text-[10px] text-muted-foreground text-center">Print this QR and attach to your TikTok bio, business card, or product packaging</p>
         </div>
@@ -183,27 +183,32 @@ const VendorProducts = () => {
       <div className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-md transition-all duration-200">
         {/* Image */}
         <div className="relative h-40 bg-muted">
-          {product.image_url ? (
+          {(product.images?.[0] || product.image_url) ? (
             <img
-              src={product.image_url}
+              src={product.images?.[0] || product.image_url}
               alt={product.name}
               className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div className="h-full flex items-center justify-center">
-              <Package className="h-10 w-10 text-muted-foreground/30" />
+              <Package strokeWidth={1.5} className="h-10 w-10 text-muted-foreground/30" />
             </div>
           )}
           {/* Status badge overlay */}
-          <div className="absolute top-2 left-2">
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize backdrop-blur-sm ${STATUS_PILL[product.status] ?? STATUS_PILL.inactive}`}>
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
+            <span className={`w-fit text-[10px] font-bold px-2 py-0.5 rounded-full capitalize backdrop-blur-sm ${STATUS_PILL[product.status] ?? STATUS_PILL.inactive}`}>
               {product.status === "active" ? "Live" : product.status}
             </span>
+            {product.free_delivery && (
+              <span className="w-fit text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-600 text-white backdrop-blur-sm shadow-sm">
+                Free Delivery
+              </span>
+            )}
           </div>
           {/* Low stock warning */}
           {(isLow || isOut) && (
             <div className={`absolute top-2 right-2 flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${isOut ? "bg-red-500 text-white" : "bg-amber-400 text-amber-900"}`}>
-              <AlertTriangle className="h-2.5 w-2.5" />
+              <AlertTriangle strokeWidth={1.5} className="h-2.5 w-2.5" />
               {isOut ? "Out" : `${product.stock} left`}
             </div>
           )}
@@ -224,20 +229,20 @@ const VendorProducts = () => {
                 onClick={() => handlePublish(product.id)}
                 className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold transition-colors"
               >
-                <CheckCircle className="h-3.5 w-3.5" /> Publish
+                <CheckCircle size={14} strokeWidth={1.5}  /> Publish
               </button>
             )}
             <button
               onClick={() => navigate(isAccessory ? `/vendor/edit-accessory/${product.id}` : `/vendor/edit-product/${product.id}`)}
               className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-muted hover:bg-muted/70 text-xs font-semibold transition-colors"
             >
-              <Edit className="h-3.5 w-3.5" /> Edit
+              <Edit size={14} strokeWidth={1.5}  /> Edit
             </button>
             <button
               onClick={() => handleDelete(product.id)}
               className="h-8 w-8 flex items-center justify-center rounded-xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <Trash2 size={14} strokeWidth={1.5}  />
             </button>
             {/* Share Pay Link */}
             <button
@@ -245,7 +250,7 @@ const VendorProducts = () => {
               className="h-8 w-8 flex items-center justify-center rounded-xl text-primary hover:bg-primary/10 transition-colors"
               title="Share Pay Link"
             >
-              <Share2 className="h-3.5 w-3.5" />
+              <Share2 size={14} strokeWidth={1.5}  />
             </button>
           </div>
         </div>
@@ -269,7 +274,7 @@ const VendorProducts = () => {
   const EmptyState = () => (
     <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
       <div className="h-20 w-20 rounded-3xl bg-primary/10 flex items-center justify-center mb-4">
-        <Package className="h-9 w-9 text-primary" />
+        <Package strokeWidth={1.5} className="h-9 w-9 text-primary" />
       </div>
       <h3 className="font-bold text-lg mb-1">
         {filter === "all" ? "No products yet" : `No ${filter.replace("_", " ")} products`}
@@ -284,7 +289,7 @@ const VendorProducts = () => {
           onClick={() => navigate("/vendor/list-item")}
           className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
         >
-          <Package className="h-4 w-4" /> List your first item
+          <Package size={16} strokeWidth={1.5}  /> List your first item
         </button>
       )}
     </div>
@@ -303,7 +308,7 @@ const VendorProducts = () => {
               aria-label="Back"
               className="h-8 w-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft size={16} strokeWidth={1.5}  />
             </button>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">My Products</h1>
@@ -369,7 +374,7 @@ const VendorProducts = () => {
           onClick={() => navigate("/vendor/list-item")}
           className="flex items-center gap-2 pl-4 pr-5 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold shadow-xl hover:bg-primary/90 transition-all"
         >
-          <Plus className="h-4 w-4" /> List Item
+          <Plus size={16} strokeWidth={1.5}  /> List Item
         </button>
       </div>
       {/* ── Pay Link Share Modal ── */}

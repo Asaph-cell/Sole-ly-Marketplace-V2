@@ -96,7 +96,7 @@ serve(async (req: Request) => {
                     name: vendor.full_name || 'Vendor',
                     account: normalizedPhone,
                     amount: netPayout,
-                    narrative: 'Sole-ly payout',
+                    narrative: 'Solely payout',
                 }],
             }),
         });

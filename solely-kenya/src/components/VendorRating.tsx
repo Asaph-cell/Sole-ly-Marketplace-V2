@@ -135,9 +135,8 @@ export const VendorRating = ({ vendorId, productId }: VendorRatingProps) => {
             <div>
               <div className="flex gap-1 mb-1">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    className={`h-5 w-5 ${star <= Math.round(averageRating)
+                  <Star size={20} strokeWidth={1.5} key={star}
+                    className={` ${star <= Math.round(averageRating)
                       ? "fill-yellow-400 text-yellow-400"
                       : "text-muted-foreground"
                       }`}
@@ -171,8 +170,7 @@ export const VendorRating = ({ vendorId, productId }: VendorRatingProps) => {
                     onMouseLeave={() => setHoverRating(0)}
                     className="transition-transform hover:scale-110"
                   >
-                    <Star
-                      className={`h-8 w-8 ${star <= (hoverRating || rating)
+                    <Star strokeWidth={1.5} className={`h-8 w-8 ${star <= (hoverRating || rating)
                         ? "fill-yellow-400 text-yellow-400"
                         : "text-muted-foreground"
                         }`}
@@ -211,7 +209,7 @@ export const VendorRating = ({ vendorId, productId }: VendorRatingProps) => {
           <CollapsibleTrigger asChild>
             <Button variant="outline" className="w-full flex items-center justify-between">
               <span>{isReviewsOpen ? "Hide Vendor Reviews" : "Show Vendor Reviews"}</span>
-              {isReviewsOpen ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
+              {isReviewsOpen ? <ChevronUp size={16} strokeWidth={1.5} className=" ml-2" /> : <ChevronDown size={16} strokeWidth={1.5} className=" ml-2" />}
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -224,9 +222,8 @@ export const VendorRating = ({ vendorId, productId }: VendorRatingProps) => {
                   <div key={rating.id} className="border-b pb-4 last:border-0">
                     <div className="flex gap-1 mb-2">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`h-4 w-4 ${star <= rating.rating
+                        <Star size={16} strokeWidth={1.5} key={star}
+                          className={` ${star <= rating.rating
                             ? "fill-yellow-400 text-yellow-400"
                             : "text-muted-foreground"
                             }`}

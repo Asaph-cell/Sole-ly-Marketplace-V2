@@ -242,8 +242,8 @@ const NotFound = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button size="lg" asChild><Link to="/"><Home className="h-4 w-4 mr-2" />Go Home</Link></Button>
-              <Button size="lg" variant="outline" asChild><Link to="/shop"><Search className="h-4 w-4 mr-2" />Shop</Link></Button>
+              <Button size="lg" asChild><Link to="/"><Home size={16} strokeWidth={1.5} className=" mr-2" />Go Home</Link></Button>
+              <Button size="lg" variant="outline" asChild><Link to="/shop"><Search size={16} strokeWidth={1.5} className=" mr-2" />Shop</Link></Button>
             </div>
           </div>
         </div>

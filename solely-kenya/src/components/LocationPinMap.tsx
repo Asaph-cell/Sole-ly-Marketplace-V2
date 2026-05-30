@@ -275,12 +275,12 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
                 >
                     {isLocating ? (
                         <>
-                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <Loader2 size={20} strokeWidth={1.5} className=" animate-spin" />
                             Getting your location...
                         </>
                     ) : (
                         <>
-                            <Navigation className="h-5 w-5" />
+                            <Navigation size={20} strokeWidth={1.5}  />
                             📍 Pin My Exact Location (GPS)
                         </>
                     )}
@@ -298,7 +298,7 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
                         onClick={handlePinLocation}
                         disabled={isLocating}
                     >
-                        <RefreshCw className="h-4 w-4" />
+                        <RefreshCw size={16} strokeWidth={1.5}  />
                         Try Again
                     </Button>
                 </div>
@@ -320,9 +320,9 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
                                 disabled={isLocating}
                             >
                                 {isLocating ? (
-                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                    <Loader2 strokeWidth={1.5} className="h-3 w-3 animate-spin" />
                                 ) : (
-                                    <RefreshCw className="h-3 w-3" />
+                                    <RefreshCw strokeWidth={1.5} className="h-3 w-3" />
                                 )}
                                 Re-detect GPS
                             </Button>
@@ -334,7 +334,7 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
                                 className="h-8 w-8 bg-white/90 hover:bg-white"
                                 onClick={handleCloseMap}
                             >
-                                <X className="h-4 w-4" />
+                                <X size={16} strokeWidth={1.5}  />
                             </Button>
                         </div>
 
@@ -352,7 +352,7 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
                             <p className="text-xs text-muted-foreground mb-1">Pinned Location:</p>
                             {isGeocoding ? (
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                    <Loader2 strokeWidth={1.5} className="h-3 w-3 animate-spin" />
                                     Getting address...
                                 </div>
                             ) : (
@@ -378,7 +378,7 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
                             onClick={handleConfirmLocation}
                             disabled={isGeocoding}
                         >
-                            <MapPin className="h-4 w-4" />
+                            <MapPin size={16} strokeWidth={1.5}  />
                             {hasConfirmed ? "✓ Location Saved" : "Confirm This Location"}
                         </Button>
 

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { AddressAutocomplete } from "@/components/AddressAutocomplete";
+
 import { Check, User, Store, CreditCard, MapPin, Save, Phone } from "lucide-react";
 
 const VendorSettings = () => {
@@ -18,7 +18,6 @@ const VendorSettings = () => {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState("");
   const [formData, setFormData] = useState({
     full_name: "",
     whatsapp_number: "",
@@ -63,10 +62,6 @@ const VendorSettings = () => {
         vendor_address_line2: data.vendor_address_line2 || "",
       });
 
-      // Set display address if location exists
-      if (data.vendor_address_line1 && data.vendor_city) {
-        setSelectedAddress(`${data.vendor_address_line1}, ${data.vendor_city}`);
-      }
     }
   };
 
@@ -134,7 +129,7 @@ const VendorSettings = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
-                    <User className="h-5 w-5 text-primary" />
+                    <User size={20} strokeWidth={1.5} className=" text-primary" />
                     Personal Profile
                   </CardTitle>
                   <CardDescription>
@@ -154,7 +149,7 @@ const VendorSettings = () => {
                   <div className="space-y-2">
                     <Label htmlFor="whatsapp_number">WhatsApp Number</Label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Phone size={16} strokeWidth={1.5} className="absolute left-3 top-3  text-muted-foreground" />
                       <Input
                         id="whatsapp_number"
                         type="tel"
@@ -175,7 +170,7 @@ const VendorSettings = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
-                    <Store className="h-5 w-5 text-primary" />
+                    <Store size={20} strokeWidth={1.5} className=" text-primary" />
                     Store Details
                   </CardTitle>
                   <CardDescription>
@@ -210,7 +205,7 @@ const VendorSettings = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
-                    <CreditCard className="h-5 w-5 text-green-500" />
+                    <CreditCard size={20} strokeWidth={1.5} className=" text-green-500" />
                     Payout Details
                   </CardTitle>
                   <CardDescription>
@@ -221,7 +216,7 @@ const VendorSettings = () => {
                   <div className="max-w-md space-y-2">
                     <Label htmlFor="mpesa_number">M-Pesa Number *</Label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-green-600" />
+                      <Phone size={16} strokeWidth={1.5} className="absolute left-3 top-3  text-green-600" />
                       <Input
                         id="mpesa_number"
                         type="tel"
@@ -243,30 +238,44 @@ const VendorSettings = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
-                    <MapPin className="h-5 w-5 text-primary" />
+                    <MapPin size={20} strokeWidth={1.5} className=" text-primary" />
                     Store Location
                   </CardTitle>
                   <CardDescription>
-                    Used automatically for delivery fee calculations.
+                    Used to show your location to buyers.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <AddressAutocomplete
-                      value={selectedAddress}
-                      onAddressSelect={(address) => {
-                        setSelectedAddress(address.displayName);
-                        setFormData((prev) => ({
-                          ...prev,
-                          vendor_address_line1: address.addressLine1,
-                          vendor_city: address.city,
-                          vendor_county: address.county,
-                        }));
-                      }}
-                      placeholder="Start typing your store location..."
-                      label="Search Location"
-                      required={false}
-                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="vendor_city">City</Label>
+                        <Input
+                          id="vendor_city"
+                          placeholder="e.g. Nairobi"
+                          value={formData.vendor_city}
+                          onChange={(e) => setFormData({ ...formData, vendor_city: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="vendor_county">County</Label>
+                        <Input
+                          id="vendor_county"
+                          placeholder="e.g. Nairobi County"
+                          value={formData.vendor_county}
+                          onChange={(e) => setFormData({ ...formData, vendor_county: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 pt-2">
+                      <Label htmlFor="vendor_address_line1">Street Address</Label>
+                      <Input
+                        id="vendor_address_line1"
+                        placeholder="e.g. Moi Avenue"
+                        value={formData.vendor_address_line1}
+                        onChange={(e) => setFormData({ ...formData, vendor_address_line1: e.target.value })}
+                      />
+                    </div>
                     
                     <div className="space-y-2 pt-2">
                       <Label htmlFor="vendor_address_line2">Specific Details (Optional)</Label>
@@ -277,7 +286,6 @@ const VendorSettings = () => {
                         onChange={(e) => setFormData({ ...formData, vendor_address_line2: e.target.value })}
                       />
                     </div>
-                  </div>
                 </CardContent>
               </Card>
 
@@ -291,7 +299,7 @@ const VendorSettings = () => {
                 >
                   {saveSuccess ? (
                     <>
-                      <Check className="mr-2 h-5 w-5" />
+                      <Check size={20} strokeWidth={1.5} className="mr-2 " />
                       Saved Successfully
                     </>
                   ) : saving ? (
@@ -301,7 +309,7 @@ const VendorSettings = () => {
                     </div>
                   ) : (
                     <>
-                      <Save className="mr-2 h-5 w-5" />
+                      <Save size={20} strokeWidth={1.5} className="mr-2 " />
                       Save Changes
                     </>
                   )}

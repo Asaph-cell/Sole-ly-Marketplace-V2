@@ -64,12 +64,12 @@ export function PayoutHistory({ vendorId }: { vendorId: string }) {
         switch (status) {
             case 'paid':
             case 'completed':
-                return <CheckCircle className="h-3 w-3" />;
+                return <CheckCircle strokeWidth={1.5} className="h-3 w-3" />;
             case 'processing':
             case 'pending':
-                return <Clock className="h-3 w-3" />;
+                return <Clock strokeWidth={1.5} className="h-3 w-3" />;
             case 'failed':
-                return <XCircle className="h-3 w-3" />;
+                return <XCircle strokeWidth={1.5} className="h-3 w-3" />;
             default:
                 return null;
         }
@@ -79,7 +79,7 @@ export function PayoutHistory({ vendorId }: { vendorId: string }) {
         <Card className="border-2">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <Download className="h-5 w-5" />
+                    <Download size={20} strokeWidth={1.5}  />
                     Payout History
                 </CardTitle>
             </CardHeader>

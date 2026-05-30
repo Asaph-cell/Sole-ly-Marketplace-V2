@@ -77,7 +77,7 @@ export function SmartInstallBanner() {
                         {/* App info */}
                         <div className="flex items-center gap-3 min-w-0">
                             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                                <Download className="w-4 h-4 text-white" />
+                                <Download size={16} strokeWidth={1.5} className=" text-white" />
                             </div>
                             <div className="min-w-0">
                                 <p className="text-sm font-medium truncate">Get the Sole-ly App</p>
@@ -98,7 +98,7 @@ export function SmartInstallBanner() {
                                 className="p-1 rounded-full hover:bg-slate-700 transition-colors ml-1"
                                 aria-label="Dismiss"
                             >
-                                <X className="w-4 h-4 text-slate-400" />
+                                <X size={16} strokeWidth={1.5} className=" text-slate-400" />
                             </button>
                         </div>
                     </div>

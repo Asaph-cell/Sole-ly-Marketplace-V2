@@ -12,7 +12,7 @@ const corsHeaders = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const PLATFORM_COMMISSION_RATE = 0.10; // 10%
+const PLATFORM_COMMISSION_RATE = 0.06; // 6%
 const SETTLEMENT_WALLET_ID = Deno.env.get('INTASEND_SETTLEMENT_WALLET_ID') || 'KZRJ8VY';
 
 serve(async (req: Request) => {

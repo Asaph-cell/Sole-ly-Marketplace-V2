@@ -52,13 +52,13 @@ export const onRequest: PagesFunction = async (context) => {
 
         // Also resolve the raw product image as fallback
         let imageValue = product.images?.[0];
-        let rawImageUrl = "https://solelyshoes.co.ke/og-image.png";
+        let rawImageUrl = "https://solelymarketplace.com/og-image.png";
 
         if (imageValue) {
             if (imageValue.startsWith("http")) {
                 rawImageUrl = imageValue;
             } else if (imageValue.startsWith("/")) {
-                rawImageUrl = `https://solelyshoes.co.ke${imageValue}`;
+                rawImageUrl = `https://solelymarketplace.com${imageValue}`;
             } else {
                 rawImageUrl = `${SUPABASE_URL}/storage/v1/object/public/product-images/${imageValue}`;
             }

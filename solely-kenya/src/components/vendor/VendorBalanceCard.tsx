@@ -104,7 +104,7 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
             <Card className="border-0 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-xl">
                 <CardContent className="p-6">
                     <div className="flex items-center justify-center h-32">
-                        <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
+                        <Loader2 strokeWidth={1.5} className="h-8 w-8 animate-spin text-emerald-400" />
                     </div>
                 </CardContent>
             </Card>
@@ -136,7 +136,7 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="bg-emerald-500/20 p-2 rounded-lg">
-                                    <Wallet className="h-5 w-5 text-emerald-400" />
+                                    <Wallet size={20} strokeWidth={1.5} className=" text-emerald-400" />
                                 </div>
                                 <span className="font-semibold text-white/90">Wallet Balance</span>
                             </div>
@@ -162,12 +162,12 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                         >
                             {withdraw.isPending ? (
                                 <>
-                                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                                    <Loader2 size={20} strokeWidth={1.5} className=" mr-2 animate-spin" />
                                     Processing...
                                 </>
                             ) : (
                                 <>
-                                    <ArrowDownToLine className="h-5 w-5 mr-2" />
+                                    <ArrowDownToLine size={20} strokeWidth={1.5} className=" mr-2" />
                                     Withdraw to M-Pesa
                                 </>
                             )}
@@ -183,14 +183,14 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                     {/* Stats */}
                     <div className="border-t border-white/10 px-6 py-4 grid grid-cols-2 gap-4">
                         <div className="flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4 text-emerald-400" />
+                            <TrendingUp size={16} strokeWidth={1.5} className=" text-emerald-400" />
                             <div>
                                 <p className="text-white/50 text-xs">Total Earned</p>
                                 <p className="text-white font-medium">KES {totalEarned.toLocaleString()}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <History className="h-4 w-4 text-blue-400" />
+                            <History size={16} strokeWidth={1.5} className=" text-blue-400" />
                             <div>
                                 <p className="text-white/50 text-xs">Total Withdrawn</p>
                                 <p className="text-white font-medium">KES {totalPaidOut.toLocaleString()}</p>

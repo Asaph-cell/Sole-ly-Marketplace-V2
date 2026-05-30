@@ -94,7 +94,7 @@ serve(async (req) => {
       throw new Error("Checkout currently supports items from one vendor at a time");
     }
 
-    const commissionRate = 10;
+    const commissionRate = 6;
 
     let subtotal = 0;
     const itemPayload = body.items.map((item) => {

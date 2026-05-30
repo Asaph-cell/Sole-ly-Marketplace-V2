@@ -129,7 +129,7 @@ export const PendingOrdersBanner = () => {
                 <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                         <div className="bg-gray-700 p-2 rounded-full">
-                            <XCircle className="h-5 w-5 text-gray-300" />
+                            <XCircle size={20} strokeWidth={1.5} className=" text-gray-300" />
                         </div>
                         <div>
                             <p className="font-semibold">
@@ -172,9 +172,9 @@ export const PendingOrdersBanner = () => {
                 <div className="flex items-center gap-3">
                     <div className={`${timeRemaining.urgent ? 'bg-red-700' : 'bg-amber-600'} p-2 rounded-full`}>
                         {timeRemaining.urgent ? (
-                            <AlertTriangle className="h-5 w-5 animate-pulse" />
+                            <AlertTriangle size={20} strokeWidth={1.5} className=" animate-pulse" />
                         ) : (
-                            <Package className="h-5 w-5" />
+                            <Package size={20} strokeWidth={1.5}  />
                         )}
                     </div>
                     <div>
@@ -184,7 +184,7 @@ export const PendingOrdersBanner = () => {
                                 : `${activeOrders.length} Pending Orders`}
                         </p>
                         <p className="text-sm opacity-90 flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
+                            <Clock strokeWidth={1.5} className="h-3 w-3" />
                             {timeRemaining.text} to accept
                         </p>
                     </div>

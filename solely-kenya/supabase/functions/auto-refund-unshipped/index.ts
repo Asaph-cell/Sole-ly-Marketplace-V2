@@ -129,7 +129,7 @@ Deno.serve(async (req: Request) => {
                                 <p>We have automatically raised this for admin review. Our team will contact the vendor to investigate the delay.</p>
                                 <p>Your payment of <strong>KES ${order.total_ksh?.toLocaleString()}</strong> remains safely held in escrow until this is resolved.</p>
                                 <p>If you have already received your order, please log in to Solely and confirm delivery.</p>
-                                <p>If you have any concerns, please contact us at contact@solelyshoes.co.ke</p>
+                                <p>If you have any concerns, please contact us at contact@solelymarketplace.com</p>
                                 <p>Best regards,<br>Solely Marketplace</p>
                             `,
                         }),

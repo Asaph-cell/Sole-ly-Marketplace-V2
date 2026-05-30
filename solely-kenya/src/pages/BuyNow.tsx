@@ -127,7 +127,7 @@ const BuyNow = () => {
   if (!product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4">
-        <AlertTriangle className="h-12 w-12 text-muted-foreground" />
+        <AlertTriangle strokeWidth={1.5} className="h-12 w-12 text-muted-foreground" />
         <h1 className="text-xl font-bold">Product not found</h1>
         <p className="text-muted-foreground text-sm text-center">
           This link may have expired or the item is no longer available.
@@ -147,8 +147,8 @@ const BuyNow = () => {
   const images: string[] = product.images ?? [];
 
   const conditionMap: Record<string, string> = {
-    new: "Brand New", like_new: "Like New", good: "Good",
-    fair: "Fair", thrifted: "Thrifted", refurbished: "Refurbished",
+    new: "Brand New", like_new: "Like New", good: "Thrifted",
+    fair: "Thrifted", thrifted: "Thrifted", refurbished: "Refurbished",
   };
 
   // Specs from new jsonb column
@@ -169,7 +169,7 @@ const BuyNow = () => {
 
       {/* ── Trust top bar ── */}
       <div className="bg-primary text-primary-foreground text-center py-2 px-4 text-xs font-semibold flex items-center justify-center gap-2">
-        <Lock className="h-3 w-3" />
+        <Lock strokeWidth={1.5} className="h-3 w-3" />
         Solely Escrow — Your money is protected until you confirm delivery
       </div>
 
@@ -179,7 +179,7 @@ const BuyNow = () => {
           onClick={() => navigate(-1)}
           className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft size={16} strokeWidth={1.5}  />
         </button>
         <div className="flex items-center gap-1.5">
           <span className="font-black text-lg tracking-tight text-primary">SOLE</span>
@@ -189,7 +189,7 @@ const BuyNow = () => {
           onClick={handleCopyLink}
           className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
         >
-          {copied ? <CheckCircle className="h-4 w-4 text-green-500" /> : <Share2 className="h-4 w-4" />}
+          {copied ? <CheckCircle size={16} strokeWidth={1.5} className=" text-green-500" /> : <Share2 size={16} strokeWidth={1.5}  />}
         </button>
       </header>
 
@@ -205,7 +205,7 @@ const BuyNow = () => {
             />
           ) : (
             <div className="w-full aspect-square flex items-center justify-center">
-              <Shield className="h-16 w-16 text-muted-foreground/20" />
+              <Shield strokeWidth={1.5} className="h-16 w-16 text-muted-foreground/20" />
             </div>
           )}
 
@@ -216,13 +216,13 @@ const BuyNow = () => {
                 onClick={() => setSelectedImage(i => Math.max(0, i - 1))}
                 className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 text-white flex items-center justify-center"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft size={16} strokeWidth={1.5}  />
               </button>
               <button
                 onClick={() => setSelectedImage(i => Math.min(images.length - 1, i + 1))}
                 className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/40 text-white flex items-center justify-center"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight size={16} strokeWidth={1.5}  />
               </button>
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                 {images.map((_, i) => (
@@ -289,12 +289,12 @@ const BuyNow = () => {
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate flex items-center gap-1">
                 {vendor?.full_name ?? "Solely Vendor"}
-                {vendor?.is_verified && <CheckCircle className="h-3.5 w-3.5 text-primary shrink-0" />}
+                {vendor?.is_verified && <CheckCircle size={14} strokeWidth={1.5} className=" text-primary shrink-0" />}
               </p>
               <div className="flex items-center gap-3 mt-0.5">
                 {vendorStats.rating > 0 && (
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                    <Star strokeWidth={1.5} className="h-3 w-3 fill-amber-400 text-amber-400" />
                     {vendorStats.rating.toFixed(1)} ({vendorStats.reviews})
                   </span>
                 )}
@@ -303,7 +303,7 @@ const BuyNow = () => {
                 )}
               </div>
             </div>
-            <Shield className="h-5 w-5 text-primary shrink-0" />
+            <Shield size={20} strokeWidth={1.5} className=" text-primary shrink-0" />
           </div>
 
           {/* ── Specs ── */}
@@ -367,7 +367,7 @@ const BuyNow = () => {
           {/* ── How escrow works ── */}
           <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-4 space-y-4">
             <div className="flex items-center gap-2">
-              <Lock className="h-4 w-4 text-primary" />
+              <Lock size={16} strokeWidth={1.5} className=" text-primary" />
               <p className="text-sm font-bold text-primary">How your payment is protected</p>
             </div>
             <div className="space-y-3">
@@ -397,7 +397,7 @@ const BuyNow = () => {
                 onClick={handleCopyLink}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-muted text-sm font-semibold hover:bg-muted/70 transition-colors"
               >
-                {copied ? <CheckCircle className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                {copied ? <CheckCircle size={16} strokeWidth={1.5} className=" text-green-500" /> : <Copy size={16} strokeWidth={1.5}  />}
                 {copied ? "Copied!" : "Copy Link"}
               </button>
               <button
@@ -421,7 +421,7 @@ const BuyNow = () => {
             disabled={product.stock === 0}
             className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-base hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-lg"
           >
-            <Lock className="h-4 w-4" />
+            <Lock size={16} strokeWidth={1.5}  />
             Buy Securely — KES {product.price_ksh.toLocaleString()}
           </button>
           <p className="text-center text-[11px] text-muted-foreground">

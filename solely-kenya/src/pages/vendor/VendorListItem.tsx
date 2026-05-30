@@ -394,7 +394,7 @@ const VendorListItem = () => {
               onClick={() => step === 1 ? navigate("/vendor/products") : setStep(s => (s - 1) as any)}
               className="h-8 w-8 rounded-full bg-muted hover:bg-muted/70 flex items-center justify-center text-muted-foreground transition-colors"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft size={16} strokeWidth={1.5}  />
             </button>
             <div className="flex-1">
               <h1 className="text-lg font-bold">List an Item</h1>
@@ -483,7 +483,7 @@ const VendorListItem = () => {
                 onClick={() => setStep(3)}
                 className="mt-6 w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
               >
-                Continue <ChevronRight className="h-4 w-4" />
+                Continue <ChevronRight size={16} strokeWidth={1.5}  />
               </button>
             </div>
             );
@@ -562,7 +562,7 @@ const VendorListItem = () => {
                 onClick={() => { if (canNext()) setStep(4); else toast.error("Fill in all required fields"); }}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
               >
-                Continue to Photos <ChevronRight className="h-4 w-4" />
+                Continue to Photos <ChevronRight size={16} strokeWidth={1.5}  />
               </button>
             </div>
           )}
@@ -584,7 +584,7 @@ const VendorListItem = () => {
                       onClick={() => removeImage(i)}
                       className="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center text-xs"
                     >
-                      <X className="h-3.5 w-3.5" />
+                      <X size={14} strokeWidth={1.5}  />
                     </button>
                     {i === 0 && (
                       <span className="absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">Cover</span>
@@ -593,7 +593,7 @@ const VendorListItem = () => {
                 ))}
                 {imagePreviews.length < 4 && (
                   <label className="rounded-2xl border-2 border-dashed border-border aspect-square flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-all">
-                    <ImagePlus className="h-7 w-7 text-muted-foreground" />
+                    <ImagePlus strokeWidth={1.5} className="h-7 w-7 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground font-medium">Add Photo</span>
                     <input type="file" accept="image/*" multiple className="hidden" onChange={handleImages} />
                   </label>
@@ -622,7 +622,7 @@ const VendorListItem = () => {
                 ) : submitting ? (
                   <><span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Listing…</>
                 ) : (
-                  <><Upload className="h-4 w-4" /> Publish Listing</>
+                  <><Upload size={16} strokeWidth={1.5}  /> Publish Listing</>
                 )}
               </button>
             </div>

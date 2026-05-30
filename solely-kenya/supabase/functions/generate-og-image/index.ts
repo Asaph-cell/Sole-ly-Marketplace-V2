@@ -66,7 +66,7 @@ function resolveImageUrl(
 ): string {
     if (!imageValue) return ''
     if (imageValue.startsWith('http')) return imageValue
-    if (imageValue.startsWith('/')) return `https://solelyshoes.co.ke${imageValue}`
+    if (imageValue.startsWith('/')) return `https://solelymarketplace.com${imageValue}`
     return `${supabaseUrl}/storage/v1/object/public/product-images/${imageValue}`
 }
 
@@ -252,7 +252,7 @@ function buildCard(product: {
                                                                 fontWeight: 700,
                                                                 color: '#333',
                                                             },
-                                                            children: 'Sole-ly',
+                                                            children: 'Solely',
                                                         },
                                                     },
                                                     {
@@ -262,7 +262,7 @@ function buildCard(product: {
                                                                 fontSize: '16px',
                                                                 color: '#999',
                                                             },
-                                                            children: 'solelyshoes.co.ke',
+                                                            children: 'solelymarketplace.com',
                                                         },
                                                     },
                                                 ],
@@ -309,7 +309,7 @@ Deno.serve(async (req) => {
 
         if (error || !product) {
             console.error('Product not found:', productId, error)
-            return Response.redirect('https://solelyshoes.co.ke/og-image.png', 302)
+            return Response.redirect('https://solelymarketplace.com/og-image.png', 302)
         }
 
         // Resolve and fetch product image
@@ -371,6 +371,6 @@ Deno.serve(async (req) => {
     } catch (e) {
         console.error('OG image generation error:', e)
         // Graceful fallback: redirect to default OG image
-        return Response.redirect('https://solelyshoes.co.ke/og-image.png', 302)
+        return Response.redirect('https://solelymarketplace.com/og-image.png', 302)
     }
 })

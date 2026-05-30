@@ -304,8 +304,7 @@ export const OrderConfirmationModal = ({
                     onMouseLeave={() => setHoverRating(0)}
                     onClick={() => setRating(star)}
                 >
-                    <Star
-                        className={`h-8 w-8 ${star <= (hoverRating || rating)
+                    <Star strokeWidth={1.5} className={`h-8 w-8 ${star <= (hoverRating || rating)
                             ? "fill-yellow-400 text-yellow-400"
                             : "text-gray-300"
                             }`}
@@ -343,7 +342,7 @@ export const OrderConfirmationModal = ({
                             onClick={() => setStep("satisfied")}
                         >
                             <div className="flex items-center gap-2 text-green-600 mb-1">
-                                <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                                <CheckCircle size={20} strokeWidth={1.5} className=" flex-shrink-0" />
                                 <span className="font-semibold">{isPickup ? "Confirm Pickup" : "Everything is Good!"}</span>
                             </div>
                             <span className="text-sm text-muted-foreground leading-snug">
@@ -359,7 +358,7 @@ export const OrderConfirmationModal = ({
                             onClick={() => setStep("issue")}
                         >
                             <div className="flex items-center gap-2 text-red-600 mb-1">
-                                <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                                <AlertTriangle size={20} strokeWidth={1.5} className=" flex-shrink-0" />
                                 <span className="font-semibold">I Have an Issue</span>
                             </div>
                             <span className="text-sm text-muted-foreground leading-snug">
@@ -399,8 +398,7 @@ export const OrderConfirmationModal = ({
                                                             onMouseLeave={() => setProductHoverRatings(prev => ({ ...prev, [item.product_id]: 0 }))}
                                                             onClick={() => setProductRatings(prev => ({ ...prev, [item.product_id]: star }))}
                                                         >
-                                                            <Star
-                                                                className={`h-5 w-5 ${star <= (productHoverRatings[item.product_id] || productRatings[item.product_id] || 0)
+                                                            <Star size={20} strokeWidth={1.5} className={` ${star <= (productHoverRatings[item.product_id] || productRatings[item.product_id] || 0)
                                                                     ? "fill-yellow-400 text-yellow-400"
                                                                     : "text-gray-300"
                                                                     }`}
@@ -501,7 +499,7 @@ export const OrderConfirmationModal = ({
                                     size="sm"
                                     onClick={() => document.getElementById('evidence-upload')?.click()}
                                 >
-                                    <Upload className="h-4 w-4 mr-2" />
+                                    <Upload size={16} strokeWidth={1.5} className=" mr-2" />
                                     Choose Files
                                 </Button>
                                 <input

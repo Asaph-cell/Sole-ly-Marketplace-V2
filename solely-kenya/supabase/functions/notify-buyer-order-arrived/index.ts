@@ -95,7 +95,7 @@ Deno.serve(async (req: Request) => {
                 <p style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
                     <strong>Action Required:</strong> Please log in to your account to confirm delivery and inspect your items. 
                     <br><br>
-                    <a href="https://solelyshoes.co.ke/orders" style="display: inline-block; background-color: #16a34a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Confirm Delivery</a>
+                    <a href="https://solelymarketplace.com/orders" style="display: inline-block; background-color: #16a34a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Confirm Delivery</a>
                 </p>
                 
                 <p>If you have any issues, please contact us immediately.</p>

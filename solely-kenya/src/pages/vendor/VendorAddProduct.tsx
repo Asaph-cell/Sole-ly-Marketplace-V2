@@ -36,6 +36,7 @@ const VendorAddProduct = () => {
     colors: "",
     condition: "new",
     condition_notes: "",
+    free_delivery: false,
   });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreview, setImagePreview] = useState<string[]>([]);
@@ -160,6 +161,10 @@ const VendorAddProduct = () => {
       // Upload images
       const imageUrls = await uploadImages();
 
+      // Sanitise condition so it always matches the DB constraint
+      const conditionMap: Record<string, string> = { thrifted: "good", refurbished: "like_new" };
+      const safeCondition = conditionMap[formData.condition] ?? formData.condition;
+
       // Insert as 'draft' first (RLS policy only allows draft inserts)
       const { data: insertedProduct, error } = await supabase.from("products").insert({
         vendor_id: user?.id,
@@ -176,8 +181,9 @@ const VendorAddProduct = () => {
         colors: colorsArray,
         images: imageUrls,
         video_url: videoUrl,
-        condition: formData.condition,
+        condition: safeCondition,
         condition_notes: formData.condition_notes || null,
+        free_delivery: formData.free_delivery,
       }).select('id').single();
 
       if (error) throw error;
@@ -247,6 +253,22 @@ const VendorAddProduct = () => {
                       onChange={(e) => setFormData({ ...formData, price_ksh: e.target.value })}
                       required
                     />
+                  </div>
+
+                  <div className="flex flex-col justify-center space-y-2 border rounded-md p-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="free_delivery"
+                        checked={formData.free_delivery}
+                        onChange={(e) => setFormData({ ...formData, free_delivery: e.target.checked })}
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <Label htmlFor="free_delivery" className="font-medium cursor-pointer">Offers Free Delivery</Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground ml-6">
+                      Check this if you are covering the delivery cost for the buyer.
+                    </p>
                   </div>
 
                   <div>
@@ -331,27 +353,24 @@ const VendorAddProduct = () => {
                         <SelectItem value="new">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                            Mint - Brand new
+                            New - Brand new, unused
                           </div>
                         </SelectItem>
-                        <SelectItem value="like_new">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                            Like New - Worn 1-2 times, no visible wear
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="good">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                            Good - Light wear, minor scuffs
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="fair">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-                            Fair - Visible wear, still functional
-                          </div>
-                        </SelectItem>
+                        {formData.category === "electronics" ? (
+                          <SelectItem value="refurbished">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                              Refurbished - Restored to working order
+                            </div>
+                          </SelectItem>
+                        ) : (
+                          <SelectItem value="thrifted">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                              Thrifted - Pre-owned / Used
+                            </div>
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -382,7 +401,7 @@ const VendorAddProduct = () => {
                     onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
                   />
                   <Alert className="bg-amber-50 border-amber-200">
-                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <AlertTriangle size={16} strokeWidth={1.5} className=" text-amber-600" />
                     <AlertDescription className="text-amber-800 text-sm">
                       <strong>Important:</strong> Enter exact EU sizes from the size chart (e.g., 36, 37, 38).
                       Using correct sizes ensures customers can find their perfect fit.

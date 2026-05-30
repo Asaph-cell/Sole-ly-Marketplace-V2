@@ -200,7 +200,7 @@ const VendorDashboard = () => {
                 🔔
               </button>
               <Button size="sm" onClick={() => navigate("/vendor/list-item")} className="gap-1.5 text-xs sm:text-sm">
-                <Package className="h-3.5 w-3.5" /> List Item
+                <Package size={14} strokeWidth={1.5}  /> List Item
               </Button>
             </div>
           </div>
@@ -222,11 +222,11 @@ const VendorDashboard = () => {
                   to="/vendor/orders"
                   className="flex items-center gap-3 px-4 py-3 mb-4 rounded-xl bg-amber-500/10 border border-amber-400/30 hover:bg-amber-500/15 transition-colors"
                 >
-                  <Zap className="h-4 w-4 text-amber-600 shrink-0" />
+                  <Zap size={16} strokeWidth={1.5} className=" text-amber-600 shrink-0" />
                   <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 flex-1">
                     {stats.pendingOrders} order{stats.pendingOrders !== 1 ? "s" : ""} need your confirmation
                   </p>
-                  <ArrowRight className="h-4 w-4 text-amber-600 shrink-0" />
+                  <ArrowRight size={16} strokeWidth={1.5} className=" text-amber-600 shrink-0" />
                 </Link>
               )}
 
@@ -237,12 +237,12 @@ const VendorDashboard = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Products</span>
                     <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Package className="h-3.5 w-3.5 text-primary" />
+                      <Package size={14} strokeWidth={1.5} className=" text-primary" />
                     </div>
                   </div>
                   <p className="text-2xl font-bold">{stats.totalProducts}</p>
                   <Link to="/vendor/products" className="text-[11px] text-primary font-medium flex items-center gap-0.5 hover:underline">
-                    Manage <ArrowRight className="h-3 w-3" />
+                    Manage <ArrowRight strokeWidth={1.5} className="h-3 w-3" />
                   </Link>
                 </div>
 
@@ -251,7 +251,7 @@ const VendorDashboard = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Rating</span>
                     <div className="h-7 w-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                      <Star className="h-3.5 w-3.5 text-amber-500" />
+                      <Star size={14} strokeWidth={1.5} className=" text-amber-500" />
                     </div>
                   </div>
                   <p className="text-2xl font-bold">
@@ -267,7 +267,7 @@ const VendorDashboard = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Views</span>
                     <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                      <Eye className="h-3.5 w-3.5 text-blue-500" />
+                      <Eye size={14} strokeWidth={1.5} className=" text-blue-500" />
                     </div>
                   </div>
                   <p className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</p>
@@ -279,12 +279,12 @@ const VendorDashboard = () => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Orders</span>
                     <div className="h-7 w-7 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                      <ShoppingCart className="h-3.5 w-3.5 text-purple-500" />
+                      <ShoppingCart size={14} strokeWidth={1.5} className=" text-purple-500" />
                     </div>
                   </div>
                   <p className="text-2xl font-bold">{stats.ordersReceived}</p>
                   <Link to="/vendor/orders" className="text-[11px] text-primary font-medium flex items-center gap-0.5 hover:underline">
-                    View all <ArrowRight className="h-3 w-3" />
+                    View all <ArrowRight strokeWidth={1.5} className="h-3 w-3" />
                   </Link>
                 </div>
               </div>
@@ -293,7 +293,7 @@ const VendorDashboard = () => {
               <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-5">
                 <div className="bg-card rounded-2xl border border-border p-4 flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 mb-1">
-                    <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                    <TrendingUp size={14} strokeWidth={1.5} className=" text-muted-foreground" />
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Earned</span>
                   </div>
                   <p className="text-xl font-bold">KES {stats.totalEarned.toLocaleString()}</p>
@@ -302,7 +302,7 @@ const VendorDashboard = () => {
 
                 <div className="bg-green-50 dark:bg-green-950/30 rounded-2xl border border-green-200 dark:border-green-800 p-4 flex flex-col gap-1">
                   <div className="flex items-center gap-1.5 mb-1">
-                    <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                    <CheckCircle size={14} strokeWidth={1.5} className=" text-green-600" />
                     <span className="text-xs font-medium text-green-700 dark:text-green-400 uppercase tracking-wide">Paid Out</span>
                   </div>
                   <p className="text-xl font-bold text-green-700 dark:text-green-400">KES {stats.paidOut.toLocaleString()}</p>
@@ -326,12 +326,12 @@ const VendorDashboard = () => {
                       <CardTitle className="text-sm font-semibold">Product Views</CardTitle>
                       <p className="text-xs text-muted-foreground mt-0.5">This month</p>
                     </div>
-                    <Eye className="h-4 w-4 text-muted-foreground" />
+                    <Eye size={16} strokeWidth={1.5} className=" text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     {viewsData.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-10 text-center">
-                        <Eye className="h-10 w-10 text-muted-foreground/30 mb-3" />
+                        <Eye strokeWidth={1.5} className="h-10 w-10 text-muted-foreground/30 mb-3" />
                         <p className="text-sm text-muted-foreground">No views recorded this month</p>
                       </div>
                     ) : (
@@ -368,7 +368,7 @@ const VendorDashboard = () => {
                   <Card className="rounded-2xl border-border">
                     <CardHeader className="pb-2 flex flex-row items-center justify-between">
                       <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-                        <AlertTriangle className="h-4 w-4 text-destructive" />
+                        <AlertTriangle size={16} strokeWidth={1.5} className=" text-destructive" />
                         Low Stock
                       </CardTitle>
                     </CardHeader>
@@ -394,7 +394,7 @@ const VendorDashboard = () => {
                   <Card className="rounded-2xl border-border">
                     <CardHeader className="pb-2 flex flex-row items-center justify-between">
                       <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <Clock size={16} strokeWidth={1.5} className=" text-muted-foreground" />
                         Recent Orders
                       </CardTitle>
                     </CardHeader>

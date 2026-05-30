@@ -43,7 +43,7 @@ export const OrderReceipt = forwardRef<HTMLDivElement, ReceiptProps>(
                     <div>
                         <img src={logo} alt="Solely" className="h-12 mb-2" />
                         <p className="text-sm text-gray-600">Solely Kenya Marketplace</p>
-                        <p className="text-sm text-gray-600">contact@solelyshoes.co.ke</p>
+                        <p className="text-sm text-gray-600">contact@solelymarketplace.com</p>
                     </div>
                     <div className="text-right">
                         <h1 className="text-2xl font-bold text-gray-800">RECEIPT</h1>
@@ -136,7 +136,7 @@ export const OrderReceipt = forwardRef<HTMLDivElement, ReceiptProps>(
                 {/* Footer */}
                 <div className="mt-8 pt-4 border-t border-gray-200 text-center text-sm text-gray-500">
                     <p>Thank you for shopping with Solely Kenya!</p>
-                    <p className="mt-1">For any queries, contact us at contact@solelyshoes.co.ke</p>
+                    <p className="mt-1">For any queries, contact us at contact@solelymarketplace.com</p>
                     <p className="mt-2 text-xs">
                         This is a computer-generated receipt and does not require a signature.
                     </p>

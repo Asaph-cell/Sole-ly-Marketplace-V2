@@ -49,7 +49,7 @@ export const ShoeSizeChart = ({ selectedSize, availableSizes }: ShoeSizeChartPro
                     size="sm"
                     className="text-xs h-7 px-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
                 >
-                    <Info className="w-3 h-3 mr-1" />
+                    <Info strokeWidth={1.5} className="w-3 h-3 mr-1" />
                     Size Guide
                 </Button>
             </DialogTrigger>

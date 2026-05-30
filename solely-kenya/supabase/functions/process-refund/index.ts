@@ -40,7 +40,7 @@ serve(async (req: Request) => {
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        const { orderId, disputeId, reason } = await req.json();
+        const { orderId, disputeId, reason, refundAmount } = await req.json();
 
         if (!orderId) {
             throw new Error("orderId is required");
@@ -80,7 +80,7 @@ serve(async (req: Request) => {
 
         const chargebackPayload = {
             invoice: payment.transaction_id,
-            amount: Number(payment.amount_ksh),
+            amount: refundAmount ? Number(refundAmount) : Number(payment.amount_ksh),
             reason: mapReasonToIntaSend(reason || "other"),
         };
 

@@ -214,7 +214,7 @@ export function DeliveryTrackingControl({
             <CardContent className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <RadioTower className={`h-5 w-5 ${isTracking ? 'text-green-600 animate-pulse' : 'text-muted-foreground'}`} />
+                        <RadioTower size={20} strokeWidth={1.5} className={` ${isTracking ? 'text-green-600 animate-pulse' : 'text-muted-foreground'}`} />
                         <div>
                             <Label htmlFor="tracking-toggle" className="text-base font-semibold cursor-pointer">
                                 Live Delivery Tracking
@@ -247,7 +247,7 @@ export function DeliveryTrackingControl({
                         </div>
 
                         <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
-                            <Battery className="h-4 w-4 text-amber-600" />
+                            <Battery size={16} strokeWidth={1.5} className=" text-amber-600" />
                             <AlertDescription className="text-xs text-amber-800 dark:text-amber-200">
                                 <strong>Battery Notice:</strong> Continuous GPS tracking may drain your battery. The tracking will auto-stop after 8 hours.
                             </AlertDescription>
@@ -255,7 +255,7 @@ export function DeliveryTrackingControl({
 
                         {isUpdating && (
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <Loader2 strokeWidth={1.5} className="h-3 w-3 animate-spin" />
                                 <span>Updating location...</span>
                             </div>
                         )}
@@ -264,7 +264,7 @@ export function DeliveryTrackingControl({
 
                 {permissionDenied && !isTracking && (
                     <Alert className="bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800">
-                        <MapPin className="h-4 w-4 text-red-600" />
+                        <MapPin size={16} strokeWidth={1.5} className=" text-red-600" />
                         <AlertDescription className="text-xs text-red-800 dark:text-red-200">
                             Location permission denied. Please enable location access in your browser settings and try again.
                         </AlertDescription>

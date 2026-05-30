@@ -10,7 +10,7 @@ const Terms = () => {
             <div className="container mx-auto px-4 max-w-4xl">
                 <Link to="/">
                     <Button variant="ghost" className="mb-6">
-                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        <ArrowLeft size={16} strokeWidth={1.5} className=" mr-2" />
                         Back to Home
                     </Button>
                 </Link>
@@ -18,18 +18,18 @@ const Terms = () => {
                 <div className="text-center mb-8">
                     <h1 className="text-4xl font-bold mb-4">Terms and Conditions</h1>
                     <p className="text-muted-foreground">
-                        Last updated: February 2026
+                        Last updated: May 2026
                     </p>
                 </div>
 
                 <Tabs defaultValue="buyers" className="space-y-6">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="buyers">
-                            <ShoppingBag className="h-4 w-4 mr-2" />
+                            <ShoppingBag size={16} strokeWidth={1.5} className=" mr-2" />
                             For Buyers
                         </TabsTrigger>
                         <TabsTrigger value="vendors">
-                            <Store className="h-4 w-4 mr-2" />
+                            <Store size={16} strokeWidth={1.5} className=" mr-2" />
                             For Vendors
                         </TabsTrigger>
                     </TabsList>
@@ -39,10 +39,10 @@ const Terms = () => {
                         <Card className="p-6 md:p-8 space-y-8">
                             <section>
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                                    <Shield className="h-6 w-6 text-primary" />
+                                    <Shield size={24} strokeWidth={1.5} className=" text-primary" />
                                     Welcome to Solely Marketplace
                                 </h2>
-                                <p className="text-sm text-muted-foreground mb-4">Last Updated: February 2026</p>
+                                <p className="text-sm text-muted-foreground mb-4">Last Updated: May 2026</p>
                                 <p className="text-muted-foreground leading-relaxed">
                                     Welcome to Sole-ly, Kenya's trusted online shoe marketplace. These Terms and Conditions constitute a legally binding agreement between you ("the Buyer") and Sole-ly ("the Platform"). By creating an account or purchasing products, you agree to these terms.
                                 </p>
@@ -50,7 +50,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <Scale className="h-5 w-5 text-amber-600" />
+                                    <Scale size={20} strokeWidth={1.5} className=" text-amber-600" />
                                     0. Platform Disclaimer (Important)
                                 </h3>
                                 <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg mb-4">
@@ -75,7 +75,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <CreditCard className="h-5 w-5 text-green-600" />
+                                    <CreditCard size={20} strokeWidth={1.5} className=" text-green-600" />
                                     2. Escrow Payment Protection
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
@@ -94,23 +94,24 @@ const Terms = () => {
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>Confirmation Window:</strong> Vendors must accept or decline your order within <strong>48 hours</strong>. If they fail to do so, the order is automatically cancelled, and you receive a full refund</li>
                                     <li><strong>Delivery Window:</strong> Once confirmed, vendors have <strong>5 days</strong> to deliver your order. If not delivered, a dispute is automatically raised for admin review</li>
-                                    <li><strong>Tracking:</strong> You will receive order updates and tracking details via the platform/email once the item is marked as arrived</li>
+                                    <li><strong>Updates:</strong> You will receive order updates via the platform/email as your order progresses</li>
                                 </ul>
                             </section>
 
                             <section>
-                                <h3 className="text-xl font-semibold mb-3">3.5. Delivery Fees</h3>
+                                <h3 className="text-xl font-semibold mb-3">3.5. Delivery</h3>
                                 <p className="text-muted-foreground mb-3">
-                                    Delivery fees are calculated automatically based on metro-area zones:
+                                    Delivery on Sole-ly is facilitated directly by the vendor, not the platform:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li><strong>Same Metro Area (KES 200):</strong> Deliveries within the same metropolitan area (e.g., Nairobi Metro includes Nairobi, Kiambu, Machakos, Kajiado)</li>
-                                    <li><strong>Inter-City (KES 400):</strong> Deliveries between different major cities (e.g., Nairobi to Mombasa, Nakuru to Kisumu)</li>
-                                    <li><strong>Distant Delivery (KES 500):</strong> Deliveries to/from smaller towns or remote locations</li>
-                                    <li><strong>Pickup (KES 0):</strong> No delivery fee when you collect directly from the vendor</li>
+                                    <li><strong>Vendor-Facilitated Delivery:</strong> Vendors arrange and handle delivery to your location themselves. Sole-ly does not charge any delivery fees</li>
+                                    <li><strong>Free Delivery:</strong> Some vendors offer free delivery — look for the "Free Delivery" badge on product listings</li>
+                                    <li><strong>Delivery Costs:</strong> If a vendor charges for delivery, this will be communicated and arranged directly between you and the vendor, outside the platform price</li>
+                                    <li><strong>Location Sharing:</strong> During checkout, you can optionally share your GPS location pin to make it easier for the vendor to find you</li>
+                                    <li><strong>Communication:</strong> Once your order is confirmed, the vendor's contact details are available so you can coordinate delivery logistics directly</li>
                                 </ul>
                                 <p className="text-muted-foreground mt-3">
-                                    <strong>Note:</strong> The delivery fee is paid by you   (the buyer) but the vendor is responsible for arranging and paying for actual delivery services using this amount.
+                                    <strong>Note:</strong> Since Sole-ly does not manage delivery, any delivery fees agreed upon between you and the vendor are separate from the product price shown on the platform.
                                 </p>
                             </section>
 
@@ -153,7 +154,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                                    <AlertTriangle size={20} strokeWidth={1.5} className=" text-amber-600" />
                                     5. Disputes and Refunds
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
@@ -173,7 +174,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <Star className="h-5 w-5 text-yellow-500" />
+                                    <Star size={20} strokeWidth={1.5} className=" text-yellow-500" />
                                     6. Ratings and Reviews
                                 </h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
@@ -212,7 +213,7 @@ const Terms = () => {
                         <Card className="p-6 md:p-8 space-y-8">
                             <section>
                                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                                    <Store className="h-6 w-6 text-primary" />
+                                    <Store size={24} strokeWidth={1.5} className=" text-primary" />
                                     Sole-ly Vendor Agreement
                                 </h2>
                                 <p className="text-sm text-muted-foreground mb-4">Last Updated: February 2026</p>
@@ -234,11 +235,11 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <CreditCard className="h-5 w-5 text-green-600" />
+                                    <CreditCard size={20} strokeWidth={1.5} className=" text-green-600" />
                                     2. Commission and Payments
                                 </h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li>Sole-ly charges a <strong>10% commission</strong> on the product price of each completed sale</li>
+                                    <li>Sole-ly charges a <strong>6% commission</strong> on the product price of each completed sale</li>
                                     <li>Payments are held in escrow until the buyer confirms delivery by sharing their OTP code</li>
                                     <li><strong>Withdrawals:</strong> You can withdraw your earnings to M-Pesa at any time. Standard M-Pesa transaction fees apply and are deducted from the withdrawal amount</li>
                                     <li><strong>Auto-Payout:</strong> If your balance exceeds KES 10,000, the system may automatically process a payout to your registered M-Pesa number</li>
@@ -266,9 +267,8 @@ const Terms = () => {
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>Confirmation:</strong> Accept or reject new orders within <strong>48 hours</strong></li>
-                                    <li><strong>Delivery:</strong> Deliver orders within <strong>5 days</strong> of confirmation</li>
+                                    <li><strong>Delivery:</strong> Arrange and deliver orders within <strong>5 days</strong> of confirmation. You are fully responsible for delivery logistics</li>
                                     <li><strong>OTP Verification:</strong> Upon delivery, collect the buyer's <strong>6-digit OTP code</strong> and enter it on Sole-ly to confirm delivery and release funds</li>
-                                    <li><strong>Tracking:</strong> Provide accurate courier names and tracking numbers/contact details</li>
                                 </ul>
 
                                 <div className="mt-4 bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
@@ -301,7 +301,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <AlertTriangle className="h-5 w-5 text-red-600" />
+                                    <AlertTriangle size={20} strokeWidth={1.5} className=" text-red-600" />
                                     5. Disputes and Returns
                                 </h3>
                                 <h4 className="font-semibold text-foreground mb-2">Grounds for Dispute</h4>
@@ -334,7 +334,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <Star className="h-5 w-5 text-yellow-500" />
+                                    <Star size={20} strokeWidth={1.5} className=" text-yellow-500" />
                                     6. Ratings and Reputation
                                 </h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
@@ -373,7 +373,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <Scale className="h-5 w-5" />
+                                    <Scale size={20} strokeWidth={1.5}  />
                                     8. Account Suspension and Termination
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
@@ -427,8 +427,8 @@ const Terms = () => {
                         <h3 className="text-lg font-semibold mb-2">Contact Us</h3>
                         <p className="text-muted-foreground">
                             For questions about these terms, contact us at{" "}
-                            <a href="mailto:contact@solelyshoes.co.ke" className="text-primary underline">
-                                contact@solelyshoes.co.ke
+                            <a href="mailto:contact@solelymarketplace.com" className="text-primary underline">
+                                contact@solelymarketplace.com
                             </a>
                         </p>
                     </section>

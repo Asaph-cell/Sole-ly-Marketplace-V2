@@ -94,8 +94,8 @@ serve(async (req: Request) => {
         // The previous code in `VendorOrders.tsx` didn't seem to set `payout_amount` on creation?
         // Let's check if `payout_amount` exists on the order.
 
-        const payoutAmount = order.payout_amount ?? (order.total_ksh * 0.90);
-        const commissionAmount = order.commission_amount ?? (order.total_ksh * 0.10);
+        const payoutAmount = order.payout_amount ?? (order.total_ksh * 0.94);
+        const commissionAmount = order.commission_amount ?? (order.total_ksh * 0.06);
 
         console.log(`Creating payout: vendor=${order.vendor_id}, order=${orderId}, amount=${payoutAmount}, commission=${commissionAmount}`);
 
@@ -123,7 +123,7 @@ serve(async (req: Request) => {
             .insert({
                 order_id: orderId,
                 vendor_id: order.vendor_id,
-                commission_rate: 10, // 10% commission
+                commission_rate: 6, // 6% commission
                 commission_amount: commissionAmount,
                 notes: "Buyer confirmed delivery",
             });

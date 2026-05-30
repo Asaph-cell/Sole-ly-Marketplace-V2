@@ -12,7 +12,7 @@ import { Mail, CheckCircle2, ArrowLeft, KeyRound } from "lucide-react";
 import logo from "@/assets/solely-logo.svg";
 
 // Production URL for email verification redirect
-const SITE_URL = "https://solelyshoes.co.ke";
+const SITE_URL = "https://solelymarketplace.com";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -55,9 +55,17 @@ const Auth = () => {
       // Small delay to ensure signOut has completed if coming from logout
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      // Use getUser() to ensure the token is actually valid on the server,
+      // preventing infinite loops if localStorage has an invalid old token.
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (user && !error) {
         navigate(redirectTo);
+      } else {
+        // If there's a session in storage but getUser fails, sign out to clear it
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await supabase.auth.signOut();
+        }
       }
     };
     checkUser();
@@ -156,8 +164,8 @@ const Auth = () => {
       <div className="min-h-screen flex items-center justify-center py-12 px-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-              <KeyRound className="w-10 h-10 text-blue-600" />
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+              <KeyRound size={32} strokeWidth={1.5} className="text-primary" />
             </div>
             <CardTitle className="text-2xl text-blue-700">Check Your Email!</CardTitle>
             <CardDescription className="text-base mt-2">
@@ -168,7 +176,7 @@ const Auth = () => {
             {/* Email display */}
             <div className="bg-muted/50 border rounded-lg p-4 text-center">
               <div className="flex items-center justify-center gap-2 text-lg font-semibold">
-                <Mail className="w-5 h-5 text-primary" />
+                <Mail size={20} strokeWidth={1.5} className=" text-primary" />
                 <span>{registeredEmail}</span>
               </div>
             </div>
@@ -195,7 +203,7 @@ const Auth = () => {
                 setEmail("");
               }}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft size={16} strokeWidth={1.5} className=" mr-2" />
               Back to Sign In
             </Button>
           </CardContent>
@@ -241,7 +249,7 @@ const Auth = () => {
                   setEmail("");
                 }}
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowLeft size={16} strokeWidth={1.5} className=" mr-2" />
                 Back to Sign In
               </Button>
             </form>
@@ -257,8 +265,8 @@ const Auth = () => {
       <div className="min-h-screen flex items-center justify-center py-12 px-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+              <CheckCircle2 size={32} strokeWidth={1.5} className="text-primary" />
             </div>
             <CardTitle className="text-2xl text-green-700">Check Your Email!</CardTitle>
             <CardDescription className="text-base mt-2">
@@ -269,7 +277,7 @@ const Auth = () => {
             {/* Email display */}
             <div className="bg-muted/50 border rounded-lg p-4 text-center">
               <div className="flex items-center justify-center gap-2 text-lg font-semibold">
-                <Mail className="w-5 h-5 text-primary" />
+                <Mail size={20} strokeWidth={1.5} className=" text-primary" />
                 <span>{registeredEmail}</span>
               </div>
             </div>

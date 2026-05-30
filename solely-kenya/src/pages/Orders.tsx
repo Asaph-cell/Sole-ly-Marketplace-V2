@@ -7,11 +7,13 @@ import { Tables } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DisputeChat } from "@/components/disputes/DisputeChat";
 import { toast } from "sonner";
 import { OrderReviewDialog } from "@/components/OrderReviewDialog";
 import { OrderConfirmationModal } from "@/components/OrderConfirmationModal";
 import { OrderReceipt } from "@/components/OrderReceipt";
 import { LiveDeliveryTracker } from "@/components/LiveDeliveryTracker";
+import { TrackingTimeline } from "@/components/tracking/TrackingTimeline";
 import { Phone, MessageCircle, PhoneCall, CheckCircle, Download } from "lucide-react";
 import {
   DropdownMenu,
@@ -47,7 +49,7 @@ const ContactVendorButton = ({ phoneNumber, className = "" }: { phoneNumber: str
           variant="outline"
           className={className}
         >
-          <Phone className="h-4 w-4 mr-2" />
+          <Phone size={16} strokeWidth={1.5} className=" mr-2" />
           Contact Vendor
         </Button>
       </DropdownMenuTrigger>
@@ -59,7 +61,7 @@ const ContactVendorButton = ({ phoneNumber, className = "" }: { phoneNumber: str
             rel="noopener noreferrer"
             className="flex items-center gap-2 cursor-pointer"
           >
-            <MessageCircle className="h-4 w-4" />
+            <MessageCircle size={16} strokeWidth={1.5}  />
             WhatsApp
           </a>
         </DropdownMenuItem>
@@ -68,7 +70,7 @@ const ContactVendorButton = ({ phoneNumber, className = "" }: { phoneNumber: str
             href={`tel:${telNumber}`}
             className="flex items-center gap-2 cursor-pointer"
           >
-            <PhoneCall className="h-4 w-4" />
+            <PhoneCall size={16} strokeWidth={1.5}  />
             Phone Call
           </a>
         </DropdownMenuItem>
@@ -77,7 +79,7 @@ const ContactVendorButton = ({ phoneNumber, className = "" }: { phoneNumber: str
             href={`sms:${telNumber}`}
             className="flex items-center gap-2 cursor-pointer"
           >
-            <MessageCircle className="h-4 w-4" />
+            <MessageCircle size={16} strokeWidth={1.5}  />
             SMS
           </a>
         </DropdownMenuItem>
@@ -168,8 +170,8 @@ const Orders = () => {
         `*,
         order_items(*),
         order_shipping_details(*),
-        payments(*)
-      `
+        payments(*),
+        disputes(*)`
       )
       .eq("customer_id", user.id)
       .order("created_at", { ascending: false });
@@ -581,6 +583,16 @@ const Orders = () => {
                       />
                     )}
 
+                    {/* Milestone Tracking Timeline */}
+                    <TrackingTimeline orderId={order.id} />
+
+                    {/* Dispute Chat */}
+                    {order.status === "disputed" && (order as any).disputes?.[0] && (
+                      <div className="mt-4">
+                        <DisputeChat disputeId={(order as any).disputes[0].id} currentUserRole="buyer" />
+                      </div>
+                    )}
+
                     {/* Delivery OTP Display - Show to buyer when order is shipped or arrived */}
                     {(order.status === "shipped" || order.status === "arrived") && (order as any).delivery_otp && (
                       <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -660,12 +672,12 @@ const Orders = () => {
                               }, 100);
                             }}
                           >
-                            <Download className="h-4 w-4 mr-1" />
+                            <Download size={16} strokeWidth={1.5} className=" mr-1" />
                             Download Receipt
                           </Button>
                           {reviewedOrders.has(order.id) ? (
                             <div className="flex items-center gap-2 text-sm text-green-600">
-                              <CheckCircle className="h-4 w-4" />
+                              <CheckCircle size={16} strokeWidth={1.5}  />
                               Thank you for your review!
                             </div>
                           ) : (

@@ -45,7 +45,7 @@ serve(async (req) => {
             .single();
 
         // 3. Prepare customer data with fallbacks
-        const email = shipping?.email || order.profiles?.email || 'customer@solelyshoes.co.ke';
+        const email = shipping?.email || order.profiles?.email || 'customer@solelymarketplace.com';
         const phone = shipping?.phone || '';
         const name = shipping?.recipient_name || order.profiles?.full_name || 'Customer';
         const amount = Number(order.total_ksh);
@@ -87,7 +87,7 @@ serve(async (req) => {
             first_name: firstName,
             last_name: lastName,
             api_ref: orderId,
-            redirect_url: successUrl || cancelUrl || 'https://solelyshoes.co.ke/orders',
+            redirect_url: successUrl || cancelUrl || 'https://solelymarketplace.com/orders',
             webhook_url: webhookUrl, // CRITICAL: This tells IntaSend where to POST payment confirmations
         };
 

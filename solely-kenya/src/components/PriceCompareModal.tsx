@@ -43,8 +43,8 @@ interface PriceCompareModalProps {
 const conditionLabel: Record<string, { label: string; color: string }> = {
     new: { label: "Mint", color: "bg-green-500" },
     like_new: { label: "Like New", color: "bg-blue-500" },
-    good: { label: "Good", color: "bg-yellow-500" },
-    fair: { label: "Fair", color: "bg-orange-500" },
+    good: { label: "Thrifted", color: "bg-purple-500" },
+    fair: { label: "Thrifted", color: "bg-purple-500" },
 };
 
 export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompareModalProps) => {
@@ -147,7 +147,7 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                 {/* Header */}
                 <SheetHeader className="px-5 pt-5 pb-4 border-b border-border shrink-0">
                     <SheetTitle className="text-lg font-bold flex items-center gap-2">
-                        <TrendingDown className="h-5 w-5 text-primary" />
+                        <TrendingDown size={20} strokeWidth={1.5} className=" text-primary" />
                         Compare Prices
                     </SheetTitle>
                     <p className="text-xs text-muted-foreground">
@@ -162,7 +162,7 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                 <div className="overflow-y-auto flex-1 px-4 py-4 space-y-3">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-16 gap-3">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <Loader2 strokeWidth={1.5} className="h-8 w-8 animate-spin text-primary" />
                             <p className="text-sm text-muted-foreground">Finding best prices...</p>
                         </div>
                     ) : allListings.length <= 1 ? (
@@ -282,7 +282,7 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                                                         onClick={onClose}
                                                     >
                                                         <Link to={`/product/${listing.id}`}>
-                                                            View <ArrowRight className="h-3 w-3 ml-1" />
+                                                            View <ArrowRight strokeWidth={1.5} className="h-3 w-3 ml-1" />
                                                         </Link>
                                                     </Button>
                                                 )}
@@ -291,7 +291,7 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                                             {/* Rating */}
                                             {listing.reviewCount != null && listing.reviewCount > 0 && listing.averageRating && (
                                                 <div className="flex items-center gap-1 mt-1">
-                                                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                                    <Star strokeWidth={1.5} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                                                     <span className="text-xs text-muted-foreground">
                                                         {listing.averageRating.toFixed(1)} ({listing.reviewCount})
                                                     </span>

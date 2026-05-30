@@ -90,8 +90,8 @@ const ResetPassword = () => {
             <div className="min-h-screen flex items-center justify-center py-12 px-4">
                 <Card className="w-full max-w-md">
                     <CardHeader className="text-center">
-                        <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                            <CheckCircle2 className="w-10 h-10 text-green-600" />
+                        <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+                            <CheckCircle2 size={32} strokeWidth={1.5} className="text-primary" />
                         </div>
                         <CardTitle className="text-2xl text-green-700">Password Updated!</CardTitle>
                         <CardDescription className="text-base mt-2">
@@ -117,7 +117,7 @@ const ResetPassword = () => {
                 <CardHeader className="text-center">
                     <img src={logo} alt="Solely Marketplace" className="h-16 w-auto mx-auto mb-4" />
                     <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
-                        <KeyRound className="w-6 h-6 text-primary" />
+                        <KeyRound size={24} strokeWidth={1.5} className=" text-primary" />
                     </div>
                     <CardTitle className="text-2xl">Reset Your Password</CardTitle>
                     <CardDescription>
@@ -143,7 +143,7 @@ const ResetPassword = () => {
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                 >
-                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    {showPassword ? <EyeOff size={16} strokeWidth={1.5}  /> : <Eye size={16} strokeWidth={1.5}  />}
                                 </button>
                             </div>
                         </div>
@@ -164,7 +164,7 @@ const ResetPassword = () => {
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                 >
-                                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    {showConfirmPassword ? <EyeOff size={16} strokeWidth={1.5}  /> : <Eye size={16} strokeWidth={1.5}  />}
                                 </button>
                             </div>
                         </div>

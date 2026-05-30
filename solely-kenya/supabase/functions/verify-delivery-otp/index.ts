@@ -127,8 +127,8 @@ serve(async (req: Request) => {
         }
 
         // C. Create Payout Record
-        const payoutAmount = order.payout_amount ?? (order.total_ksh * 0.90);
-        const commissionAmount = order.commission_amount ?? (order.total_ksh * 0.10);
+        const payoutAmount = order.payout_amount ?? (order.total_ksh * 0.94);
+        const commissionAmount = order.commission_amount ?? (order.total_ksh * 0.06);
 
         console.log(`Creating payout: vendor=${order.vendor_id}, order=${orderId}, amount=${payoutAmount}`);
 

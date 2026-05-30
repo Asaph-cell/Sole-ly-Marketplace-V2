@@ -66,7 +66,7 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: options.from || "Sole-ly Kenya <notifications@solelyshoes.co.ke>",
+        from: options.from || "Solely <notifications@solelymarketplace.com>",
         to: Array.isArray(options.to) ? options.to : [options.to],
         subject: options.subject,
         html: options.html,
@@ -151,8 +151,8 @@ export const emailTemplates = {
           </div>
         </div>
         <div class="footer">
-          <p>This is an automated message from Sole-ly Kenya</p>
-          <p style="font-size: 11px; color: #9ca3af;">This email cannot be replied to. For support, visit <a href="https://solelyshoes.co.ke/contact" style="color: #6b7280;">solelyshoes.co.ke/contact</a></p>
+          <p>This is an automated message from Solely</p>
+          <p style="font-size: 11px; color: #9ca3af;">This email cannot be replied to. For support, visit <a href="https://solelymarketplace.com/contact" style="color: #6b7280;">solelymarketplace.com/contact</a></p>
         </div>
       </div>
     </body>
@@ -204,7 +204,7 @@ export const emailTemplates = {
           
           <div class="reputation-box">
             <p style="margin: 0 0 10px 0;"><strong>⚡ This Affects Your Reputation</strong></p>
-            <p style="margin: 0; font-size: 14px;">Missed orders negatively impact your seller rating and may affect your visibility on Sole-ly Kenya. Customers trust vendors who respond quickly and reliably.</p>
+            <p style="margin: 0; font-size: 14px;">Missed orders negatively impact your seller rating and may affect your visibility on Solely. Customers trust vendors who respond quickly and reliably.</p>
             <ul style="margin: 10px 0 0 0; padding-left: 20px; font-size: 14px;">
               <li>Respond to orders within 24 hours for best results</li>
               <li>Enable push notifications to never miss an order</li>
@@ -215,12 +215,12 @@ export const emailTemplates = {
           <p style="margin-top: 20px;">We understand things happen. If you need to pause your store temporarily, you can do so from your vendor dashboard.</p>
           
           <div style="text-align: center;">
-            <a href="https://solelyshoes.co.ke/vendor/orders" class="cta-button">View Your Dashboard</a>
+            <a href="https://solelymarketplace.com/vendor/orders" class="cta-button">View Your Dashboard</a>
           </div>
         </div>
         <div class="footer">
-          <p>This is an automated message from Sole-ly Kenya</p>
-          <p>Questions? Contact us at support@solelyshoes.co.ke</p>
+          <p>This is an automated message from Solely</p>
+          <p>Questions? Contact us at support@solelymarketplace.com</p>
         </div>
       </div>
     </body>
@@ -276,10 +276,10 @@ export const emailTemplates = {
             <strong>✅ Refund Initiated:</strong> Your payment of KES ${data.total.toLocaleString()} will be refunded to your original payment method within 3-5 business days.
           </div>
           
-          <p style="margin-top: 20px;">We apologize for any inconvenience. Please feel free to explore other products on Sole-ly Kenya!</p>
+          <p style="margin-top: 20px;">We apologize for any inconvenience. Please feel free to explore other products on Solely!</p>
         </div>
         <div class="footer">
-          <p>This email was sent by Sole-ly Kenya</p>
+          <p>This email was sent by Solely</p>
           <p>If you have questions about your refund, please contact support.</p>
         </div>
       </div>
@@ -330,20 +330,20 @@ export const emailTemplates = {
           
           <div class="security-notice">
             <p style="margin: 0;"><strong>🔒 Your Money is Safe</strong></p>
-            <p style="margin: 5px 0 0 0; font-size: 14px;">At Sole-ly Kenya, we take your financial security seriously. When a vendor fails to respond, we automatically protect your funds by issuing an immediate refund.</p>
+            <p style="margin: 5px 0 0 0; font-size: 14px;">At Solely, we take your financial security seriously. When a vendor fails to respond, we automatically protect your funds by issuing an immediate refund.</p>
           </div>
           
           <p style="margin-top: 20px;">We've also notified the vendor about this missed order. In the meantime, we encourage you to explore other amazing products from our trusted sellers!</p>
           
           <div style="text-align: center;">
-            <a href="https://solelyshoes.co.ke/shop" class="cta-button">Continue Shopping</a>
+            <a href="https://solelymarketplace.com/shop" class="cta-button">Continue Shopping</a>
           </div>
           
-          <p style="margin-top: 25px; font-size: 14px; color: #6b7280;">Thank you for choosing Sole-ly Kenya. We're committed to giving you the best shopping experience!</p>
+          <p style="margin-top: 25px; font-size: 14px; color: #6b7280;">Thank you for choosing Solely. We're committed to giving you the best shopping experience!</p>
         </div>
         <div class="footer">
-          <p>This email was sent by Sole-ly Kenya</p>
-          <p>Questions? Contact us at support@solelyshoes.co.ke</p>
+          <p>This email was sent by Solely</p>
+          <p>Questions? Contact us at support@solelymarketplace.com</p>
         </div>
       </div>
     </body>
@@ -412,7 +412,7 @@ export const emailTemplates = {
           <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">Your payment is protected by our escrow system. Funds are only released to the vendor after you confirm ${data.isPickup ? 'pickup' : 'delivery'}.</p>
         </div>
         <div class="footer">
-          <p>This email was sent by Sole-ly Kenya</p>
+          <p>This email was sent by Solely</p>
           <p>Questions? Reply to this email or contact support.</p>
         </div>
       </div>
@@ -462,7 +462,7 @@ export const emailTemplates = {
           <p>You'll receive another email ${data.isPickup ? 'when your order is ready for collection' : 'with tracking information once your order ships'}.</p>
         </div>
         <div class="footer">
-          <p>This email was sent by Sole-ly Kenya</p>
+          <p>This email was sent by Solely</p>
         </div>
       </div>
     </body>
@@ -540,7 +540,7 @@ export const emailTemplates = {
           </div>
         </div>
         <div class="footer">
-          <p>This email was sent by Sole-ly Kenya</p>
+          <p>This email was sent by Solely</p>
           <p>Questions? Reply to this email or contact support.</p>
         </div>
       </div>
@@ -636,7 +636,7 @@ export const emailTemplates = {
           </p>
         </div>
         <div class="footer">
-          <p>This email was sent by Sole-ly Kenya</p>
+          <p>This email was sent by Solely</p>
         </div>
       </div>
     </body>
@@ -684,10 +684,10 @@ export const emailTemplates = {
             <a href="${data.reviewUrl}" class="cta-button">Leave a Review</a>
           </div>
           
-          <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">Thank you for shopping with Sole-ly Kenya!</p>
+          <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">Thank you for shopping with Solely!</p>
         </div>
         <div class="footer">
-          <p>This email was sent by Sole-ly Kenya</p>
+          <p>This email was sent by Solely</p>
         </div>
       </div>
     </body>
@@ -731,7 +731,7 @@ export const emailTemplates = {
           <p style="font-size: 14px; color: #6b7280;">Thank you for providing excellent service to your buyers!</p>
         </div>
         <div class="footer">
-          <p>This email was sent by Sole-ly Kenya</p>
+          <p>This email was sent by Solely</p>
         </div>
       </div>
     </body>
@@ -786,8 +786,8 @@ export const emailTemplates = {
           <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">Our support team aims to resolve disputes within 3-5 business days.</p>
         </div>
         <div class="footer">
-          <p>This is an automated message from Sole-ly Kenya</p>
-          <p style="font-size: 11px; color: #9ca3af;">This email cannot be replied to. For support, visit <a href="https://solelyshoes.co.ke/contact" style="color: #6b7280;">solelyshoes.co.ke/contact</a></p>
+          <p>This is an automated message from Solely</p>
+          <p style="font-size: 11px; color: #9ca3af;">This email cannot be replied to. For support, visit <a href="https://solelymarketplace.com/contact" style="color: #6b7280;">solelymarketplace.com/contact</a></p>
         </div>
       </div>
     </body>
@@ -840,8 +840,8 @@ export const emailTemplates = {
           <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">Thank you for your patience while we resolved this matter.</p>
         </div>
         <div class="footer">
-          <p>This is an automated message from Sole-ly Kenya</p>
-          <p style="font-size: 11px; color: #9ca3af;">This email cannot be replied to. For support, visit <a href="https://solelyshoes.co.ke/contact" style="color: #6b7280;">solelyshoes.co.ke/contact</a></p>
+          <p>This is an automated message from Solely</p>
+          <p style="font-size: 11px; color: #9ca3af;">This email cannot be replied to. For support, visit <a href="https://solelymarketplace.com/contact" style="color: #6b7280;">solelymarketplace.com/contact</a></p>
         </div>
       </div>
     </body>
@@ -921,7 +921,7 @@ export const emailTemplates = {
           </p>
         </div>
         <div class="footer">
-          <p>This is an automated notification from Sole-ly Kenya Admin System</p>
+          <p>This is an automated notification from Solely Admin System</p>
         </div>
       </div>
     </body>

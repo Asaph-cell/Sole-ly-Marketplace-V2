@@ -57,12 +57,12 @@ export function PushNotificationPrompt({
                         onClick={handleLater}
                         className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
                     >
-                        <X className="w-5 h-5" />
+                        <X size={20} strokeWidth={1.5}  />
                     </button>
 
                     <div className="text-center">
                         <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Bell className="w-8 h-8 text-white" />
+                            <Bell strokeWidth={1.5} className="w-8 h-8 text-white" />
                         </div>
 
                         <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -76,7 +76,7 @@ export function PushNotificationPrompt({
 
                         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6 text-left">
                             <div className="flex items-start gap-2">
-                                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                                <AlertTriangle size={20} strokeWidth={1.5} className=" text-amber-600 flex-shrink-0 mt-0.5" />
                                 <p className="text-sm text-amber-800">
                                     <strong>Important:</strong> Orders must be confirmed within 48 hours or they'll be automatically cancelled.
                                     Notifications help you respond quickly!
@@ -109,7 +109,7 @@ export function PushNotificationPrompt({
                                     </span>
                                 ) : (
                                     <span className="flex items-center gap-2">
-                                        <Bell className="w-4 h-4" />
+                                        <Bell size={16} strokeWidth={1.5}  />
                                         Enable Notifications
                                     </span>
                                 )}
@@ -128,7 +128,7 @@ export function PushNotificationPrompt({
                 <div className="max-w-4xl mx-auto flex items-center justify-between gap-4 flex-wrap">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                            <Bell className="w-5 h-5" />
+                            <Bell size={20} strokeWidth={1.5}  />
                         </div>
                         <div>
                             <p className="font-medium">
@@ -165,7 +165,7 @@ export function PushNotificationPrompt({
                     onClick={handleLater}
                     className="absolute top-2 right-2 text-white/70 hover:text-white"
                 >
-                    <X className="w-4 h-4" />
+                    <X size={16} strokeWidth={1.5}  />
                 </button>
             </div>
         );
@@ -175,8 +175,8 @@ export function PushNotificationPrompt({
     return (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Bell className="w-5 h-5 text-amber-600" />
+                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Bell size={20} strokeWidth={1.5} className="text-primary" />
                 </div>
                 <div className="flex-1">
                     <h4 className="font-medium text-amber-900 mb-1">
@@ -218,14 +218,14 @@ export function NotificationBellIndicator() {
     if (isSubscribed) {
         return (
             <div className="relative">
-                <Bell className="w-5 h-5 text-green-500" />
+                <Bell size={20} strokeWidth={1.5} className=" text-green-500" />
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full" />
             </div>
         );
     }
 
     if (!shouldShowPrompt) {
-        return <Bell className="w-5 h-5 text-gray-400" />;
+        return <Bell size={20} strokeWidth={1.5} className=" text-gray-400" />;
     }
 
     return (
@@ -237,7 +237,7 @@ export function NotificationBellIndicator() {
                 disabled={isLoading}
                 className="relative"
             >
-                <Bell className="w-5 h-5 text-amber-500" />
+                <Bell size={20} strokeWidth={1.5} className=" text-amber-500" />
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
             </button>
 

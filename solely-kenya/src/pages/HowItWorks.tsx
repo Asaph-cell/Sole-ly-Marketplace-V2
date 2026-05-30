@@ -10,8 +10,6 @@ const steps = [
     step: "01",
     icon: ShoppingBag,
     title: "Browse & Order",
-    color: "bg-primary/10 text-primary border-primary/20",
-    iconBg: "bg-primary/10 text-primary",
     details: [
       "Browse verified vendors across 9 categories",
       "Add items to cart — no account needed to browse",
@@ -23,8 +21,6 @@ const steps = [
     step: "02",
     icon: Lock,
     title: "Funds Held in Escrow",
-    color: "bg-green-50 text-green-800 border-green-200",
-    iconBg: "bg-green-100 text-green-700",
     details: [
       "Your payment is immediately locked in escrow",
       "The vendor is notified and prepares your order",
@@ -36,8 +32,6 @@ const steps = [
     step: "03",
     icon: Package,
     title: "Receive Your Package",
-    color: "bg-blue-50 text-blue-800 border-blue-200",
-    iconBg: "bg-blue-100 text-blue-700",
     details: [
       "Vendor dispatches — a 3-digit PIN is generated",
       "PIN is written on your physical package",
@@ -49,8 +43,6 @@ const steps = [
     step: "04",
     icon: Zap,
     title: "Release Payment",
-    color: "bg-purple-50 text-purple-800 border-purple-200",
-    iconBg: "bg-purple-100 text-purple-700",
     details: [
       "Show the 6-digit code to the vendor (in-person or screenshot)",
       "Vendor enters the code in their app",
@@ -97,7 +89,7 @@ const HowItWorks = () => {
       <SEO
         title="How Solely Works — Kenya's Zero-Scam Escrow Marketplace"
         description="Learn how Solely's 4-step escrow protocol protects every transaction. No more pay-and-pray. Buyer and seller protected."
-        canonical="https://solelyshoes.co.ke/how-it-works"
+        canonical="https://solelymarketplace.com/how-it-works"
       />
 
       {/* Hero */}
@@ -115,10 +107,10 @@ const HowItWorks = () => {
           </p>
           <div className="flex flex-wrap gap-3 justify-center mt-8">
             <Button size="lg" variant="secondary" className="rounded-full font-bold" asChild>
-              <Link to="/shop"><ShoppingBag className="h-4 w-4 mr-2" /> Start Shopping</Link>
+              <Link to="/shop"><ShoppingBag size={16} strokeWidth={1.5} className=" mr-2" /> Start Shopping</Link>
             </Button>
             <Button size="lg" variant="outline" className="rounded-full border-2 border-primary-foreground/60 text-primary-foreground bg-transparent hover:bg-primary-foreground hover:text-primary font-bold" asChild>
-              <Link to="/vendor"><Tag className="h-4 w-4 mr-2" /> Start Selling</Link>
+              <Link to="/vendor"><Tag size={16} strokeWidth={1.5} className=" mr-2" /> Start Selling</Link>
             </Button>
           </div>
         </div>
@@ -135,7 +127,8 @@ const HowItWorks = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="relative flex flex-col gap-0 max-w-2xl mx-auto mt-8 text-left">
+            <div className="absolute left-[17px] top-[18px] bottom-[18px] w-[2px] bg-border" />
             {steps.map((step, i) => {
               const Icon = step.icon;
               return (
@@ -145,24 +138,25 @@ const HowItWorks = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.12 }}
-                  className={`relative border rounded-2xl p-6 ${step.color}`}
+                  className="relative z-10 flex flex-nowrap items-start gap-4 pb-8 last:pb-0"
                 >
-                  <span className="absolute top-4 right-5 text-5xl font-black opacity-10">{step.step}</span>
-                  <div className={`w-12 h-12 rounded-xl ${step.iconBg} flex items-center justify-center mb-5`}>
-                    <Icon className="h-6 w-6" />
+                  <div className="w-9 h-9 flex-shrink-0 rounded-full border-2 border-primary bg-background flex items-center justify-center text-sm font-medium text-primary">
+                    {i + 1}
                   </div>
-                  <h3 className="font-bold text-lg mb-3">{step.title}</h3>
-                  <ul className="space-y-2">
-                    {step.details.map((d) => (
-                      <li key={d} className="flex items-start gap-2 text-sm opacity-80">
-                        <CheckCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                        {d}
-                      </li>
-                    ))}
-                  </ul>
-                  {i < steps.length - 1 && (
-                    <ArrowRight className="hidden lg:block absolute -right-6 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
-                  )}
+                  <div className="pt-1.5">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Icon size={14} strokeWidth={1.5} className="text-primary" />
+                      <p className="text-sm font-semibold text-foreground">{step.title}</p>
+                    </div>
+                    <ul className="space-y-2 mt-2">
+                      {step.details.map((d) => (
+                        <li key={d} className="flex items-start gap-2 text-sm text-muted-foreground leading-relaxed">
+                          <CheckCircle size={14} strokeWidth={1.5} className="mt-0.5 shrink-0 text-primary/60" />
+                          {d}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </motion.div>
               );
             })}
@@ -178,13 +172,16 @@ const HowItWorks = () => {
             <h2 className="text-2xl sm:text-3xl font-extrabold">Simpler — But Still Protected</h2>
             <p className="text-muted-foreground mt-2">No PIN on the package needed. Just collect, confirm, release.</p>
           </div>
-          <div className="max-w-md mx-auto space-y-3">
+          <div className="relative flex flex-col gap-0 max-w-2xl mx-auto text-left">
+            <div className="absolute left-[17px] top-[18px] bottom-[18px] w-[2px] bg-border" />
             {pickupSteps.map((s, i) => (
-              <div key={i} className="flex items-center gap-4 bg-card border border-border rounded-xl px-5 py-4">
-                <span className="w-8 h-8 rounded-full bg-primary/10 text-primary font-extrabold text-sm flex items-center justify-center shrink-0">
+              <div key={i} className="relative z-10 flex flex-nowrap items-start gap-4 pb-8 last:pb-0">
+                <div className="w-9 h-9 flex-shrink-0 rounded-full border-2 border-primary bg-background flex items-center justify-center text-sm font-medium text-primary">
                   {i + 1}
-                </span>
-                <span className="text-sm font-medium">{s.title}</span>
+                </div>
+                <div className="pt-1.5">
+                  <p className="text-sm font-semibold text-foreground mb-1">{s.title}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -214,7 +211,7 @@ const HowItWorks = () => {
             Every order. Every time. Escrow protection included.
           </p>
           <Button size="lg" variant="secondary" className="rounded-full font-bold" asChild>
-            <Link to="/shop"><ShoppingBag className="h-4 w-4 mr-2" /> Browse All Items</Link>
+            <Link to="/shop"><ShoppingBag size={16} strokeWidth={1.5} className=" mr-2" /> Browse All Items</Link>
           </Button>
         </div>
       </section>

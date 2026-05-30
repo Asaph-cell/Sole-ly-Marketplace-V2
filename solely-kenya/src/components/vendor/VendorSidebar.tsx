@@ -63,7 +63,7 @@ const SidebarContent = ({
           }}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[48px] bg-gradient-to-r from-primary to-amber-500 text-white hover:from-primary/90 hover:to-amber-600 mb-2"
         >
-          <Download className="h-5 w-5 flex-shrink-0" />
+          <Download size={20} strokeWidth={1.5} className=" flex-shrink-0" />
           <span className="flex-1 text-left font-medium">Install App</span>
         </button>
       )}
@@ -267,7 +267,7 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
               variant="outline"
               className="lg:hidden h-9 w-9 sm:h-10 sm:w-10 shrink-0 border-primary/20 relative"
             >
-              <Menu className="h-5 w-5 text-primary" />
+              <Menu size={20} strokeWidth={1.5} className=" text-primary" />
               {(alertCounts.pendingOrders > 0 || alertCounts.openDisputes > 0) && (
                 <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
               )}

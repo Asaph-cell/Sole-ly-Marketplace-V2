@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { LocationViewMap } from "@/components/LocationViewMap";
 import { DeliveryTrackingControl } from "@/components/DeliveryTrackingControl";
+import { ManualTrackingUpdate } from "@/components/tracking/ManualTrackingUpdate";
+import { DisputeChat } from "@/components/disputes/DisputeChat";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,7 +82,8 @@ const VendorOrders = () => {
         .select(
           `*,
           order_items(*),
-          order_shipping_details(*)`
+          order_shipping_details(*),
+          disputes(*)`
         )
         .eq("vendor_id", user.id)
         .order("created_at", { ascending: false });
@@ -554,8 +557,8 @@ const VendorOrders = () => {
         successMsg = "Order marked as Shipped! Buyer notified it's on the way.";
       } else if (order.status === "shipped") {
         // Step 2: Shipped -> Arrived (Delivered)
-        // 24 hours after marked arrived
-        const autoRelease = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        // 6 hours after marked arrived
+        const autoRelease = new Date(now.getTime() + 6 * 60 * 60 * 1000);
 
         updates = {
           status: "arrived",
@@ -863,7 +866,7 @@ const VendorOrders = () => {
                                       />
                                     </div>
                                   )}
-                                  <p className="text-muted-foreground mt-1">💰 Delivery fee KES {order.shipping_fee_ksh.toLocaleString()} included in your payout — arrange delivery yourself.</p>
+                                  <p className="text-muted-foreground mt-1">💰 Coordinate delivery directly with the buyer. No delivery fees were collected by the platform.</p>
                                 </>
                               )}
                             </>
@@ -977,6 +980,13 @@ const VendorOrders = () => {
                           </div>
                         )}
 
+                        {/* MANUAL TRACKING UPDATE */}
+                        {(order.status === "accepted" || order.status === "shipped") && (
+                          <div className="mt-4">
+                            <ManualTrackingUpdate orderId={order.id} />
+                          </div>
+                        )}
+
                         {/* ARRIVED */}
                         {order.status === "arrived" && (
                           <div className="rounded-xl border border-teal-200 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/20 p-4 space-y-3">
@@ -990,6 +1000,13 @@ const VendorOrders = () => {
                               <Button className="flex-1 h-9 text-sm" onClick={() => { setOtpDialogOrder(order); setOtpInput(""); }}>Enter Code</Button>
                               <Button variant="outline" className="flex-1 h-9 text-sm" onClick={() => handleGenerateOtp(order.id, true)} disabled={saving}>Resend Code</Button>
                             </div>
+                          </div>
+                        )}
+
+                        {/* DISPUTE CHAT */}
+                        {order.status === "disputed" && order.disputes?.[0] && (
+                          <div className="mt-4">
+                            <DisputeChat disputeId={order.disputes[0].id} currentUserRole="vendor" />
                           </div>
                         )}
 

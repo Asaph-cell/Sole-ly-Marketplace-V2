@@ -35,7 +35,7 @@ interface SEOProps {
 }
 
 const SITE_NAME = "Solely Kenya";
-const SITE_URL = "https://solelyshoes.co.ke";
+const SITE_URL = "https://solelymarketplace.com";
 
 // Map product conditions to Schema.org ItemCondition
 const conditionToSchema: Record<string, string> = {

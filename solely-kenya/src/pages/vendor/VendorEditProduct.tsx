@@ -36,6 +36,7 @@ const VendorEditProduct = () => {
     colors: "",
     condition: "new",
     condition_notes: "",
+    free_delivery: false,
   });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreview, setImagePreview] = useState<string[]>([]);
@@ -77,8 +78,9 @@ const VendorEditProduct = () => {
           key_features: data.key_features?.join(", ") || "",
           sizes: data.sizes?.join(", ") || "",
           colors: data.colors?.join(", ") || "",
-          condition: data.condition || "new",
+          condition: ["good", "fair"].includes(data.condition) ? "thrifted" : data.condition === "like_new" ? "refurbished" : data.condition || "new",
           condition_notes: data.condition_notes || "",
+          free_delivery: data.free_delivery || false,
         });
         setExistingImages(data.images || []);
         setVideoUrl(data.video_url || null);
@@ -182,6 +184,7 @@ const VendorEditProduct = () => {
           video_url: videoUrl,
           condition: safeCondition,
           condition_notes: formData.condition_notes || null,
+          free_delivery: formData.free_delivery,
         })
         .eq("id", id)
         .eq("vendor_id", user?.id);
@@ -247,6 +250,22 @@ const VendorEditProduct = () => {
                     />
                   </div>
 
+                  <div className="flex flex-col justify-center space-y-2 border rounded-md p-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="free_delivery"
+                        checked={formData.free_delivery}
+                        onChange={(e) => setFormData({ ...formData, free_delivery: e.target.checked })}
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <Label htmlFor="free_delivery" className="font-medium cursor-pointer">Offers Free Delivery</Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground ml-6">
+                      Check this if you are covering the delivery cost for the buyer.
+                    </p>
+                  </div>
+
                   <div>
                     <Label htmlFor="stock">Stock</Label>
                     <Input
@@ -307,34 +326,14 @@ const VendorEditProduct = () => {
                           </div>
                         </SelectItem>
                         {formData.category === "electronics" || formData.category === "phones" ? (
-                          <SelectItem value="like_new">
+                          <SelectItem value="refurbished">
                             <div className="flex items-center gap-2">
                               <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                               Refurbished — tested &amp; fully working
                             </div>
                           </SelectItem>
                         ) : (
-                          <SelectItem value="like_new">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                              Like New — used once or twice, no wear
-                            </div>
-                          </SelectItem>
-                        )}
-                        <SelectItem value="good">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                            Good — light use, minor wear
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="fair">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-                            Fair — visible wear, fully functional
-                          </div>
-                        </SelectItem>
-                        {formData.category !== "electronics" && formData.category !== "phones" && (
-                          <SelectItem value="good">
+                          <SelectItem value="thrifted">
                             <div className="flex items-center gap-2">
                               <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                               Thrifted — pre-owned, honestly described
@@ -384,7 +383,7 @@ const VendorEditProduct = () => {
                   />
                   {(formData.category === "shoes" || !formData.category) && (
                     <Alert className="bg-amber-50 border-amber-200">
-                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <AlertTriangle size={16} strokeWidth={1.5} className=" text-amber-600" />
                       <AlertDescription className="text-amber-800 text-sm">
                         <strong>Important:</strong> Enter exact EU sizes from the size chart (e.g., 36, 37, 38).
                         Using correct sizes ensures customers can find their perfect fit.

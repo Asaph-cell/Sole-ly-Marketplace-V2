@@ -18,7 +18,7 @@ const Contact = () => {
     e.preventDefault();
 
     // Create mailto link with form data
-    const supportEmail = "contact@solelyshoes.co.ke";
+    const supportEmail = "contact@solelymarketplace.com";
     const subject = encodeURIComponent(`Contact Form: Message from ${formData.name}`);
     const body = encodeURIComponent(
       `Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
@@ -35,8 +35,8 @@ const Contact = () => {
     <div className="min-h-screen py-12">
       <SEO
         title="Contact Us"
-        description="Contact Solely Marketplace for complaints, inquiries, or support. We respond to all inquiries within 24 hours. Email us at contact@solelyshoes.co.ke."
-        canonical="https://solelyshoes.co.ke/contact"
+        description="Contact Solely Marketplace for complaints, inquiries, or support. We respond to all inquiries within 24 hours. Email us at contact@solelymarketplace.com."
+        canonical="https://solelymarketplace.com/contact"
         breadcrumbs={[
           { name: "Home", url: "/" },
           { name: "Contact", url: "/contact" }
@@ -101,7 +101,7 @@ const Contact = () => {
                   />
                 </div>
                 <Button type="submit" size="lg" className="w-full">
-                  <Mail className="mr-2 h-5 w-5" />
+                  <Mail size={20} strokeWidth={1.5} className="mr-2 " />
                   Send Message
                 </Button>
               </form>
@@ -112,13 +112,13 @@ const Contact = () => {
           <div className="mt-8 text-center">
             <Card className="border-2 shadow-card bg-muted/50">
               <CardContent className="py-6">
-                <Mail className="h-8 w-8 text-primary mx-auto mb-3" />
+                <Mail strokeWidth={1.5} className="h-8 w-8 text-primary mx-auto mb-3" />
                 <p className="text-lg font-semibold mb-2">Email Us Directly</p>
                 <a
-                  href="mailto:contact@solelyshoes.co.ke"
+                  href="mailto:contact@solelymarketplace.com"
                   className="text-primary hover:underline text-lg"
                 >
-                  contact@solelyshoes.co.ke
+                  contact@solelymarketplace.com
                 </a>
                 <p className="text-sm text-muted-foreground mt-3">
                   For complaints, support requests, or general inquiries

@@ -182,7 +182,7 @@ const BlogPost = () => {
         keywords={post.keywords}
         image={post.image}
         type="article"
-        canonical={`https://solelyshoes.co.ke/blog/${post.id}`}
+        canonical={`https://solelymarketplace.com/blog/${post.id}`}
       />
       
       {/* Progress Bar */}
@@ -204,7 +204,7 @@ const BlogPost = () => {
               to="/blog" 
               className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors mb-8 group"
             >
-              <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+              <ChevronLeft size={16} strokeWidth={1.5} className=" transition-transform group-hover:-translate-x-1" />
               Back to Blog
             </Link>
 
@@ -221,9 +221,9 @@ const BlogPost = () => {
                 {post.title}
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground border-b border-border pb-6">
-                <span className="flex items-center gap-1.5"><User className="h-4 w-4" /> {post.author}</span>
-                <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" /> {post.date}</span>
-                <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" /> {post.readTime}</span>
+                <span className="flex items-center gap-1.5"><User size={16} strokeWidth={1.5}  /> {post.author}</span>
+                <span className="flex items-center gap-1.5"><Calendar size={16} strokeWidth={1.5}  /> {post.date}</span>
+                <span className="flex items-center gap-1.5"><Clock size={16} strokeWidth={1.5}  /> {post.readTime}</span>
               </div>
             </motion.div>
 
@@ -244,10 +244,10 @@ const BlogPost = () => {
                 className="w-full flex items-center justify-between p-6 sm:p-10 hover:bg-primary/5 transition-colors text-left"
               >
                 <div className="flex items-center gap-3">
-                  <MessageCircle className="h-6 w-6 text-primary" />
+                  <MessageCircle size={24} strokeWidth={1.5} className=" text-primary" />
                   <h3 className="text-2xl font-bold italic">Community Conversation ({comments.reduce((acc, c) => acc + 1 + (c.replies?.length || 0), 0)})</h3>
                 </div>
-                {isCommentsOpen ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
+                {isCommentsOpen ? <ChevronUp size={24} strokeWidth={1.5}  /> : <ChevronDown size={24} strokeWidth={1.5}  />}
               </button>
 
               <AnimatePresence>
@@ -269,7 +269,7 @@ const BlogPost = () => {
                         />
                         <div className="flex justify-end mt-3">
                           <Button type="submit" size="sm" className="rounded-full gap-2 font-bold px-6">
-                            <Send className="h-4 w-4" /> Post Comment
+                            <Send size={16} strokeWidth={1.5}  /> Post Comment
                           </Button>
                         </div>
                       </div>
@@ -281,7 +281,7 @@ const BlogPost = () => {
                         <div key={comment.id} className="space-y-4">
                           <div className="flex gap-4">
                             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                              <User className="h-5 w-5 text-primary" />
+                              <User size={20} strokeWidth={1.5} className=" text-primary" />
                             </div>
                             <div className="flex-grow">
                               <div className="flex items-center gap-2 mb-1">
@@ -294,13 +294,13 @@ const BlogPost = () => {
                                   onClick={() => handleLike(comment.id)}
                                   className={`flex items-center gap-1 transition-colors ${comment.isLiked ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
                                 >
-                                  <ThumbsUp className={`h-3.5 w-3.5 ${comment.isLiked ? 'fill-primary' : ''}`} /> {comment.likes}
+                                  <ThumbsUp size={14} strokeWidth={1.5} className={` ${comment.isLiked ? 'fill-primary' : ''}`} /> {comment.likes}
                                 </button>
                                 <button 
                                   onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
                                   className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
                                 >
-                                  <Reply className="h-3.5 w-3.5" /> Reply
+                                  <Reply size={14} strokeWidth={1.5}  /> Reply
                                 </button>
                               </div>
 
@@ -324,7 +324,7 @@ const BlogPost = () => {
                           {comment.replies?.map((reply) => (
                             <div key={reply.id} className="ml-14 flex gap-4 border-l-2 border-primary/10 pl-4 py-2">
                               <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                                <User className="h-4 w-4 text-muted-foreground" />
+                                <User size={16} strokeWidth={1.5} className=" text-muted-foreground" />
                               </div>
                               <div className="flex-grow">
                                 <div className="flex items-center gap-2 mb-1">
@@ -339,7 +339,7 @@ const BlogPost = () => {
                                   onClick={() => handleLike(reply.id)}
                                   className={`flex items-center gap-1 text-[10px] font-bold transition-colors ${reply.isLiked ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
                                 >
-                                  <ThumbsUp className={`h-3 w-3 ${reply.isLiked ? 'fill-primary' : ''}`} /> {reply.likes}
+                                  <ThumbsUp strokeWidth={1.5} className={`h-3 w-3 ${reply.isLiked ? 'fill-primary' : ''}`} /> {reply.likes}
                                 </button>
                               </div>
                             </div>
@@ -361,7 +361,7 @@ const BlogPost = () => {
               <p className="text-sm text-muted-foreground mb-6">Found this helpful? Share it with the squad so everyone can stay stiff.</p>
               <div className="flex flex-col gap-3">
                 <Button onClick={handleShare} className="w-full rounded-full gap-2 font-bold bg-primary hover:shadow-lg transition-all">
-                  <Share2 className="h-4 w-4" /> Share Article
+                  <Share2 size={16} strokeWidth={1.5}  /> Share Article
                 </Button>
                 <Button 
                   variant="outline" 
@@ -386,7 +386,7 @@ const BlogPost = () => {
                     className="space-y-4"
                   >
                     <div className="flex items-center gap-2 text-primary">
-                      <Lightbulb className="h-5 w-5 fill-current" />
+                      <Lightbulb size={20} strokeWidth={1.5} className=" fill-current" />
                       <h4 className="font-bold italic">How can we improve?</h4>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed">
@@ -411,8 +411,8 @@ const BlogPost = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     className="text-center py-4 space-y-3"
                   >
-                    <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                      <CheckCircle2 className="h-6 w-6" />
+                    <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mx-auto mb-2">
+                      <CheckCircle2 size={24} strokeWidth={1.5}  />
                     </div>
                     <h4 className="font-bold">Feedback Received!</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">

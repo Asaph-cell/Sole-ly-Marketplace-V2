@@ -176,7 +176,7 @@ export function LiveDeliveryTracker({ orderId, recipientName }: LiveDeliveryTrac
             <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                     <div className="bg-blue-500 p-1.5 rounded-full">
-                        <MapPin className="h-4 w-4 text-white" />
+                        <MapPin size={16} strokeWidth={1.5} className=" text-white" />
                     </div>
                     🚚 Live Delivery Tracking
                 </CardTitle>
@@ -186,12 +186,12 @@ export function LiveDeliveryTracker({ orderId, recipientName }: LiveDeliveryTrac
                     <AlertDescription className="text-sm text-blue-900 dark:text-blue-100 flex items-center gap-2">
                         {isConnected ? (
                             <>
-                                <Wifi className="h-4 w-4" />
+                                <Wifi size={16} strokeWidth={1.5}  />
                                 <span>Receiving live updates</span>
                             </>
                         ) : (
                             <>
-                                <WifiOff className="h-4 w-4" />
+                                <WifiOff size={16} strokeWidth={1.5}  />
                                 <span>Connecting...</span>
                             </>
                         )}
@@ -207,7 +207,7 @@ export function LiveDeliveryTracker({ orderId, recipientName }: LiveDeliveryTrac
                 {/* Status Info */}
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
+                        <Clock strokeWidth={1.5} className="h-3 w-3" />
                         <span>
                             Updated {timeSinceUpdate < 60 ? `${timeSinceUpdate}s ago` : `${Math.floor(timeSinceUpdate / 60)}m ago`}
                         </span>
@@ -230,7 +230,7 @@ export function LiveDeliveryTracker({ orderId, recipientName }: LiveDeliveryTrac
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2"
                     >
-                        <Navigation className="h-4 w-4" />
+                        <Navigation size={16} strokeWidth={1.5}  />
                         Open in Google Maps
                     </a>
                 </Button>

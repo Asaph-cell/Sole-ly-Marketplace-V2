@@ -93,7 +93,7 @@ export const VendorNavbar = () => {
                   variant="destructive"
                   className="gap-1 cursor-pointer hover:bg-destructive/90 transition-colors animate-pulse"
                 >
-                  <AlertTriangle className="h-3 w-3" />
+                  <AlertTriangle strokeWidth={1.5} className="h-3 w-3" />
                   <span>{openDisputes} Dispute{openDisputes !== 1 ? 's' : ''}</span>
                 </Badge>
               </Link>
@@ -102,7 +102,7 @@ export const VendorNavbar = () => {
             {isAdmin && (
               <Link to="/admin/dashboard" className="hidden sm:inline-flex">
                 <Badge variant="secondary" className="gap-1 cursor-pointer hover:bg-secondary/80 transition-colors text-xs">
-                  <Shield className="h-3 w-3" />
+                  <Shield strokeWidth={1.5} className="h-3 w-3" />
                   <span className="hidden sm:inline">Admin</span>
                 </Badge>
               </Link>

@@ -97,7 +97,7 @@ Deno.serve(async (req: Request) => {
                 courierName,
                 trackingNumber,
                 deliveryNotes,
-                orderTrackingUrl: `https://solelyshoes.co.ke/orders/${orderId}`,
+                orderTrackingUrl: `https://solelymarketplace.com/orders/${orderId}`,
                 deliveryOtp: order.delivery_otp || undefined,
             }),
         });

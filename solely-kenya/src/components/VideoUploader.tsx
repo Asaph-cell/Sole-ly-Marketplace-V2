@@ -168,10 +168,10 @@ export const VideoUploader = ({ vendorId, videoUrl, onVideoChange }: VideoUpload
                         className="absolute top-2 right-2"
                         onClick={removeVideo}
                     >
-                        <X className="h-4 w-4" />
+                        <X size={16} strokeWidth={1.5}  />
                     </Button>
                     <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-green-500/90 text-white text-xs px-2 py-1 rounded">
-                        <CheckCircle className="h-3 w-3" />
+                        <CheckCircle strokeWidth={1.5} className="h-3 w-3" />
                         Video ready
                     </div>
                 </div>
@@ -193,12 +193,12 @@ export const VideoUploader = ({ vendorId, videoUrl, onVideoChange }: VideoUpload
                     />
                     {validating ? (
                         <div className="flex flex-col items-center gap-2">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <Loader2 strokeWidth={1.5} className="h-8 w-8 animate-spin text-primary" />
                             <p className="text-sm text-muted-foreground">Validating video...</p>
                         </div>
                     ) : (
                         <div className="flex flex-col items-center gap-2">
-                            <Upload className="h-8 w-8 text-muted-foreground" />
+                            <Upload strokeWidth={1.5} className="h-8 w-8 text-muted-foreground" />
                             <p className="text-sm font-medium">Click to upload a video</p>
                             <p className="text-xs text-muted-foreground">MP4 or WebM, 4-12 seconds</p>
                         </div>
@@ -221,7 +221,7 @@ export const VideoUploader = ({ vendorId, videoUrl, onVideoChange }: VideoUpload
             {/* Error Message */}
             {error && (
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-                    <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <AlertCircle size={16} strokeWidth={1.5} className=" mt-0.5 flex-shrink-0" />
                     <span>{error}</span>
                 </div>
             )}

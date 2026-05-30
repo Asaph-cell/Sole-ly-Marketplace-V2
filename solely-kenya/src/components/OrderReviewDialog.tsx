@@ -225,8 +225,7 @@ export const OrderReviewDialog = ({
                           }}
                           className="transition-transform hover:scale-110"
                         >
-                          <Star
-                            className={`h-6 w-6 ${star <= (hoveredProductRating[item.product_id] || currentRating)
+                          <Star size={24} strokeWidth={1.5} className={` ${star <= (hoveredProductRating[item.product_id] || currentRating)
                               ? "fill-yellow-400 text-yellow-400"
                               : "text-muted-foreground"
                               }`}
@@ -282,8 +281,7 @@ export const OrderReviewDialog = ({
                       onMouseLeave={() => setHoveredVendorRating(0)}
                       className="transition-transform hover:scale-110"
                     >
-                      <Star
-                        className={`h-6 w-6 ${star <= (hoveredVendorRating || vendorRating)
+                      <Star size={24} strokeWidth={1.5} className={` ${star <= (hoveredVendorRating || vendorRating)
                           ? "fill-yellow-400 text-yellow-400"
                           : "text-muted-foreground"
                           }`}

@@ -9,7 +9,7 @@ const PrivacyPolicy = () => {
             <div className="container mx-auto px-4 max-w-4xl">
                 <Link to="/">
                     <Button variant="ghost" className="mb-6">
-                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        <ArrowLeft size={16} strokeWidth={1.5} className=" mr-2" />
                         Back to Home
                     </Button>
                 </Link>
@@ -17,7 +17,7 @@ const PrivacyPolicy = () => {
                 <div className="text-center mb-8">
                     <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
                     <p className="text-muted-foreground">
-                        Last updated: February 2026
+                        Last updated: May 2026
                     </p>
                 </div>
 
@@ -25,11 +25,11 @@ const PrivacyPolicy = () => {
                     {/* Introduction */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Shield className="h-6 w-6 text-primary" />
+                            <Shield size={24} strokeWidth={1.5} className=" text-primary" />
                             Introduction
                         </h2>
                         <p className="text-muted-foreground leading-relaxed mb-4">
-                            Welcome to Sole-ly ("we", "our", or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our social commerce marketplace platform at solelyshoes.co.ke (the "Platform").
+                            Welcome to Sole-ly ("we", "our", or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our social commerce marketplace platform at solelymarketplace.com (the "Platform").
                         </p>
                         <p className="text-muted-foreground leading-relaxed">
                             Please read this privacy policy carefully. By using our Platform, you consent to the collection, use, and disclosure of your information in accordance with this policy. If you do not agree with our policies and practices, please do not use our Platform.
@@ -39,7 +39,7 @@ const PrivacyPolicy = () => {
                     {/* Information We Collect */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Database className="h-6 w-6 text-blue-600" />
+                            <Database size={24} strokeWidth={1.5} className=" text-blue-600" />
                             Information We Collect
                         </h2>
 
@@ -60,7 +60,7 @@ const PrivacyPolicy = () => {
                         <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
                             <li><strong>Device information:</strong> Browser type, operating system, device type</li>
                             <li><strong>Usage data:</strong> Pages visited, time spent on pages, click patterns</li>
-                            <li><strong>Location data:</strong> Approximate location based on IP address (used for delivery fee calculation)</li>
+                            <li><strong>Location data:</strong> Approximate location based on IP address; optional GPS coordinates if you choose to share your delivery location pin</li>
                             <li><strong>Push notification tokens:</strong> If you opt in, we store your device's push notification subscription to send you order updates and alerts</li>
                             <li><strong>Cookies:</strong> Session cookies, authentication tokens</li>
                         </ul>
@@ -71,6 +71,7 @@ const PrivacyPolicy = () => {
                             <li>Payment transaction IDs (we do not store full card numbers)</li>
                             <li>M-Pesa payment references</li>
                             <li>Delivery OTP codes (one-time passwords generated for secure delivery confirmation)</li>
+                            <li>GPS coordinates and Google Maps links (if you choose to share your location pin during checkout)</li>
                             <li>Dispute and refund records</li>
                         </ul>
                     </section>
@@ -78,7 +79,7 @@ const PrivacyPolicy = () => {
                     {/* How We Use Your Information */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Eye className="h-6 w-6 text-green-600" />
+                            <Eye size={24} strokeWidth={1.5} className=" text-green-600" />
                             How We Use Your Information
                         </h2>
                         <p className="text-muted-foreground mb-3">
@@ -92,7 +93,7 @@ const PrivacyPolicy = () => {
                             <li>Facilitating communication between buyers and vendors</li>
                             <li>Managing our escrow payment system</li>
                             <li>Processing refunds and handling disputes</li>
-                            <li>Calculating delivery fees based on location</li>
+                            <li>Sharing your delivery location pin and GPS coordinates with vendors to facilitate delivery</li>
                         </ul>
 
                         <h3 className="text-lg font-semibold mb-2">Communication</h3>
@@ -118,7 +119,7 @@ const PrivacyPolicy = () => {
                     {/* Information Sharing */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Users className="h-6 w-6 text-purple-600" />
+                            <Users size={24} strokeWidth={1.5} className=" text-purple-600" />
                             Information Sharing and Disclosure
                         </h2>
                         <p className="text-muted-foreground mb-3">
@@ -127,12 +128,12 @@ const PrivacyPolicy = () => {
 
                         <h3 className="text-lg font-semibold mb-2">Between Buyers and Vendors</h3>
                         <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
-                            <li><strong>When you place an order:</strong> Vendors receive your name, delivery address, and phone number to fulfill the order</li>
-                            <li><strong>For pickup orders:</strong> Buyers receive vendor contact information and pickup location</li>
+                            <li><strong>When you place an order:</strong> Vendors receive your name, delivery address, phone number, and GPS location pin (if you shared one) to fulfill the order</li>
+                            <li><strong>Delivery coordination:</strong> Vendors are responsible for arranging delivery directly with you. Your contact details are shared so they can coordinate</li>
                             <li><strong>Reviews:</strong> Your rating is shared but your identity remains anonymous to vendors</li>
                         </ul>
                         <p className="text-muted-foreground mt-2 mb-4 bg-muted/50 p-3 rounded-lg text-sm">
-                            <strong>Note:</strong> When you purchase from a vendor, that vendor acts as an independent controller of your data (name, address, phone) solely for the purpose of order fulfillment. We contractually require vendors to protect your data and not to misuse it for marketing without your consent.
+                            <strong>Note:</strong> When you purchase from a vendor, that vendor acts as an independent controller of your data (name, address, phone, GPS pin) solely for the purpose of order fulfillment and delivery coordination. We contractually require vendors to protect your data and not to misuse it for marketing without your consent.
                         </p>
 
                         <h3 className="text-lg font-semibold mb-2">Third-Party Service Providers</h3>
@@ -175,7 +176,7 @@ const PrivacyPolicy = () => {
                     {/* Data Security */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Lock className="h-6 w-6 text-red-600" />
+                            <Lock size={24} strokeWidth={1.5} className=" text-red-600" />
                             Data Security
                         </h2>
                         <p className="text-muted-foreground mb-3">
@@ -196,7 +197,7 @@ const PrivacyPolicy = () => {
                     {/* Cookies */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Globe className="h-6 w-6 text-orange-600" />
+                            <Globe size={24} strokeWidth={1.5} className=" text-orange-600" />
                             Cookies and Tracking
                         </h2>
                         <p className="text-muted-foreground mb-3">
@@ -215,7 +216,7 @@ const PrivacyPolicy = () => {
                     {/* Your Rights */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Bell className="h-6 w-6 text-cyan-600" />
+                            <Bell size={24} strokeWidth={1.5} className=" text-cyan-600" />
                             Your Privacy Rights
                         </h2>
                         <p className="text-muted-foreground mb-3">
@@ -229,14 +230,14 @@ const PrivacyPolicy = () => {
                             <li><strong>Opt-out:</strong> Unsubscribe from marketing communications (transactional emails cannot be opted out)</li>
                         </ul>
                         <p className="text-muted-foreground">
-                            To exercise these rights, contact us at <a href="mailto:contact@solelyshoes.co.ke" className="text-primary underline">contact@solelyshoes.co.ke</a>. We will respond within 30 days.
+                            To exercise these rights, contact us at <a href="mailto:contact@solelymarketplace.com" className="text-primary underline">contact@solelymarketplace.com</a>. We will respond within 30 days.
                         </p>
                     </section>
 
                     {/* Data Retention */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Trash2 className="h-6 w-6 text-gray-600" />
+                            <Trash2 size={24} strokeWidth={1.5} className=" text-gray-600" />
                             Data Retention
                         </h2>
                         <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
@@ -274,7 +275,7 @@ const PrivacyPolicy = () => {
                     {/* Contact */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Mail className="h-6 w-6 text-primary" />
+                            <Mail size={24} strokeWidth={1.5} className=" text-primary" />
                             Contact Us
                         </h2>
                         <p className="text-muted-foreground mb-4">
@@ -283,13 +284,13 @@ const PrivacyPolicy = () => {
                         <div className="bg-muted/50 border rounded-lg p-4">
                             <p className="font-semibold mb-2">Sole-ly Marketplace</p>
                             <p className="text-muted-foreground">
-                                Email: <a href="mailto:contact@solelyshoes.co.ke" className="text-primary underline">contact@solelyshoes.co.ke</a>
+                                Email: <a href="mailto:contact@solelymarketplace.com" className="text-primary underline">contact@solelymarketplace.com</a>
                             </p>
                             <p className="text-muted-foreground">
-                                General Inquiries: <a href="mailto:contact@solelyshoes.co.ke" className="text-primary underline">contact@solelyshoes.co.ke</a>
+                                General Inquiries: <a href="mailto:contact@solelymarketplace.com" className="text-primary underline">contact@solelymarketplace.com</a>
                             </p>
                             <p className="text-muted-foreground mt-2">
-                                Website: <a href="https://solelyshoes.co.ke" className="text-primary underline">solelyshoes.co.ke</a>
+                                Website: <a href="https://solelymarketplace.com" className="text-primary underline">solelymarketplace.com</a>
                             </p>
                         </div>
                     </section>

@@ -11,7 +11,7 @@ const Vendor = () => {
       <SEO 
         title="Sell Online in Kenya | Become a Vendor on Solely"
         description="Join Kenya's secure social commerce marketplace. Sell shoes, electronics, fashion, beauty & more with zero upfront fees. Reach thousands of buyers across Kenya with escrow protection."
-        canonical="https://solelyshoes.co.ke/vendor"
+        canonical="https://solelymarketplace.com/vendor"
       />
       <div className="container mx-auto px-4">
         {/* Hero Section */}
@@ -23,7 +23,7 @@ const Vendor = () => {
           />
           <h1 className="text-5xl font-bold mb-6">Become a Vendor</h1>
           <p className="text-xl text-muted-foreground leading-relaxed mb-8">
-            Join Kenya's secure commission-based marketplace! Start selling with zero upfront fees. We only take 10% commission when you make a sale. Your customers pay through our escrow system, and you receive payouts after delivery confirmation.
+            Join Kenya's secure commission-based marketplace! Start selling with zero upfront fees. We only take 6% commission when you make a sale. Your customers pay through our escrow system, and you receive payouts after delivery confirmation.
           </p>
           <div className="flex gap-4 justify-center">
             <Button size="lg" asChild>
@@ -31,7 +31,7 @@ const Vendor = () => {
             </Button>
             <Button size="lg" variant="outline" asChild>
               <a
-                href="mailto:contact@solelyshoes.co.ke"
+                href="mailto:contact@solelymarketplace.com"
                 className="inline-flex items-center gap-2"
               >
                 Contact Support
@@ -47,7 +47,7 @@ const Vendor = () => {
             <Card className="border-2 shadow-card hover:shadow-hover transition-all">
               <CardHeader>
                 <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-primary" />
+                  <Users size={24} strokeWidth={1.5} className=" text-primary" />
                 </div>
                 <CardTitle>Reach More Customers</CardTitle>
               </CardHeader>
@@ -61,7 +61,7 @@ const Vendor = () => {
             <Card className="border-2 shadow-card hover:shadow-hover transition-all">
               <CardHeader>
                 <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                  <TrendingUp className="h-6 w-6 text-primary" />
+                  <TrendingUp size={24} strokeWidth={1.5} className=" text-primary" />
                 </div>
                 <CardTitle>Easy to Start</CardTitle>
               </CardHeader>
@@ -75,13 +75,13 @@ const Vendor = () => {
             <Card className="border-2 shadow-card hover:shadow-hover transition-all">
               <CardHeader>
                 <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                  <DollarSign className="h-6 w-6 text-primary" />
+                  <DollarSign size={24} strokeWidth={1.5} className=" text-primary" />
                 </div>
                 <CardTitle>Fair Commission</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Only 10% commission per sale. No subscription fees, no monthly costs. You only pay when you make money. Payouts go directly to your M-Pesa or bank account.
+                  Only 6% commission per sale. No subscription fees, no monthly costs. You only pay when you make money. Payouts go directly to your M-Pesa or bank account.
                 </p>
               </CardContent>
             </Card>
@@ -125,7 +125,7 @@ const Vendor = () => {
               </div>
               <h3 className="font-semibold mb-2">Get Paid</h3>
               <p className="text-sm text-muted-foreground">
-                After buyer confirms delivery, receive payout (minus 10% commission) to your account
+                After buyer confirms delivery, receive payout (minus 6% commission) to your account
               </p>
             </div>
           </div>
@@ -182,7 +182,7 @@ const Vendor = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  No upfront fees! We operate on a commission model. You only pay 10% commission when you make a sale. No subscriptions, no monthly costs.
+                  No upfront fees! We operate on a commission model. You only pay 6% commission when you make a sale. No subscriptions, no monthly costs.
                 </p>
               </CardContent>
             </Card>
@@ -236,7 +236,7 @@ const Vendor = () => {
               asChild
             >
               <a
-                href="mailto:contact@solelyshoes.co.ke"
+                href="mailto:contact@solelymarketplace.com"
                 className="inline-flex items-center gap-2"
               >
                 Contact Support

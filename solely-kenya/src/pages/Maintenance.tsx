@@ -4,8 +4,8 @@ export default function Maintenance() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-50 p-4 text-center">
             <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-neutral-100">
-                <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Wrench className="w-10 h-10 text-amber-600" />
+                <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Wrench size={40} strokeWidth={1.5} className="text-primary" />
                 </div>
 
                 <h1 className="text-3xl font-bold text-neutral-900 mb-4">
@@ -23,11 +23,11 @@ export default function Maintenance() {
                             For urgent inquiries, please contact us via email.
                         </p>
                         <a
-                            href="mailto:contact@solelyshoes.co.ke"
+                            href="mailto:contact@solelymarketplace.com"
                             className="inline-flex items-center gap-2 text-amber-600 font-medium hover:underline"
                         >
-                            <Mail className="w-4 h-4" />
-                            contact@solelyshoes.co.ke
+                            <Mail size={16} strokeWidth={1.5}  />
+                            contact@solelymarketplace.com
                         </a>
                     </div>
                 </div>

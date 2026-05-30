@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://solelyshoes.co.ke/</loc>
+    <loc>https://solelymarketplace.com/</loc>
     <lastmod>2026-03-25</lastmod>
     <priority>1.0</priority>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://solelyshoes.co.ke/shop</loc>
+    <loc>https://solelymarketplace.com/shop</loc>
     <lastmod>2026-03-25</lastmod>
     <priority>0.9</priority>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>https://solelyshoes.co.ke/vendor</loc>
+    <loc>https://solelymarketplace.com/vendor</loc>
     <lastmod>2026-03-25</lastmod>
     <priority>0.8</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://solelyshoes.co.ke/auth</loc>
+    <loc>https://solelymarketplace.com/auth</loc>
     <lastmod>2026-03-25</lastmod>
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://solelyshoes.co.ke/privacy-policy</loc>
+    <loc>https://solelymarketplace.com/privacy-policy</loc>
     <lastmod>2026-03-25</lastmod>
     <priority>0.3</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://solelyshoes.co.ke/terms</loc>
+    <loc>https://solelymarketplace.com/terms</loc>
     <lastmod>2026-03-25</lastmod>
     <priority>0.3</priority>
     <changefreq>monthly</changefreq>

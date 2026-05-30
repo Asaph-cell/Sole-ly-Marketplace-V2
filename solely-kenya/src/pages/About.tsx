@@ -23,7 +23,7 @@ const About = () => {
       <SEO
         title="About Us"
         description="Learn about Sole-ly Marketplace's mission to connect buyers with trusted vendors across Kenya through secure escrow-protected transactions — shoes, electronics, fashion, beauty & more."
-        canonical="https://solelyshoes.co.ke/about"
+        canonical="https://solelymarketplace.com/about"
         breadcrumbs={[
           { name: "Home", url: "/" },
           { name: "About", url: "/about" }
@@ -49,7 +49,7 @@ const About = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-primary" />
+                <Users strokeWidth={1.5} className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Community First</h3>
               <p className="text-muted-foreground">
@@ -58,7 +58,7 @@ const About = () => {
             </div>
             <div className="text-center">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="h-8 w-8 text-primary" />
+                <TrendingUp strokeWidth={1.5} className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Growth Together</h3>
               <p className="text-muted-foreground">
@@ -67,7 +67,7 @@ const About = () => {
             </div>
             <div className="text-center">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="h-8 w-8 text-primary" />
+                <Heart strokeWidth={1.5} className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Made with Love</h3>
               <p className="text-muted-foreground">
@@ -129,7 +129,7 @@ const About = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary mt-1">✓</span>
-                  Commission-based (10% per sale, no upfront fees)
+                  Commission-based (6% per sale, no upfront fees)
                 </li>
               </ul>
             </div>
@@ -254,7 +254,7 @@ const About = () => {
             {isVendor ? (
               <Button size="lg" variant="outline" asChild>
                 <Link to="/vendor/dashboard">
-                  <LayoutDashboard className="h-4 w-4 mr-2" />
+                  <LayoutDashboard size={16} strokeWidth={1.5} className=" mr-2" />
                   Vendor Dashboard
                 </Link>
               </Button>

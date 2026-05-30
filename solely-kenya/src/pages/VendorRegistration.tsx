@@ -12,14 +12,12 @@ import { toast } from "sonner";
 import logo from "@/assets/solely-logo.svg";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 
 const VendorRegistration = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState("");
   const [formData, setFormData] = useState({
     phone: "",
     mpesaNumber: "",
@@ -157,9 +155,9 @@ const VendorRegistration = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <Alert>
-              <AlertCircle className="h-4 w-4" />
+              <AlertCircle size={16} strokeWidth={1.5}  />
               <AlertDescription>
-                <strong>Important:</strong> Delivery is handled by you, not Sole-ly. Delivery charges are calculated automatically based on the customer's location.
+                <strong>Important:</strong> Delivery is fulfilled by you directly. Buyers will pay the product price to Solely, and you will arrange delivery and collect any delivery fees directly from the buyer.
               </AlertDescription>
             </Alert>
 
@@ -219,24 +217,44 @@ const VendorRegistration = () => {
               <div className="border-t pt-4">
                 <h3 className="font-semibold mb-4">Store Location *</h3>
                 <div className="space-y-4">
-                  <AddressAutocomplete
-                    value={selectedAddress}
-                    onAddressSelect={(address) => {
-                      setSelectedAddress(address.displayName);
-                      setFormData((prev) => ({
-                        ...prev,
-                        addressLine1: address.addressLine1,
-                        city: address.city,
-                        county: address.county,
-                      }));
-                    }}
-                    placeholder="Start typing your store location..."
-                    label="📍 Store Address (for delivery calculation)"
-                    required={true}
-                  />
+                  <div>
+                    <Label htmlFor="city">City / Town *</Label>
+                    <Input
+                      id="city"
+                      type="text"
+                      placeholder="e.g., Nairobi"
+                      value={formData.city}
+                      onChange={handleInputChange("city")}
+                      required
+                    />
+                  </div>
 
                   <div>
-                    <Label htmlFor="addressLine2">Address Line 2</Label>
+                    <Label htmlFor="county">County *</Label>
+                    <Input
+                      id="county"
+                      type="text"
+                      placeholder="e.g., Nairobi"
+                      value={formData.county}
+                      onChange={handleInputChange("county")}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="addressLine1">Specific Address *</Label>
+                    <Input
+                      id="addressLine1"
+                      type="text"
+                      placeholder="e.g., Moi Avenue, CBD"
+                      value={formData.addressLine1}
+                      onChange={handleInputChange("addressLine1")}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
                     <Input
                       id="addressLine2"
                       type="text"
@@ -258,7 +276,7 @@ const VendorRegistration = () => {
                   </div>
 
                   <p className="text-xs text-muted-foreground">
-                    💡 Your location will be used to calculate delivery fees automatically based on distance to customers.
+                    💡 Your location helps buyers know where the product is coming from.
                   </p>
                 </div>
               </div>
@@ -285,7 +303,7 @@ const VendorRegistration = () => {
                     <ul className="list-disc list-inside mt-2 space-y-1">
                       <li className="text-destructive font-medium">You must respond to orders within 48 hours or they will be auto-cancelled</li>
                       <li>You are responsible for all product deliveries</li>
-                      <li>Sole-ly takes a 10% commission on each sale</li>
+                      <li>Sole-ly takes a 6% commission on each sale</li>
                       <li>Payments are held in escrow until delivery is confirmed</li>
                       <li>You must provide accurate product information</li>
                       <li className="font-bold text-amber-800">You certify that you have the right to sell these items and they are authentic</li>

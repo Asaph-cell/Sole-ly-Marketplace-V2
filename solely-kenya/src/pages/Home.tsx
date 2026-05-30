@@ -37,93 +37,79 @@ const SHOWCASE_CARDS = [
   {
     key: "electronics",
     name: "Electronics",
-    subtitle: "Phones, laptops & accessories",
-    // B&W Apple devices flatlay — matches uploaded reference
+    subtitle: "Phones & accessories",
     image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&h=460&fit=crop&crop=center",
-    bg: "bg-gray-100 dark:bg-gray-900",
-    textColor: "text-gray-900 dark:text-gray-100",
+    gradient: "from-[#F3F4F6] to-[#E5E7EB] dark:from-gray-900 dark:to-gray-800",
+    fadeFrom: "from-[#F3F4F6] dark:from-gray-900",
   },
   {
     key: "womens-fashion",
     name: "Fashion",
-    subtitle: "Women's, men's & kids' clothing",
-    // Clothing rack — matches uploaded reference
+    subtitle: "Premium clothing",
     image: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=700&h=460&fit=crop&crop=center",
-    bg: "bg-stone-100 dark:bg-stone-900",
-    textColor: "text-stone-900 dark:text-stone-100",
+    gradient: "from-[#F9FAFB] to-[#F3F4F6] dark:from-gray-800 dark:to-gray-700",
+    fadeFrom: "from-[#F9FAFB] dark:from-gray-800",
   },
   {
     key: "shoes",
     name: "Shoes",
-    subtitle: "Sneakers, boots & sandals",
+    subtitle: "Leather & Sneakers",
     image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=700&h=460&fit=crop&crop=center",
-    bg: "bg-amber-50 dark:bg-amber-950",
-    textColor: "text-amber-900 dark:text-amber-100",
+    gradient: "from-[#FDFBF7] to-[#F3F0E6] dark:from-stone-900 dark:to-stone-800",
+    fadeFrom: "from-[#FDFBF7] dark:from-stone-900",
   },
   {
     key: "bags",
     name: "Bags & Accessories",
-    subtitle: "Handbags, wallets & more",
+    subtitle: "Luxury & everyday",
     image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=700&h=460&fit=crop&crop=center",
-    bg: "bg-rose-50 dark:bg-rose-950",
-    textColor: "text-rose-900 dark:text-rose-100",
+    gradient: "from-[#FAF5F0] to-[#EBE3D5] dark:from-[#3D332D] dark:to-[#2D2520]",
+    fadeFrom: "from-[#FAF5F0] dark:from-[#3D332D]",
   },
   {
     key: "beauty",
     name: "Beauty",
-    subtitle: "Makeup, skincare & haircare",
+    subtitle: "Beauty style",
     image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=700&h=460&fit=crop&crop=center",
-    bg: "bg-purple-50 dark:bg-purple-950",
-    textColor: "text-purple-900 dark:text-purple-100",
+    gradient: "from-[#F8F3ED] to-[#E9DFD1] dark:from-[#4A3F35] dark:to-[#3A3028]",
+    fadeFrom: "from-[#F8F3ED] dark:from-[#4A3F35]",
   },
   {
     key: "sports",
     name: "Sports & Fitness",
-    subtitle: "Gear, apparel & equipment",
+    subtitle: "Athletic, fitness",
     image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=700&h=460&fit=crop&crop=center",
-    bg: "bg-green-50 dark:bg-green-950",
-    textColor: "text-green-900 dark:text-green-100",
+    gradient: "from-[#F8FAFC] to-[#E2E8F0] dark:from-slate-900 dark:to-slate-800",
+    fadeFrom: "from-[#F8FAFC] dark:from-slate-900",
   },
 ];
 
 // ─── How It Works steps ───────────────────────────────────────────────────────
 const HOW_IT_WORKS = [
   {
-    step: "1",
+    step: "01",
     icon: ShoppingBag,
     title: "Browse & Order",
     desc: "Find what you want from a verified vendor. Add to cart and checkout with M-Pesa.",
-    color: "bg-primary/10 text-primary",
   },
   {
-    step: "2",
+    step: "02",
     icon: Lock,
     title: "We Hold the Funds",
     desc: "Your money sits safely in escrow — the vendor cannot access it until delivery is confirmed.",
-    color: "bg-green-100 text-green-700",
   },
   {
-    step: "3",
+    step: "03",
     icon: Package,
     title: "Receive Your Package",
     desc: "Enter the 3-digit PIN on the package to confirm receipt. Your 6-digit release code appears.",
-    color: "bg-blue-100 text-blue-700",
   },
   {
-    step: "4",
+    step: "04",
     icon: Zap,
     title: "Funds Released",
     desc: "Show the vendor your release code. They enter it and money lands in their wallet instantly.",
-    color: "bg-purple-100 text-purple-700",
   },
-];
-
-// ─── Trust stats ──────────────────────────────────────────────────────────────
-const TRUST_STATS = [
-  { value: "100%", label: "Escrow Protected", icon: Shield },
-  { value: "0 KES", label: "Upfront Seller Fees", icon: Tag },
-  { value: "24h", label: "Dispute Resolution", icon: CheckCircle },
-  { value: "1,200+", label: "Active Vendors", icon: Users },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -201,7 +187,7 @@ const Home = () => {
       <SEO
         title="Solely — Kenya's Safest Way to Buy & Sell Anything"
         description="Shop electronics, fashion, shoes, beauty, and more with full escrow protection. Kenya's most trusted social commerce marketplace."
-        canonical="https://solelyshoes.co.ke/"
+        canonical="https://solelymarketplace.com/"
         isHomepage={true}
       />
 
@@ -215,7 +201,7 @@ const Home = () => {
               {[
                 "👟 Sell shoes, fashion & electronics — zero upfront fees!",
                 "🔒 Every order is escrow-protected — no more payment scams!",
-                "💰 10% commission only when you sell — start for free today!",
+                "💰 6% commission only when you sell — start for free today!",
                 "📱 Sell electronics with verified KYC protection!",
                 "👗 List your fashion items and reach thousands of buyers!",
                 "🚀 Kenya's most trusted marketplace — join 1,200+ vendors!",
@@ -288,7 +274,7 @@ const Home = () => {
                 to="/shop"
                 className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-6 py-3 rounded-full transition-colors text-sm"
               >
-                Shop Now <ArrowRight className="h-4 w-4" />
+                Shop Now <ArrowRight size={16} strokeWidth={1.5}  />
               </Link>
               {!isVendor && (
                 <Link
@@ -304,90 +290,58 @@ const Home = () => {
       </section>
 
       {/* ─── CATEGORY SHOWCASE CARDS ─── */}
-      {/* Mobile: horizontal snap-scroll; Desktop: 3-column grid */}
       <section className="py-6 sm:py-10">
-        <div className="mb-4 flex items-baseline justify-between px-4 sm:px-6 lg:px-8 container mx-auto">
-          <h2 className="text-lg sm:text-2xl font-bold">Shop by Category</h2>
+        <div className="mb-6 flex items-baseline justify-between px-4 sm:px-6 lg:px-8 container mx-auto">
+          <h2 className="text-xl sm:text-2xl font-bold">Shop by Category</h2>
           <Link to="/shop" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-            See all <ArrowRight className="h-3.5 w-3.5" />
+            See all <ArrowRight size={14} strokeWidth={1.5}  />
           </Link>
         </div>
 
-        {/* ── Mobile carousel (hidden on md+, shown on phones < 768px) ── */}
-        <div className="md:hidden flex gap-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory pl-4 pr-4 pb-2">
-          {SHOWCASE_CARDS.map((card) => (
-            <Link
-              key={card.key}
-              to={`/shop?category=${card.key}`}
-              className={`group relative flex-shrink-0 w-[85vw] overflow-hidden rounded-2xl ${card.bg} border border-border snap-start`}
-              style={{ minHeight: "160px" }}
-            >
-              {/* Category image — fills right 60% */}
-              <div className="absolute right-0 top-0 bottom-0 w-[62%] overflow-hidden">
-                <img
-                  src={card.image}
-                  alt={card.name}
-                  className="w-full h-full object-cover object-center"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-white/80 dark:from-black/80 to-transparent" />
-              </div>
-              {/* Text */}
-              <div className="relative z-10 p-4 flex flex-col justify-between h-full">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 mb-1">
-                    {card.subtitle}
-                  </p>
-                  <h3 className={`text-xl font-extrabold leading-tight ${card.textColor}`}>
-                    {card.name}
-                  </h3>
-                </div>
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-primary mt-2">
-                  See more <ChevronRight className="h-3 w-3" />
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* ── Desktop 2-3 column grid (hidden below md / 768px) ── */}
-        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 container mx-auto px-6 lg:px-8">
-          {SHOWCASE_CARDS.map((card, i) => (
-            <motion.div
-              key={card.key}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.07 }}
-            >
-              <Link
-                to={`/shop?category=${card.key}`}
-                className={`group relative flex overflow-hidden rounded-2xl ${card.bg} border border-border hover:shadow-lg transition-shadow duration-300`}
-                style={{ minHeight: "200px" }}
+        {/* ── Unified Responsive Grid ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 container mx-auto px-4 sm:px-6 lg:px-8">
+          {SHOWCASE_CARDS.map((card, i) => {
+            const isLastOdd = i === SHOWCASE_CARDS.length - 1 && SHOWCASE_CARDS.length % 2 !== 0;
+            return (
+              <motion.div
+                key={card.key}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.07 }}
+                className={isLastOdd ? "col-span-2 sm:col-span-1" : ""}
               >
-                <div className="relative z-10 p-5 flex flex-col justify-between flex-1">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-foreground/50 mb-1">
+                <Link
+                  to={`/shop?category=${card.key}`}
+                  className={`group relative flex overflow-hidden rounded-3xl bg-gradient-to-r ${card.gradient} border border-border/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-[130px] sm:h-[180px] lg:h-[200px]`}
+                >
+                  {/* Image on the right */}
+                  <div className="absolute right-0 top-0 bottom-0 w-[55%] sm:w-[60%] overflow-hidden">
+                    <img
+                      src={card.image}
+                      alt={card.name}
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                    />
+                    {/* Fade from left to right to blend image into the card background */}
+                    <div className={`absolute inset-0 bg-gradient-to-r ${card.fadeFrom} via-transparent to-transparent`} />
+                  </div>
+
+                  {/* Text on the left */}
+                  <div className="relative z-10 p-3.5 sm:p-6 lg:p-8 flex flex-col justify-center flex-1 max-w-[65%] sm:max-w-[60%]">
+                    <p className="text-[10px] sm:text-sm font-medium text-muted-foreground mb-1.5 opacity-90">
                       {card.subtitle}
                     </p>
-                    <h3 className={`text-2xl font-extrabold ${card.textColor}`}>
+                    <h3 className="text-base sm:text-2xl lg:text-3xl font-extrabold text-foreground mb-3 sm:mb-4 tracking-tight leading-none">
                       {card.name}
                     </h3>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-sm font-medium text-primary group-hover:gap-2 transition-all">
+                      See more <ChevronRight size={16} strokeWidth={1.5}  />
+                    </span>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary group-hover:gap-2 transition-all">
-                    See more <ChevronRight className="h-4 w-4" />
-                  </span>
-                </div>
-                <div className="absolute right-0 top-0 bottom-0 w-[58%] overflow-hidden">
-                  <img
-                    src={card.image}
-                    alt={card.name}
-                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/60 dark:from-black/60 via-transparent to-transparent" />
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+                </Link>
+              </motion.div>
+            );
+          })}
         </div>
       </section>
 
@@ -404,11 +358,11 @@ const Home = () => {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
+                  <Sparkles size={20} strokeWidth={1.5} className=" text-primary" />
                   <h2 className="text-xl sm:text-2xl font-bold">For You</h2>
                 </div>
                 <Link to="/shop" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-                  See All <ArrowRight className="h-4 w-4" />
+                  See All <ArrowRight size={16} strokeWidth={1.5}  />
                 </Link>
               </div>
               {reasonChip && (
@@ -431,6 +385,7 @@ const Home = () => {
                     createdAt={product.created_at}
                     condition={product.condition || "new"}
                     videoUrl={product.video_url}
+                    freeDelivery={product.free_delivery}
                   />
                 ))}
               </div>
@@ -445,7 +400,7 @@ const Home = () => {
           <div className="flex items-baseline justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold">Trending Now</h2>
             <Link to="/shop" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-              View All <ArrowRight className="h-4 w-4" />
+              View All <ArrowRight size={16} strokeWidth={1.5}  />
             </Link>
           </div>
 
@@ -457,7 +412,7 @@ const Home = () => {
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
-              <ShoppingBag className="h-12 w-12 mx-auto mb-3 opacity-30" />
+              <ShoppingBag strokeWidth={1.5} className="h-12 w-12 mx-auto mb-3 opacity-30" />
               <p className="font-medium">No items in this category yet.</p>
               <p className="text-sm mt-1">Be the first to list here!</p>
               <Button className="mt-4 rounded-full" asChild>
@@ -479,27 +434,11 @@ const Home = () => {
                   createdAt={product.created_at}
                   condition={product.condition || "new"}
                   videoUrl={product.video_url}
+                  freeDelivery={product.free_delivery}
                 />
               ))}
             </div>
           )}
-        </div>
-      </section>
-
-      {/* ─── TRUST STATS STRIP ─── */}
-      <section className="py-8 bg-muted/40 border-y border-border">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
-            {TRUST_STATS.map(({ value, label, icon: Icon }) => (
-              <div key={label} className="flex flex-col items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Icon className="h-5 w-5 text-primary" />
-                </div>
-                <p className="text-2xl font-extrabold">{value}</p>
-                <p className="text-xs text-muted-foreground font-medium">{label}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -516,7 +455,8 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="relative flex flex-col gap-0 max-w-2xl mx-auto mt-8 text-left">
+            <div className="absolute left-[17px] top-[18px] bottom-[18px] w-[2px] bg-border" />
             {HOW_IT_WORKS.map((step, i) => {
               const Icon = step.icon;
               return (
@@ -526,16 +466,18 @@ const Home = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className="relative bg-card border border-border rounded-2xl p-6 shadow-sm"
+                  className="relative z-10 flex flex-nowrap items-start gap-4 pb-8 last:pb-0"
                 >
-                  <div className={`w-12 h-12 rounded-xl ${step.color} flex items-center justify-center mb-4`}>
-                    <Icon className="h-6 w-6" />
+                  <div className="w-9 h-9 flex-shrink-0 rounded-full border-2 border-primary bg-background flex items-center justify-center text-sm font-medium text-primary">
+                    {i + 1}
                   </div>
-                  <span className="absolute top-4 right-5 text-4xl font-black text-muted/30">
-                    {step.step}
-                  </span>
-                  <h3 className="font-bold text-base mb-1">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
+                  <div className="pt-1.5">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Icon size={14} strokeWidth={1.5} className="text-primary" />
+                      <p className="text-sm font-semibold text-foreground">{step.title}</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
+                  </div>
                 </motion.div>
               );
             })}
@@ -561,13 +503,13 @@ const Home = () => {
               </p>
               <ul className="mt-6 space-y-3 text-sm">
                 {[
-                  "Zero listing fees — only 10% when you sell",
+                  "Zero listing fees — only 6% when you sell",
                   "Sell shoes, fashion, electronics, beauty & more",
                   "Your own store page with reviews & ratings",
                   "Real-time order tracking & payout dashboard",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2.5">
-                    <CheckCircle className="h-4 w-4 text-primary shrink-0" />
+                    <CheckCircle size={16} strokeWidth={1.5} className=" text-primary shrink-0" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -576,17 +518,17 @@ const Home = () => {
                 {isVendor ? (
                   <Button size="lg" className="rounded-full" asChild>
                     <Link to="/vendor/dashboard">
-                      <LayoutDashboard className="h-4 w-4 mr-2" /> My Dashboard
+                      <LayoutDashboard size={16} strokeWidth={1.5} className=" mr-2" /> My Dashboard
                     </Link>
                   </Button>
                 ) : (
                   <Button size="lg" className="rounded-full" asChild>
                     <Link to="/vendor">
-                      <Tag className="h-4 w-4 mr-2" /> Start Selling Free
+                      <Tag size={16} strokeWidth={1.5} className=" mr-2" /> Start Selling Free
                     </Link>
                   </Button>
                 )}
-                <Button size="lg" variant="outline" className="rounded-full border-secondary-foreground/30 text-secondary-foreground hover:bg-secondary-foreground/10" asChild>
+                <Button size="lg" variant="outline" className="rounded-full bg-transparent border-secondary-foreground/30 text-secondary-foreground hover:bg-secondary-foreground/10 hover:text-secondary-foreground" asChild>
                   <Link to="/about">Learn More</Link>
                 </Button>
               </div>
@@ -595,32 +537,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ─── FINAL CTA ─── */}
-      <section className="py-12 sm:py-16 bg-gradient-to-br from-secondary via-secondary to-secondary/90 text-secondary-foreground text-center">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl sm:text-4xl font-extrabold mb-3">Ready to Shop Safely?</h2>
-          <p className="text-sm sm:text-lg mb-6 opacity-80 max-w-md mx-auto">
-            Join thousands of Kenyans who shop without fear. Escrow protection on every order.
-          </p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Button size="lg" className="rounded-full font-bold" asChild>
-              <Link to="/shop">
-                <ShoppingBag className="h-4 w-4 mr-2" /> Browse All Items
-              </Link>
-            </Button>
-            {!isVendor && (
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-full bg-transparent border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold transition-colors"
-                asChild
-              >
-                <Link to="/vendor">Become a Vendor</Link>
-              </Button>
-            )}
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

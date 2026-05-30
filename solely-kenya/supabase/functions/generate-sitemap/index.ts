@@ -5,7 +5,7 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const SITE_URL = 'https://solelyshoes.co.ke'
+const SITE_URL = 'https://solelymarketplace.com'
 
 // Static pages with their priorities and change frequencies
 const STATIC_PAGES = [

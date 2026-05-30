@@ -41,8 +41,8 @@ const conditionLabels: Record<string, { label: string; color: string; footwearDe
   refurbished: { label: "Refurbished",  color: "bg-blue-500",   footwearDesc: "Tested & fully working",        accessoryDesc: "Tested & fully working" },
   // Legacy fallbacks for older listings
   like_new:    { label: "Like New",     color: "bg-blue-500",   footwearDesc: "Used once or twice, no wear",   accessoryDesc: "Used once, like new" },
-  good:        { label: "Good",         color: "bg-amber-400",  footwearDesc: "Light use, minor wear",         accessoryDesc: "Light use, no damage" },
-  fair:        { label: "Fair",         color: "bg-orange-500", footwearDesc: "Visible wear, functional",      accessoryDesc: "Visible wear, fully working" },
+  good:        { label: "Thrifted",     color: "bg-purple-500", footwearDesc: "Pre-owned, honestly described", accessoryDesc: "Pre-owned, good condition" },
+  fair:        { label: "Thrifted",     color: "bg-purple-500", footwearDesc: "Pre-owned, honestly described", accessoryDesc: "Pre-owned, good condition" },
 };
 
 
@@ -355,7 +355,7 @@ const Product = () => {
           image={product.images?.[0]}
           type="product"
           price={product.price_ksh}
-          canonical={`https://solelyshoes.co.ke/product/${product.id}`}
+          canonical={`https://solelymarketplace.com/product/${product.id}`}
           product={{
             name: product.name,
             price: product.price_ksh,
@@ -381,7 +381,7 @@ const Product = () => {
         {/* Minimalist Header/Breadcrumb */}
         <div className="mb-4 sm:mb-6">
           <Link to="/shop" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm">
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft size={16} strokeWidth={1.5}  />
             Back to Shop
           </Link>
         </div>
@@ -571,7 +571,7 @@ const Product = () => {
                     className="shrink-0 rounded-full"
                     onClick={() => setShowShareMenu(!showShareMenu)}
                   >
-                    <Share2 className="h-4 w-4" />
+                    <Share2 size={16} strokeWidth={1.5}  />
                   </Button>
 
                   {/* Share Menu Popup */}
@@ -616,7 +616,7 @@ const Product = () => {
                             setShowShareMenu(false);
                           }}
                         >
-                          <Copy className="h-4 w-4 mr-2" />
+                          <Copy size={16} strokeWidth={1.5} className=" mr-2" />
                           Copy Link
                         </Button>
                         <Button
@@ -625,7 +625,7 @@ const Product = () => {
                           className="w-full justify-start h-auto py-2 text-muted-foreground hover:text-foreground"
                           onClick={() => setShowShareMenu(false)}
                         >
-                          <X className="h-4 w-4 mr-2" />
+                          <X size={16} strokeWidth={1.5} className=" mr-2" />
                           Cancel
                         </Button>
                       </div>
@@ -634,11 +634,18 @@ const Product = () => {
                 </div>
               </div>
               <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-4 sm:mb-6">KES {product.price_ksh.toLocaleString()}</p>
-              {product.stock > 0 ? (
-                <Badge variant="default">In Stock ({product.stock} available)</Badge>
-              ) : (
-                <Badge variant="secondary">Out of Stock</Badge>
-              )}
+              <div className="flex flex-wrap gap-2">
+                {product.stock > 0 ? (
+                  <Badge variant="default">In Stock ({product.stock} available)</Badge>
+                ) : (
+                  <Badge variant="secondary">Out of Stock</Badge>
+                )}
+                {product.free_delivery && (
+                  <Badge className="bg-gradient-to-r from-emerald-400 to-green-600 hover:from-emerald-500 hover:to-green-700 text-white border-none shadow-md shadow-green-500/30 px-3 py-1 uppercase tracking-wider font-bold">
+                    🚚 Free Delivery
+                  </Badge>
+                )}
+              </div>
             </div>
 
             {/* Condition Display */}
@@ -758,7 +765,7 @@ const Product = () => {
                 className="w-full min-h-[48px] border-primary/40 text-primary hover:bg-primary/5"
                 onClick={() => setShowCompareModal(true)}
               >
-                <BarChart2 className="h-4 w-4 mr-2" />
+                <BarChart2 size={16} strokeWidth={1.5} className=" mr-2" />
                 Compare Prices
               </Button>
 
@@ -806,9 +813,9 @@ const Product = () => {
                 disabled={alertLoading}
               >
                 {priceAlertActive ? (
-                  <><BellOff className="h-4 w-4 mr-2" /> Remove Price Alert</>
+                  <><BellOff size={16} strokeWidth={1.5} className=" mr-2" /> Remove Price Alert</>
                 ) : (
-                  <><Bell className="h-4 w-4 mr-2" /> Notify me on price drop</>
+                  <><Bell size={16} strokeWidth={1.5} className=" mr-2" /> Notify me on price drop</>
                 )}
               </Button>
             </div>
@@ -816,14 +823,14 @@ const Product = () => {
             {/* Trust Indicators */}
             <div className="grid grid-cols-2 gap-4 pt-6 border-t border-border">
               <div className="flex items-center gap-3">
-                <Shield className="h-8 w-8 text-primary" />
+                <Shield strokeWidth={1.5} className="h-8 w-8 text-primary" />
                 <div>
                   <p className="font-semibold text-sm">Escrow Protected</p>
                   <p className="text-xs text-muted-foreground">Payment held until delivery</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <Shield className="h-8 w-8 text-primary" />
+                <Shield strokeWidth={1.5} className="h-8 w-8 text-primary" />
                 <div>
                   <p className="font-semibold text-sm">Verified Seller</p>
                   <p className="text-xs text-muted-foreground">
@@ -842,7 +849,7 @@ const Product = () => {
           <div className="flex items-center justify-between mb-5 sm:mb-6">
             <h2 className="text-xl sm:text-2xl font-bold">Similar Products</h2>
             <Link to={product?.brand ? `/shop?search=${encodeURIComponent(product.brand)}` : `/shop?category=${product?.category || ''}`} className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-              View All <ChevronRight className="h-4 w-4" />
+              View All <ChevronRight size={16} strokeWidth={1.5}  />
             </Link>
           </div>
           <div className="relative group">
@@ -877,6 +884,7 @@ const Product = () => {
                       createdAt={simProd.created_at}
                       condition={simProd.condition}
                       videoUrl={simProd.video_url}
+                      freeDelivery={simProd.free_delivery}
                     />
                   </SwiperSlide>
                 ))}
@@ -905,7 +913,7 @@ const Product = () => {
             className="flex-1 min-h-[40px] tap-active rounded-xl border-primary/40 text-primary text-xs"
             onClick={() => setShowCompareModal(true)}
           >
-            <BarChart2 className="h-3.5 w-3.5 mr-1" />
+            <BarChart2 size={14} strokeWidth={1.5} className=" mr-1" />
             Compare Prices
           </Button>
         </div>

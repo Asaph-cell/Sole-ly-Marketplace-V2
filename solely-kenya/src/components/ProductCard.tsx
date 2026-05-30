@@ -19,6 +19,7 @@ interface ProductCardProps {
   createdAt: string;
   condition?: "new" | "thrifted" | "refurbished" | "like_new" | "good" | "fair";
   videoUrl?: string | null;
+  freeDelivery?: boolean | null;
 }
 
 const conditionLabels: Record<string, { label: string; color: string }> = {
@@ -27,8 +28,8 @@ const conditionLabels: Record<string, { label: string; color: string }> = {
   refurbished: { label: "Refurbished", color: "bg-blue-500" },
   // Legacy
   like_new: { label: "Like New", color: "bg-blue-500" },
-  good:     { label: "Good",     color: "bg-amber-400" },
-  fair:     { label: "Fair",     color: "bg-orange-500" },
+  good:     { label: "Thrifted", color: "bg-purple-500" },
+  fair:     { label: "Thrifted", color: "bg-purple-500" },
 };
 
 const ProductCard = ({
@@ -41,7 +42,8 @@ const ProductCard = ({
   reviewCount = 0,
   createdAt,
   condition = "new",
-  videoUrl
+  videoUrl,
+  freeDelivery
 }: ProductCardProps) => {
   const conditionInfo = conditionLabels[condition] || conditionLabels.new;
   const [isHovering, setIsHovering] = useState(false);
@@ -98,10 +100,10 @@ const ProductCard = ({
       onMouseLeave={() => !isMobile && setIsHovering(false)}
     >
       <Link to={`/product/${id}`} className="group">
-        <Card className="h-full overflow-hidden border-2 hover:shadow-hover transition-shadow duration-300 bg-card flex flex-col">
-          <CardContent className="p-0 relative">
+        <Card className="h-full flex flex-col overflow-hidden">
+          <CardContent className="p-0 relative -mx-5 -mt-5 mb-4">
             <div
-              className="aspect-square overflow-hidden bg-white relative"
+              className="aspect-square overflow-hidden bg-white relative rounded-t-md"
               onClick={handleMobileTap}
             >
               {/* Image (always visible as base layer) - with blur lazy load */}
@@ -132,7 +134,7 @@ const ProductCard = ({
               {videoUrl && isMobile && !isPlaying && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="bg-black/50 rounded-full p-3">
-                    <Play className="h-6 w-6 text-white fill-white" />
+                    <Play strokeWidth={1.5} size={24} className="text-white fill-white" />
                   </div>
                 </div>
               )}
@@ -141,25 +143,26 @@ const ProductCard = ({
             {/* Condition Badge - Top Left */}
             <Badge
               variant="secondary"
-              className="absolute top-3 left-3 flex items-center gap-1.5 shadow-md"
+              className="absolute top-3 left-3 shadow-sm"
             >
-              <span className={`w-2 h-2 rounded-full ${conditionInfo.color}`}></span>
               {conditionInfo.label}
             </Badge>
 
-            {/* Video Badge - Top Right area */}
-            <div className="absolute top-3 right-3 flex flex-col gap-1">
-              {/* {isNew && (
-                <Badge className="bg-accent text-accent-foreground">New Arrival</Badge>
-              )} */}
+            {/* Video & Free Delivery Badges - Top Right area */}
+            <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
+              {freeDelivery && (
+                <Badge variant="success" className="shadow-sm">
+                  🚚 Free Delivery
+                </Badge>
+              )}
               {videoUrl && (
-                <Badge variant="secondary" className="bg-purple-500 text-white">
+                <Badge variant="secondary" className="shadow-sm bg-purple-500/15 text-purple-500">
                   📹 Video
                 </Badge>
               )}
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col items-start gap-2 p-4 flex-grow">
+          <CardFooter className="flex flex-col items-start gap-1 p-0 flex-grow">
             <span className="text-xs text-muted-foreground uppercase tracking-wide min-h-[1.5em] block">
               {brand || "\u00A0"}
             </span>
@@ -169,7 +172,7 @@ const ProductCard = ({
             <div className="flex items-center gap-1 mb-2">
               {reviewCount > 0 && averageRating ? (
                 <>
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <Star size={16} strokeWidth={1.5} className=" fill-yellow-400 text-yellow-400" />
                   <span className="text-sm font-medium">{averageRating.toFixed(1)}</span>
                   <span className="text-xs text-muted-foreground">({reviewCount})</span>
                 </>

@@ -89,7 +89,7 @@ Deno.serve(async (req: Request) => {
                 total: order.total_ksh,
                 deliveryType,
                 isPickup,
-                orderTrackingUrl: `https://solelyshoes.co.ke/orders/${orderId}`,
+                orderTrackingUrl: `https://solelymarketplace.com/orders/${orderId}`,
             }),
         });
 

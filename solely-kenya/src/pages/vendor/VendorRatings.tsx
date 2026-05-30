@@ -6,8 +6,10 @@ import { VendorNavbar } from "@/components/vendor/VendorNavbar";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, TrendingUp } from "lucide-react";
+import { Star, TrendingUp, Sparkles, MessageSquareHeart } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { motion } from "framer-motion";
+import { SEO } from "@/components/SEO";
 
 interface Rating {
     id: string;
@@ -80,9 +82,8 @@ const VendorRatings = () => {
         return (
             <div className="flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                        key={star}
-                        className={`h-4 w-4 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                    <Star size={16} strokeWidth={1.5} key={star}
+                        className={` sm:h-5 sm:w-5 transition-transform ${star <= rating ? "fill-amber-400 text-amber-400 drop-shadow-sm" : "text-muted-foreground/30"
                             }`}
                     />
                 ))}
@@ -91,136 +92,212 @@ const VendorRatings = () => {
     };
 
     if (loading) {
-        return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+        return <div className="flex items-center justify-center min-h-screen"><div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
     }
 
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen bg-background flex flex-col">
+            <SEO title="My Ratings - Vendor Dashboard" />
             <VendorNavbar />
-            <div className="flex">
+            
+            <div className="flex flex-1 overflow-hidden">
                 <VendorSidebar />
-                <main className="flex-1 p-8">
-                    <h1 className="text-3xl font-bold mb-8">My Ratings & Reviews</h1>
+                <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-muted/10 relative">
+                    {/* Background decorations */}
+                    <div className="absolute top-0 right-0 -z-10 w-96 h-96 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 -z-10 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-                    {loadingData ? (
-                        <div className="text-center py-12 text-muted-foreground">Loading ratings...</div>
-                    ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            {/* Stats Summary */}
-                            <div className="lg:col-span-1 space-y-6">
-                                {/* Average Rating */}
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-lg">Overall Rating</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="text-center">
-                                            <div className="text-5xl font-bold text-primary mb-2">
-                                                {stats.average > 0 ? stats.average : "—"}
-                                            </div>
-                                            <div className="flex justify-center mb-2">
-                                                {renderStars(Math.round(stats.average))}
-                                            </div>
-                                            <p className="text-sm text-muted-foreground">
-                                                Based on {stats.total} {stats.total === 1 ? "review" : "reviews"}
-                                            </p>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-
-                                {/* Rating Breakdown */}
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-lg">Rating Breakdown</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-3">
-                                        {[5, 4, 3, 2, 1].map((star) => {
-                                            const count = stats.breakdown[star as keyof typeof stats.breakdown];
-                                            const percentage = stats.total > 0 ? (count / stats.total) * 100 : 0;
-                                            return (
-                                                <div key={star} className="flex items-center gap-3">
-                                                    <span className="text-sm w-8">{star} ★</span>
-                                                    <Progress value={percentage} className="flex-1 h-2" />
-                                                    <span className="text-sm text-muted-foreground w-8">{count}</span>
-                                                </div>
-                                            );
-                                        })}
-                                    </CardContent>
-                                </Card>
-
-                                {/* Tips Card */}
-                                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-                                    <CardHeader>
-                                        <CardTitle className="text-lg flex items-center gap-2 text-blue-800">
-                                            <TrendingUp className="h-5 w-5" />
-                                            Tips for Better Ratings
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="text-sm text-blue-800 space-y-2">
-                                        <p>✓ Respond to orders quickly</p>
-                                        <p>✓ Ship items on time</p>
-                                        <p>✓ Use accurate product descriptions</p>
-                                        <p>✓ Package items carefully</p>
-                                        <p>✓ Communicate with buyers</p>
-                                    </CardContent>
-                                </Card>
-                            </div>
-
-                            {/* Reviews List */}
-                            <div className="lg:col-span-2">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-lg">Customer Reviews</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        {ratings.length === 0 ? (
-                                            <div className="text-center py-12 text-muted-foreground">
-                                                <Star className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                                                <p>No reviews yet</p>
-                                                <p className="text-sm mt-2">
-                                                    Reviews will appear here when customers rate their orders
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-4">
-                                                {ratings.map((rating) => (
-                                                    <div
-                                                        key={rating.id}
-                                                        className="border-b pb-4 last:border-0 last:pb-0"
-                                                    >
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <div className="flex items-center gap-2">
-                                                                {renderStars(rating.rating)}
-                                                                <Badge variant="outline" className="text-xs">
-                                                                    Order #{rating.order_id.slice(0, 8)}
-                                                                </Badge>
-                                                            </div>
-                                                            <span className="text-xs text-muted-foreground">
-                                                                {new Date(rating.created_at).toLocaleDateString()}
-                                                            </span>
-                                                        </div>
-                                                        {rating.review ? (
-                                                            <p className="text-sm text-muted-foreground">
-                                                                "{rating.review}"
-                                                            </p>
-                                                        ) : (
-                                                            <p className="text-sm text-muted-foreground italic">
-                                                                No written review
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
+                    <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+                        {/* Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 tracking-tight">
+                                    My Ratings & Reviews
+                                </h1>
+                                <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+                                    See what your customers are saying about you.
+                                </p>
                             </div>
                         </div>
-                    )}
+
+                        {loadingData ? (
+                            <div className="flex flex-col items-center justify-center py-20">
+                                <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+                                <p className="text-muted-foreground">Loading your ratings...</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+                                {/* Left Column: Stats & Breakdown */}
+                                <div className="lg:col-span-1 space-y-6">
+                                    {/* Overall Rating Card */}
+                                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+                                        <Card className="bg-card/50 backdrop-blur-sm border-white/5 shadow-glass overflow-hidden relative">
+                                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                                                    <Star size={20} strokeWidth={1.5} className=" text-amber-500" /> Overall Rating
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <div className="flex flex-col items-center text-center py-4">
+                                                    <div className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-amber-400 to-orange-600 tracking-tighter mb-4 drop-shadow-sm">
+                                                        {stats.average > 0 ? stats.average : "—"}
+                                                    </div>
+                                                    <div className="flex justify-center mb-3">
+                                                        {renderStars(Math.round(stats.average))}
+                                                    </div>
+                                                    <Badge variant="outline" className="bg-background/50 backdrop-blur-sm border-border text-xs">
+                                                        Based on {stats.total} {stats.total === 1 ? "review" : "reviews"}
+                                                    </Badge>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+
+                                    {/* Rating Breakdown */}
+                                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+                                        <Card className="bg-card/50 backdrop-blur-sm border-white/5 shadow-glass">
+                                            <CardHeader>
+                                                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                                                    <BarChart2 size={20} strokeWidth={1.5} className=" text-primary" /> Rating Breakdown
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-4">
+                                                {[5, 4, 3, 2, 1].map((star) => {
+                                                    const count = stats.breakdown[star as keyof typeof stats.breakdown];
+                                                    const percentage = stats.total > 0 ? (count / stats.total) * 100 : 0;
+                                                    return (
+                                                        <div key={star} className="flex items-center gap-3 group">
+                                                            <div className="flex items-center gap-1 w-8 shrink-0">
+                                                                <span className="text-sm font-medium">{star}</span>
+                                                                <Star strokeWidth={1.5} className="h-3 w-3 text-amber-500 fill-amber-500" />
+                                                            </div>
+                                                            <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
+                                                                <motion.div
+                                                                    initial={{ width: 0 }}
+                                                                    animate={{ width: `${percentage}%` }}
+                                                                    transition={{ duration: 1, ease: "easeOut" }}
+                                                                    className={`h-full rounded-full ${
+                                                                        star >= 4 ? 'bg-emerald-500' :
+                                                                        star === 3 ? 'bg-amber-400' : 'bg-red-500'
+                                                                    }`}
+                                                                />
+                                                            </div>
+                                                            <span className="text-sm font-medium text-muted-foreground w-8 text-right group-hover:text-foreground transition-colors">
+                                                                {count}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+
+                                    {/* Tips Card */}
+                                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
+                                        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 shadow-sm relative overflow-hidden">
+                                            <div className="absolute -right-6 -top-6 text-primary/10 rotate-12">
+                                                <Sparkles strokeWidth={1.5} className="w-24 h-24" />
+                                            </div>
+                                            <CardHeader className="pb-2">
+                                                <CardTitle className="text-lg flex items-center gap-2 text-primary font-bold">
+                                                    <TrendingUp size={20} strokeWidth={1.5}  />
+                                                    Tips for 5 Stars
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <ul className="space-y-2.5 text-sm font-medium text-foreground/80">
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="text-emerald-500 mt-0.5">✓</span> Respond to orders quickly
+                                                    </li>
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="text-emerald-500 mt-0.5">✓</span> Deliver items on time
+                                                    </li>
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="text-emerald-500 mt-0.5">✓</span> Use accurate descriptions
+                                                    </li>
+                                                    <li className="flex items-start gap-2">
+                                                        <span className="text-emerald-500 mt-0.5">✓</span> Package items securely
+                                                    </li>
+                                                </ul>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                </div>
+
+                                {/* Right Column: Reviews List */}
+                                <div className="lg:col-span-2">
+                                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
+                                        <Card className="bg-card/50 backdrop-blur-sm border-white/5 shadow-glass h-full">
+                                            <CardHeader className="border-b border-border/50 pb-4">
+                                                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                                                    <MessageSquareHeart size={20} strokeWidth={1.5} className=" text-primary" /> Customer Reviews
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-0">
+                                                {ratings.length === 0 ? (
+                                                    <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+                                                        <div className="bg-muted/50 p-6 rounded-full mb-4">
+                                                            <Star strokeWidth={1.5} className="h-10 w-10 text-muted-foreground/40" />
+                                                        </div>
+                                                        <h3 className="text-xl font-semibold mb-2">No reviews yet</h3>
+                                                        <p className="text-muted-foreground max-w-sm">
+                                                            Reviews will appear here as soon as customers rate their completed orders.
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="divide-y divide-border/50">
+                                                        {ratings.map((rating, i) => (
+                                                            <motion.div
+                                                                key={rating.id}
+                                                                initial={{ opacity: 0, x: -10 }}
+                                                                animate={{ opacity: 1, x: 0 }}
+                                                                transition={{ duration: 0.2, delay: 0.1 + (i * 0.05) }}
+                                                                className="p-5 sm:p-6 hover:bg-muted/30 transition-colors"
+                                                            >
+                                                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+                                                                    <div className="flex items-center gap-3">
+                                                                        {renderStars(rating.rating)}
+                                                                        <Badge variant="secondary" className="text-[10px] font-mono tracking-wider bg-background/50">
+                                                                            ORD-{rating.order_id.slice(0, 8).toUpperCase()}
+                                                                        </Badge>
+                                                                    </div>
+                                                                    <span className="text-xs text-muted-foreground whitespace-nowrap font-medium">
+                                                                        {new Date(rating.created_at).toLocaleDateString('en-US', {
+                                                                            year: 'numeric',
+                                                                            month: 'short',
+                                                                            day: 'numeric'
+                                                                        })}
+                                                                    </span>
+                                                                </div>
+                                                                
+                                                                {rating.review ? (
+                                                                    <p className="text-sm sm:text-base text-foreground/90 leading-relaxed bg-background/50 p-3 sm:p-4 rounded-xl border border-border/50 shadow-sm">
+                                                                        "{rating.review}"
+                                                                    </p>
+                                                                ) : (
+                                                                    <p className="text-sm text-muted-foreground italic flex items-center gap-2">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
+                                                                        Customer left a rating without a written review
+                                                                    </p>
+                                                                )}
+                                                            </motion.div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </main>
             </div>
         </div>
     );
 };
 
+// Add missing icon import
+import { BarChart2 } from "lucide-react";
 export default VendorRatings;

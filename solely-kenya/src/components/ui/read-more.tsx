@@ -59,12 +59,12 @@ export function ReadMore({
             >
                 {isExpanded ? (
                     <>
-                        <ChevronUp className="h-4 w-4 mr-2" />
+                        <ChevronUp size={16} strokeWidth={1.5} className=" mr-2" />
                         Show Less
                     </>
                 ) : (
                     <>
-                        <ChevronDown className="h-4 w-4 mr-2" />
+                        <ChevronDown size={16} strokeWidth={1.5} className=" mr-2" />
                         Read More
                     </>
                 )}

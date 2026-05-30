@@ -15,7 +15,7 @@ const corsHeaders = {
 
 // Support email address
 const SUPPORT_EMAIL = "solely.kenya@gmail.com";
-const ADMIN_DISPUTES_URL = "https://solelyshoes.co.ke/admin/disputes";
+const ADMIN_DISPUTES_URL = "https://solelymarketplace.com/admin/disputes";
 
 Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") {

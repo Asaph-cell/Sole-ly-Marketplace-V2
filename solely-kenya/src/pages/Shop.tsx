@@ -30,9 +30,9 @@ const CONDITION_DOT: Record<string, string> = {
   new:         "bg-emerald-500",
   thrifted:    "bg-purple-500",
   refurbished: "bg-blue-500",
-  like_new:    "bg-blue-400",
-  good:        "bg-amber-400",
-  fair:        "bg-orange-500",
+  like_new:    "bg-blue-400", // kept for legacy compat
+  good:        "bg-amber-400", // kept for legacy compat
+  fair:        "bg-orange-500", // kept for legacy compat
 };
 
 const Shop = () => {
@@ -202,8 +202,8 @@ const Shop = () => {
   const seoTitle       = `${heading} for Sale in Kenya | Solely`;
   const seoDescription = `Browse ${filteredProducts.length} ${heading.toLowerCase()} listings with full escrow protection. Verified vendors. Pay only when you're happy.`;
   const seoCanonical   = selectedCategory !== "all"
-    ? `https://solelyshoes.co.ke/shop?category=${selectedCategory}${selectedSub !== "all" ? `&sub=${selectedSub}` : ""}`
-    : "https://solelyshoes.co.ke/shop";
+    ? `https://solelymarketplace.com/shop?category=${selectedCategory}${selectedSub !== "all" ? `&sub=${selectedSub}` : ""}`
+    : "https://solelymarketplace.com/shop";
 
   const activeFilterCount = [
     selectedCategory !== "all",
@@ -277,20 +277,43 @@ const Shop = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Conditions</SelectItem>
-            {Object.entries({
-              new: "New",
-              thrifted: "Thrifted",
-              refurbished: "Refurbished",
-              like_new: "Like New",
-              good: "Good",
-            }).map(([v, label]) => (
-              <SelectItem key={v} value={v}>
+            <SelectItem value="new">
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${CONDITION_DOT["new"]}`} />
+                New
+              </div>
+            </SelectItem>
+            {selectedCategory === "electronics" ? (
+              <SelectItem value="refurbished">
                 <div className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${CONDITION_DOT[v]}`} />
-                  {label}
+                  <span className={`w-2 h-2 rounded-full ${CONDITION_DOT["refurbished"]}`} />
+                  Refurbished
                 </div>
               </SelectItem>
-            ))}
+            ) : selectedCategory !== "all" ? (
+              <SelectItem value="thrifted">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${CONDITION_DOT["thrifted"]}`} />
+                  Thrifted
+                </div>
+              </SelectItem>
+            ) : (
+              // If "All Categories" is selected, show both
+              <>
+                <SelectItem value="thrifted">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${CONDITION_DOT["thrifted"]}`} />
+                    Thrifted
+                  </div>
+                </SelectItem>
+                <SelectItem value="refurbished">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${CONDITION_DOT["refurbished"]}`} />
+                    Refurbished
+                  </div>
+                </SelectItem>
+              </>
+            )}
           </SelectContent>
         </Select>
       </div>
@@ -343,7 +366,7 @@ const Shop = () => {
             ) : heading === "All Items" ? "Shop All Items" : `Shop ${heading}`}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
-            <Shield className="h-3 w-3 text-primary shrink-0" />
+            <Shield strokeWidth={1.5} className="h-3 w-3 text-primary shrink-0" />
             {filteredProducts.length} items — every order escrow-protected
           </p>
         </div>
@@ -355,7 +378,7 @@ const Shop = () => {
             <div className="bg-card border border-border rounded-xl p-5 shadow-sm sticky top-24">
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-primary" />
+                  <Filter size={16} strokeWidth={1.5} className=" text-primary" />
                   <h2 className="text-base font-bold">Filters</h2>
                 </div>
                 {activeFilterCount > 0 && (
@@ -471,6 +494,7 @@ const Shop = () => {
                     createdAt={product.created_at}
                     condition={product.condition || "new"}
                     videoUrl={product.video_url}
+                    freeDelivery={product.free_delivery}
                   />
                 ))}
               </div>
@@ -493,7 +517,7 @@ const Shop = () => {
         <Sheet>
           <SheetTrigger asChild>
             <Button className="w-full h-11 rounded-xl font-semibold" size="lg">
-              <Filter className="h-4 w-4 mr-2" />
+              <Filter size={16} strokeWidth={1.5} className=" mr-2" />
               Filters
               {activeFilterCount > 0 && (
                 <span className="ml-2 bg-white text-primary text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
@@ -505,7 +529,7 @@ const Shop = () => {
           <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
             <SheetHeader className="mb-6">
               <SheetTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5 text-primary" />
+                <Filter size={20} strokeWidth={1.5} className=" text-primary" />
                 Filters
               </SheetTitle>
             </SheetHeader>

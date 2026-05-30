@@ -9,7 +9,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Loader2 } from "lucide-react";
-import { getDeliveryZoneInfo } from "@/utils/deliveryPricing";
 
 const LOCATIONIQ_API_KEY = import.meta.env.VITE_LOCATIONIQ_API_KEY || "pk.2b634b704d19e634a5f2466959347388";
 const LOCATIONIQ_AUTOCOMPLETE_URL = "https://api.locationiq.com/v1/autocomplete";
@@ -45,11 +44,11 @@ interface AddressAutocompleteProps {
     value: string;
     onAddressSelect: (address: {
         displayName: string;
-        zone: 1 | 2;
-        deliveryFee: number;
         city: string;
         county: string;
         addressLine1: string;
+        lat?: string;
+        lon?: string;
     }) => void;
     placeholder?: string;
     label?: string;
@@ -147,15 +146,6 @@ export function AddressAutocomplete({
     const handleSelectSuggestion = (suggestion: LocationIQSuggestion) => {
         const address = suggestion.address;
 
-        const zoneInfo = getDeliveryZoneInfo({
-            vendorCounty: null,
-            buyerCounty: address.county || address.state || "",
-            isPickup: false,
-        });
-
-        const zone: 1 | 2 = zoneInfo.zone === 1 ? 1 : 2;
-        const deliveryFee = zoneInfo.fee;
-
         // Build address line 1 from components
         let addressLine1 = "";
         if (address.house_number) addressLine1 += address.house_number + " ";
@@ -170,11 +160,11 @@ export function AddressAutocomplete({
 
         onAddressSelect({
             displayName: suggestion.display_name,
-            zone,
-            deliveryFee,
             city: address.city || address.county || address.state || "",
             county: address.county || address.state || "",
             addressLine1: addressLine1.trim(),
+            lat: suggestion.lat,
+            lon: suggestion.lon,
         });
     };
 
@@ -202,7 +192,7 @@ export function AddressAutocomplete({
     return (
         <div className="relative" ref={dropdownRef}>
             <Label htmlFor="address-autocomplete" className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
+                <MapPin size={16} strokeWidth={1.5}  />
                 {label}
             </Label>
             <div className="relative mt-1.5">
@@ -220,7 +210,7 @@ export function AddressAutocomplete({
                 />
                 {isLoading && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        <Loader2 size={16} strokeWidth={1.5} className=" animate-spin text-muted-foreground" />
                     </div>
                 )}
             </div>
@@ -232,14 +222,6 @@ export function AddressAutocomplete({
             {showDropdown && suggestions.length > 0 && (
                 <div className="absolute z-50 w-full mt-1 bg-background border rounded-lg shadow-lg max-h-60 overflow-auto">
                     {suggestions.map((suggestion) => {
-                        const zoneInfo = getDeliveryZoneInfo({
-                            vendorCounty: null,
-                            buyerCounty: suggestion.address.county || suggestion.address.state || "",
-                            isPickup: false,
-                        });
-                        const isNairobiMetro = zoneInfo.zone === 1;
-                        const zoneLabel = isNairobiMetro ? "Nairobi Metro" : "Outside Nairobi";
-
                         return (
                             <button
                                 key={suggestion.place_id}
@@ -252,12 +234,6 @@ export function AddressAutocomplete({
                                         <p className="font-medium text-sm truncate">{suggestion.display_place}</p>
                                         <p className="text-xs text-muted-foreground truncate">{suggestion.display_address}</p>
                                     </div>
-                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${isNairobiMetro
-                                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                        : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                                        }`}>
-                                        {zoneLabel}
-                                    </span>
                                 </div>
                             </button>
                         );
@@ -266,7 +242,7 @@ export function AddressAutocomplete({
             )}
 
             <p className="text-xs text-muted-foreground mt-1.5">
-                Type at least 3 characters to search. Delivery fees calculated based on location.
+                Type at least 3 characters to search for your exact pin location.
             </p>
         </div>
     );

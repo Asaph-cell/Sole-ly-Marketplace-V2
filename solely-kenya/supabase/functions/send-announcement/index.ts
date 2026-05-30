@@ -141,14 +141,14 @@ serve(async (req) => {
       <body>
         <div class="container">
           <div class="header">
-            <h1 style="margin: 0;">Sole-ly Shoes</h1>
+            <h1 style="margin: 0;">Solely</h1>
           </div>
           <div class="content">
             ${htmlContent}
           </div>
           <div class="footer">
-            <p>This email was sent by Sole-ly Kenya</p>
-            <p><a href="https://solelyshoes.co.ke">solelyshoes.co.ke</a></p>
+            <p>This email was sent by Solely</p>
+            <p><a href="https://solelymarketplace.com">solelymarketplace.com</a></p>
           </div>
         </div>
       </body>
@@ -169,7 +169,7 @@ serve(async (req) => {
                         "Authorization": `Bearer ${RESEND_API_KEY}`,
                     },
                     body: JSON.stringify({
-                        from: "Sole-ly Kenya <notifications@solelyshoes.co.ke>",
+                        from: "Solely <notifications@solelymarketplace.com>",
                         to: [email],
                         subject: subject,
                         html: styledHtml,

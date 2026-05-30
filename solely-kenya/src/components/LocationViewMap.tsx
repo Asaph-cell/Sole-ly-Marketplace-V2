@@ -117,7 +117,7 @@ export function LocationViewMap({
             >
                 <div className="flex items-center gap-2">
                     <div className="bg-emerald-500 p-1.5 rounded-full">
-                        <MapPin className="h-4 w-4 text-white" />
+                        <MapPin size={16} strokeWidth={1.5} className=" text-white" />
                     </div>
                     <div className="text-left">
                         <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
@@ -131,9 +131,9 @@ export function LocationViewMap({
                     </div>
                 </div>
                 {isExpanded ? (
-                    <ChevronUp className="h-5 w-5 text-emerald-600" />
+                    <ChevronUp size={20} strokeWidth={1.5} className=" text-emerald-600" />
                 ) : (
-                    <ChevronDown className="h-5 w-5 text-emerald-600" />
+                    <ChevronDown size={20} strokeWidth={1.5} className=" text-emerald-600" />
                 )}
             </button>
 
@@ -174,7 +174,7 @@ export function LocationViewMap({
                                     rel="noopener noreferrer"
                                     className="flex items-center justify-center gap-2"
                                 >
-                                    <Navigation className="h-4 w-4" />
+                                    <Navigation size={16} strokeWidth={1.5}  />
                                     Open in Google Maps
                                 </a>
                             </Button>

@@ -54,7 +54,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-soft">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       {/* ── Row 1: Logo + Desktop Nav + Cart + Auth ── */}
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between flex-nowrap py-3 sm:py-4">
@@ -79,7 +79,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-4 flex-shrink-0">
             <Button variant="ghost" size="icon" asChild>
               <Link to="/cart" className="relative">
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart size={20} strokeWidth={1.5}  />
                 {totalQuantity > 0 && (
                   <span className="absolute -top-1 -right-1 h-5 min-w-[20px] rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center px-1">
                     {totalQuantity}
@@ -114,7 +114,7 @@ const Navbar = () => {
         <div className="container mx-auto">
           <form onSubmit={handleSearch} className="w-full">
             <div className="flex items-center gap-2 bg-muted rounded-full px-3 sm:px-4 py-1.5 sm:py-2 border border-border focus-within:border-primary/40 focus-within:shadow-sm transition-all">
-              <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+              <Search size={16} strokeWidth={1.5} className=" text-muted-foreground shrink-0" />
               <input
                 type="text"
                 placeholder="Search shoes, phones, fashion..."
@@ -127,7 +127,7 @@ const Navbar = () => {
                 className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground h-7 w-7 flex items-center justify-center rounded-full transition-colors"
                 aria-label="Search"
               >
-                <Search className="h-3.5 w-3.5" />
+                <Search size={14} strokeWidth={1.5}  />
               </button>
             </div>
           </form>

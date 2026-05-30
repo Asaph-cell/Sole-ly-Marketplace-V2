@@ -57,7 +57,7 @@ npx supabase functions deploy request-manual-payout
    - ❌ Paystack removed
 
 2. **Commission Structure**
-   - ✅ 11% platform commission
+   - ✅ 6% platform commission
    - ✅ Vendors get 89% of order value
    - ✅ All UI updated
 
@@ -84,9 +84,9 @@ npx supabase functions deploy request-manual-payout
 
 ## 🔧 Configuration
 
-### Commission Calculation (11%)
+### Commission Calculation (6%)
 
-| Order Total | Commission (11%) | Vendor Payout (89%) |
+| Order Total | Commission (6%) | Vendor Payout (94%) |
 |------------|-----------------|-------------------|
 | KES 1,500 | KES 165 | KES 1,335 |
 | KES 3,000 | KES 330 | KES 2,670 |
@@ -145,7 +145,7 @@ Platform cost: KES 0
 
 ### Updated Files
 - `src/pages/vendor/VendorDashboard.tsx` - Added payout components
-- All commission references updated to 11%
+- All commission references updated to 6%
 
 ---
 

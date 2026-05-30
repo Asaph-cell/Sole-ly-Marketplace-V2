@@ -40,7 +40,7 @@ Deno.serve(async (req: Request) => {
         const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
         const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
         const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");
-        const vapidSubject = Deno.env.get("VAPID_SUBJECT") || "mailto:notifications@solelyshoes.co.ke";
+        const vapidSubject = Deno.env.get("VAPID_SUBJECT") || "mailto:notifications@solelymarketplace.com";
 
         if (!vapidPublicKey || !vapidPrivateKey) {
             console.error("VAPID keys not configured");

@@ -42,23 +42,23 @@ const Footer = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
-    <footer className="bg-secondary text-secondary-foreground mt-20">
+    <footer className="bg-muted border-t border-border mt-20 text-muted-foreground">
       <div className="container mx-auto px-4 py-12">
         {/* FAQ Section */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-bold text-center mb-8 text-foreground">Frequently Asked Questions</h2>
           <div className="max-w-3xl mx-auto space-y-3">
             {faqs.map((faq, index) => (
               <div key={index} className="border border-secondary-foreground/20 rounded-lg overflow-hidden">
                 <button
-                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-secondary-foreground/5 transition-colors"
+                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-muted transition-colors text-foreground"
                   onClick={() => setOpenFaq(openFaq === index ? null : index)}
                 >
                   <span className="font-medium">{faq.question}</span>
-                  <ChevronDown className={`h-5 w-5 transition-transform ${openFaq === index ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={20} strokeWidth={1.5} className={` transition-transform ${openFaq === index ? 'rotate-180' : ''}`} />
                 </button>
                 {openFaq === index && (
-                  <div className="px-6 pb-4 text-sm text-secondary-foreground/80">
+                  <div className="px-6 pb-4 text-sm text-muted-foreground">
                     {faq.answer}
                   </div>
                 )}
@@ -75,18 +75,18 @@ const Footer = () => {
               <img
                 src={logo}
                 alt="Sole-ly Marketplace"
-                className="h-14 w-auto transition-transform group-hover:scale-105 brightness-0 invert"
+                className="h-14 w-auto transition-transform group-hover:scale-105 dark:invert"
               />
-              <span className="text-[10px] text-secondary-foreground/60 tracking-wide uppercase -mt-3 pl-1">Kenya's Trusted Marketplace</span>
+              <span className="text-[10px] text-muted-foreground tracking-wide uppercase -mt-3 pl-1">Kenya's Trusted Marketplace</span>
             </Link>
-            <p className="text-sm text-secondary-foreground/80">
+            <p className="text-sm text-muted-foreground">
               Kenya's Premier Secure Marketplace — Shoes, Fashion, Electronics &amp; More.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold mb-4 text-primary-foreground">Quick Links</h3>
+            <h3 className="font-semibold mb-4 text-foreground">Quick Links</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/shop" className="text-sm hover:text-primary transition-colors">
@@ -123,8 +123,8 @@ const Footer = () => {
 
           {/* Why Solely - Advantages */}
           <div>
-            <h3 className="font-semibold mb-4 text-primary-foreground">Why Sole-ly?</h3>
-            <ul className="space-y-2 text-sm text-secondary-foreground/80">
+            <h3 className="font-semibold mb-4 text-foreground">Why Sole-ly?</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span className="text-green-400">✓</span>
                 <span>Escrow-Protected Payments</span>
@@ -150,7 +150,7 @@ const Footer = () => {
 
           {/* Social Media - With TikTok */}
           <div>
-            <h3 className="font-semibold mb-4 text-primary-foreground">Connect With Us</h3>
+            <h3 className="font-semibold mb-4 text-foreground">Connect With Us</h3>
             <div className="flex gap-4 mb-4">
               <a
                 href="https://instagram.com/solely.kenya"
@@ -159,7 +159,7 @@ const Footer = () => {
                 className="hover:text-primary transition-colors"
                 aria-label="Instagram"
               >
-                <Instagram className="h-6 w-6" />
+                <Instagram size={24} strokeWidth={1.5}  />
               </a>
               <a
                 href="https://www.tiktok.com/@solely.kenya"
@@ -177,26 +177,26 @@ const Footer = () => {
                 className="hover:text-primary transition-colors"
                 aria-label="Facebook"
               >
-                <Facebook className="h-6 w-6" />
+                <Facebook size={24} strokeWidth={1.5}  />
               </a>
             </div>
             <div className="space-y-2 text-sm">
               <p>
-                <a href="mailto:contact@solelyshoes.co.ke" className="hover:text-primary transition-colors">
-                  contact@solelyshoes.co.ke
+                <a href="mailto:contact@solelymarketplace.com" className="hover:text-primary transition-colors">
+                  contact@solelymarketplace.com
                 </a>
               </p>
               <Link to="/terms" className="block hover:text-primary transition-colors">
                 Terms & Conditions
               </Link>
-              <a href="https://solelyshoes.co.ke/privacy-policy" className="block hover:text-primary transition-colors">
+              <a href="https://solelymarketplace.com/privacy-policy" className="block hover:text-primary transition-colors">
                 Privacy Policy
               </a>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-secondary-foreground/20 mt-8 pt-8 text-center text-sm">
+        <div className="border-t border-border mt-8 pt-8 text-center text-sm">
           <p>&copy; {new Date().getFullYear()} Sole-ly Marketplace. All rights reserved.</p>
         </div>
       </div>

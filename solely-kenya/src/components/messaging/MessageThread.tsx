@@ -194,7 +194,7 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
             disabled={sending}
           />
           <Button type="submit" disabled={sending || !newMessage.trim()}>
-            <Send className="h-4 w-4" />
+            <Send size={16} strokeWidth={1.5}  />
           </Button>
         </div>
       </form>

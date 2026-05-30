@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
           <div className="max-w-md w-full text-center space-y-6">
             <div className="flex justify-center">
-              <AlertCircle className="h-16 w-16 text-destructive" />
+              <AlertCircle strokeWidth={1.5} className="h-16 w-16 text-destructive" />
             </div>
             <div className="space-y-2">
               <h1 className="text-2xl font-bold text-foreground">
