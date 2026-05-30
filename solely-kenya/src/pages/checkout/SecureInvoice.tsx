@@ -143,8 +143,11 @@ const SecureInvoice = () => {
         },
       });
 
-      if (intasendError || !intasendResponse?.url) throw new Error("Failed to get payment link from IntaSend");
-
+      if (intasendError || intasendResponse?.error || !intasendResponse?.url) {
+        console.error("IntaSend Edge Function Error:", intasendError, intasendResponse);
+        throw new Error(intasendResponse?.error || intasendError?.message || "Failed to get payment link from IntaSend");
+      } 
+      
       // Redirect to payment
       window.location.href = intasendResponse.url;
 
