@@ -85,107 +85,32 @@ const SecureInvoice = () => {
     
     setProcessing(true);
     try {
-      const itemTitle = paymentLink.product ? paymentLink.product.name : paymentLink.custom_title;
-      const itemPrice = paymentLink.product ? paymentLink.product.price_ksh : paymentLink.custom_price_ksh;
-      const total = itemPrice + (paymentLink.delivery_fee_ksh || 0);
-
-      // Ensure user has an ID for RLS policies
-      let userId: string | undefined;
+      // Ensure user has an ID if logged in (guest checkouts can have userId = null)
+      let userId: string | null = null;
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user?.id) {
         userId = session.user.id;
-      } else {
-        // Try anonymous sign in for guest checkout
-        const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
-        if (anonError || !anonData.user) {
-          throw new Error("Unable to create guest session. Please create an account or sign in.");
-        }
-        userId = anonData.user.id;
       }
 
-      // Create an order anonymously or via logged-in user
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert({
-          customer_id: userId,
-          vendor_id: paymentLink.vendor_id,
-          payment_link_id: paymentLink.id,
-          subtotal_ksh: itemPrice,
-          shipping_fee_ksh: paymentLink.delivery_fee_ksh || 0,
-          total_ksh: total,
-          status: "pending_payment",
-          commission_rate: 6,
-          commission_amount: total * 0.06,
-          payout_amount: total - (total * 0.06),
-          buyer_name: buyerName,
-          buyer_phone: buyerPhone,
-          buyer_email: buyerEmail || null,
-        })
-        .select()
-        .single();
-
-      if (orderError || !order) {
-        throw new Error(orderError?.message || "Failed to create secure order");
-      }
-
-      // Insert Order Items
-      const { error: itemsError } = await supabase.from("order_items").insert({
-        order_id: order.id,
-        product_id: paymentLink.product_id || null,
-        product_name: itemTitle,
-        product_snapshot: {
-            price_ksh: itemPrice,
-            is_custom_link: !paymentLink.product_id
-        },
-        quantity: 1,
-        unit_price_ksh: itemPrice,
-        line_total_ksh: itemPrice,
-      });
-
-      if (itemsError) throw new Error("Failed to save order items: " + itemsError.message);
-
-      // Insert Shipping Details
-      const { error: shippingError } = await supabase.from("order_shipping_details").insert({
-        order_id: order.id,
-        recipient_name: buyerName,
-        phone: buyerPhone,
-        email: buyerEmail || null,
-        address_line1: address,
-        city: city,
-        county: county || null,
-        gps_latitude: gpsLat,
-        gps_longitude: gpsLng,
-        google_maps_link: googleMapsLink,
-        delivery_notes: notes || null,
-        country: "Kenya",
-        delivery_type: "delivery"
-      });
-
-      if (shippingError) throw new Error("Failed to save shipping details: " + shippingError.message);
-
-      // Insert Payment
-      const { data: payment, error: paymentError } = await supabase
-        .from("payments")
-        .insert({
-          order_id: order.id,
-          gateway: "intasend",
-          status: "pending",
-          amount_ksh: total,
-          currency: "KES",
-        })
-        .select()
-        .single();
-        
-      if (paymentError || !payment) {
-        throw new Error(paymentError?.message || "Failed to initialize payment tracking");
-      }
-
-      // Invoke IntaSend edge function
+      // Invoke IntaSend edge function with checkout payload to create the order securely on the server
       const { data: intasendResponse, error: intasendError } = await supabase.functions.invoke("intasend-initiate-payment", {
         body: {
-          orderId: order.id,
-          successUrl: `${window.location.origin}/track/${order.id}?payment_success=true`,
+          checkoutPayload: {
+            paymentLinkId: paymentLink.id,
+            buyerName,
+            buyerPhone,
+            buyerEmail: buyerEmail || null,
+            address,
+            city,
+            county: county || null,
+            gpsLat,
+            gpsLng,
+            googleMapsLink,
+            notes: notes || null,
+            customerId: userId,
+          },
+          successUrl: `${window.location.origin}/track/__ORDER_ID__?payment_success=true`,
           cancelUrl: `${window.location.origin}/pay/${id}?cancelled=true`,
         },
       });
