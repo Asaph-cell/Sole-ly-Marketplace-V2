@@ -89,7 +89,7 @@ const SecureInvoice = () => {
       }
 
       // Insert Order Items
-      await supabase.from("order_items").insert({
+      const { error: itemsError } = await supabase.from("order_items").insert({
         order_id: order.id,
         product_id: paymentLink.product_id || null,
         product_name: itemTitle,
@@ -102,8 +102,10 @@ const SecureInvoice = () => {
         line_total_ksh: itemPrice,
       });
 
+      if (itemsError) throw new Error("Failed to save order items: " + itemsError.message);
+
       // Insert Shipping Details
-      await supabase.from("order_shipping_details").insert({
+      const { error: shippingError } = await supabase.from("order_shipping_details").insert({
         order_id: order.id,
         recipient_name: buyerName,
         phone: buyerPhone,
@@ -111,6 +113,8 @@ const SecureInvoice = () => {
         city: "Kenya", // Generic fallback
         delivery_type: "delivery"
       });
+
+      if (shippingError) throw new Error("Failed to save shipping details: " + shippingError.message);
 
       // Insert Payment
       const { data: payment, error: paymentError } = await supabase
@@ -125,7 +129,10 @@ const SecureInvoice = () => {
         .select()
         .single();
         
-      if (paymentError || !payment) throw new Error("Failed to initialize payment tracking");
+      if (paymentError || !payment) {
+        console.error("Supabase Payment Error:", paymentError);
+        throw new Error(paymentError?.message || "Failed to initialize payment tracking");
+      }
 
       // Invoke IntaSend edge function
       const { data: intasendResponse, error: intasendError } = await supabase.functions.invoke("intasend-initiate-payment", {
