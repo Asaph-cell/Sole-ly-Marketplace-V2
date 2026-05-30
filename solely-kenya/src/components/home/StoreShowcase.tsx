@@ -119,16 +119,16 @@ export const StoreShowcase = () => {
             store_logo_url,
             store_description,
             vendor_city,
-            products (
+            products!inner (
               id,
               images,
               category
             )
           `)
+          .neq("store_name", "")
           .not("store_name", "is", null)
           .eq("products.status", "active")
-          .order("created_at", { ascending: false })
-          .limit(10);
+          .limit(15);
 
         if (error) throw error;
 
