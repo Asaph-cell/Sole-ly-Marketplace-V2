@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Shield, Truck, ThumbsUp, Lock, Phone, User, MapPin, Star, Zap, Info } from "lucide-react";
 import { SEO } from "@/components/SEO";
+import { AddressAutocomplete } from "@/components/AddressAutocomplete";
+import { LocationPinMap } from "@/components/LocationPinMap";
 
 const SecureInvoice = () => {
   const { id } = useParams();
@@ -19,7 +21,10 @@ const SecureInvoice = () => {
   const [buyerEmail, setBuyerEmail] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
-  const [postalCode, setPostalCode] = useState("");
+  const [county, setCounty] = useState("");
+  const [gpsLat, setGpsLat] = useState<number | null>(null);
+  const [gpsLng, setGpsLng] = useState<number | null>(null);
+  const [googleMapsLink, setGoogleMapsLink] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('mpesa');
@@ -129,7 +134,10 @@ const SecureInvoice = () => {
         email: buyerEmail || null,
         address_line1: address,
         city: city,
-        postal_code: postalCode || null,
+        county: county || null,
+        gps_latitude: gpsLat,
+        gps_longitude: gpsLng,
+        google_maps_link: googleMapsLink,
         delivery_notes: notes || null,
         country: "Kenya",
         delivery_type: "delivery"
@@ -312,19 +320,37 @@ const SecureInvoice = () => {
               <p className="font-bold text-gray-900">Delivery Address</p>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Full Address *</label>
-              <input
-                type="text"
+            <div className="bg-slate-50 p-4 rounded-lg space-y-4 border border-slate-100">
+              <p className="text-sm text-slate-500 mb-2">Search for your location or drop a pin so the vendor can easily find you.</p>
+              
+              <AddressAutocomplete
                 value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                required
-                placeholder="Street address, building, apt number"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                onAddressSelect={(addr) => {
+                  setAddress(addr.addressLine1);
+                  if (addr.city) setCity(addr.city);
+                  if (addr.county) setCounty(addr.county);
+                  if (addr.lat) setGpsLat(parseFloat(addr.lat));
+                  if (addr.lon) setGpsLng(parseFloat(addr.lon));
+                }}
               />
+
+              <div className="pt-2 border-t border-slate-200">
+                <p className="text-sm font-medium mb-3 text-slate-700">Or pin your exact location:</p>
+                <LocationPinMap
+                  onLocationSelect={(data) => {
+                    setGpsLat(data.latitude);
+                    setGpsLng(data.longitude);
+                    setGoogleMapsLink(data.googleMapsLink);
+                    if (data.addressLine1) setAddress(data.addressLine1);
+                    if (data.city) setCity(data.city);
+                    if (data.county) setCounty(data.county);
+                  }}
+                  initialPosition={gpsLat && gpsLng ? [gpsLat, gpsLng] : undefined}
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 mt-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
                 <input
@@ -332,17 +358,7 @@ const SecureInvoice = () => {
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   required
-                  placeholder="Nairobi"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
-                <input
-                  type="text"
-                  value={postalCode}
-                  onChange={(e) => setPostalCode(e.target.value)}
-                  placeholder="00100"
+                  placeholder="e.g. Nairobi"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 />
               </div>
