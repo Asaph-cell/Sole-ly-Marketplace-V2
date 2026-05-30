@@ -326,7 +326,7 @@ const SecureInvoice = () => {
               <AddressAutocomplete
                 value={address}
                 onAddressSelect={(addr) => {
-                  setAddress(addr.addressLine1);
+                  setAddress(addr.displayName);
                   if (addr.city) setCity(addr.city);
                   if (addr.county) setCounty(addr.county);
                   if (addr.lat) setGpsLat(parseFloat(addr.lat));
@@ -427,8 +427,7 @@ const SecureInvoice = () => {
             <p className="font-bold text-gray-900">Payment Method</p>
             <div className="space-y-2">
               {[
-                { id: 'mpesa', name: 'M-Pesa', desc: 'Pay securely via M-Pesa' },
-                { id: 'card', name: 'Card', desc: 'Visa, Mastercard, AmEx' }
+                { id: 'mpesa', name: 'M-Pesa', desc: 'Pay securely via M-Pesa' }
               ].map(method => (
                 <label key={method.id} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
                   <input
@@ -465,7 +464,7 @@ const SecureInvoice = () => {
               </div>
               <div className="flex items-start gap-3">
                 <ThumbsUp className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-1" />
-                <p className="text-xs text-emerald-800 leading-relaxed">Click "Confirm Delivery" only when satisfied, then funds released</p>
+                <p className="text-xs text-emerald-800 leading-relaxed">When you receive the item, give the unique delivery code to the vendor to release the funds</p>
               </div>
               <div className="flex items-start gap-3">
                 <Info className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-1" />
