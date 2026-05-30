@@ -14,4 +14,4 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://solelyshoes.co.ke/sitemap.xml
+Sitemap: https://solelymarketplace.com/sitemap.xml
