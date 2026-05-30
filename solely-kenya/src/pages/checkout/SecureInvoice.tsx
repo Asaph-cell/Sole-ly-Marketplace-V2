@@ -89,10 +89,26 @@ const SecureInvoice = () => {
       const itemPrice = paymentLink.product ? paymentLink.product.price_ksh : paymentLink.custom_price_ksh;
       const total = itemPrice + (paymentLink.delivery_fee_ksh || 0);
 
-      // Create an order anonymously
+      // Ensure user has an ID for RLS policies
+      let userId: string | undefined;
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user?.id) {
+        userId = session.user.id;
+      } else {
+        // Try anonymous sign in for guest checkout
+        const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+        if (anonError || !anonData.user) {
+          throw new Error("Unable to create guest session. Please create an account or sign in.");
+        }
+        userId = anonData.user.id;
+      }
+
+      // Create an order anonymously or via logged-in user
       const { data: order, error: orderError } = await supabase
         .from("orders")
         .insert({
+          customer_id: userId,
           vendor_id: paymentLink.vendor_id,
           payment_link_id: paymentLink.id,
           subtotal_ksh: itemPrice,
@@ -101,7 +117,10 @@ const SecureInvoice = () => {
           status: "pending_payment",
           commission_rate: 6,
           commission_amount: total * 0.06,
-          payout_amount: total - (total * 0.06)
+          payout_amount: total - (total * 0.06),
+          buyer_name: buyerName,
+          buyer_phone: buyerPhone,
+          buyer_email: buyerEmail || null,
         })
         .select()
         .single();
