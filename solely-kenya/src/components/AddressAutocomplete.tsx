@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { MapPin, Loader2 } from "lucide-react";
 
 const LOCATIONIQ_API_KEY = import.meta.env.VITE_LOCATIONIQ_API_KEY || "pk.2b634b704d19e634a5f2466959347388";
-const LOCATIONIQ_AUTOCOMPLETE_URL = "https://api.locationiq.com/v1/autocomplete";
+const LOCATIONIQ_AUTOCOMPLETE_URL = "https://api.locationiq.com/v1/autocomplete.php";
 
 interface LocationIQAddress {
     city?: string;
