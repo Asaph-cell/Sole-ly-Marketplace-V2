@@ -45,7 +45,8 @@ export const onRequest: PagesFunction = async (context) => {
 
         // 3. Prepare Data
         const title = `Buy ${product.name} Online in Kenya | Sole-ly`;
-        const description = (product.description || `Buy ${product.name} online in Kenya for KES ${product.price_ksh.toLocaleString()}. Escrow-protected payment. Verified seller.`).substring(0, 197) + "...";
+        const priceStr = product.price_ksh ? product.price_ksh.toLocaleString() : "0";
+        const description = (product.description || `Buy ${product.name} online in Kenya for KES ${priceStr}. Escrow-protected payment. Verified seller.`).substring(0, 197) + "...";
 
         // Build the OG image URL — points to the dynamic OG image generator
         const ogImageUrl = `${SUPABASE_URL}/functions/v1/generate-og-image?id=${productId}`;
@@ -91,7 +92,7 @@ export const onRequest: PagesFunction = async (context) => {
             <meta property="og:image" content="${finalImageUrl}">
             <meta property="og:image:width" content="1200">
             <meta property="og:image:height" content="630">
-            <meta property="product:price:amount" content="${product.price_ksh}">
+            <meta property="product:price:amount" content="${product.price_ksh || 0}">
             <meta property="product:price:currency" content="KES">
             
             <meta name="twitter:card" content="summary_large_image">
@@ -108,9 +109,8 @@ export const onRequest: PagesFunction = async (context) => {
             .transform(response);
 
     } catch (e) {
-        // If ANY error happens, return original response + Error Header
-        const newResponse = new Response(response.body, response);
-        newResponse.headers.set("X-Worker-Error", String(e));
-        return newResponse;
+        // If ANY error happens, return original response safely
+        console.error("Worker error:", e);
+        return response;
     }
 };
