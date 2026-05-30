@@ -147,24 +147,33 @@ export default {
                     })
                     .transform(response);
 
-                // Add debug header to confirm worker processed the request
-                var newHeaders = new Headers(transformed.headers);
-                newHeaders.set('X-OG-Debug', 'success-' + product.name.substring(0, 20));
+                var finalHeaders = new Headers(transformed.headers);
+                finalHeaders.set('X-OG-Debug', 'success');
                 return new Response(transformed.body, {
                     status: transformed.status,
-                    headers: newHeaders,
+                    headers: finalHeaders,
                 });
 
             } catch (e) {
                 // On any error, serve default page with error debug header
-                var fallback = await env.ASSETS.fetch(request);
-                var errorResponse = new Response(fallback.body, fallback);
-                errorResponse.headers.set('X-OG-Debug', 'error-' + String(e).substring(0, 100));
-                return errorResponse;
+                var fallbackReq = new Request(url.origin + '/index.html', request);
+                var fallback = await env.ASSETS.fetch(fallbackReq);
+                var fbHeaders = new Headers(fallback.headers);
+                fbHeaders.set('X-OG-Debug', 'error');
+                return new Response(fallback.body, {
+                    status: 200,
+                    headers: fbHeaders
+                });
             }
         }
 
         // All other routes: serve static assets normally
-        return env.ASSETS.fetch(request);
+        var assetResponse = await env.ASSETS.fetch(request);
+        if (assetResponse.status === 404 && !url.pathname.includes('.')) {
+            // SPA Fallback for unknown routes without extensions
+            var spaReq = new Request(url.origin + '/index.html', request);
+            return env.ASSETS.fetch(spaReq);
+        }
+        return assetResponse;
     },
 };
