@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Shield, Truck, ThumbsUp, Lock, Phone, User, MapPin, Star, Zap, Info } from "lucide-react";
+import { Shield, Truck, ThumbsUp, Lock, Phone, User, MapPin, Star, Zap, Info, Printer } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { LocationPinMap } from "@/components/LocationPinMap";
@@ -218,24 +218,31 @@ const SecureInvoice = () => {
       <SEO title={`Secure Checkout: ${title}`} description={`Pay safely for ${title} via Sole-ly.`} />
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white py-3 px-4 flex items-center justify-center gap-2 shadow-md sticky top-0 z-10">
-        <Shield className="h-5 w-5" />
-        <span className="text-sm font-semibold">Protected by Sole-ly Escrow</span>
+      <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white py-2 px-4 flex items-center justify-center gap-2 shadow-md sticky top-0 z-10 print:hidden">
+        <Shield className="h-4 w-4" />
+        <span className="text-xs font-semibold">Protected by Sole-ly Escrow</span>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
         
         {/* Order Reference */}
-        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Secure Link</p>
-              <p className="text-lg font-bold text-gray-900 mt-1">#{paymentLink.id.split('-')[0].toUpperCase()}</p>
-            </div>
+        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold">Secure Invoice</p>
+            <p className="text-lg font-black text-gray-900 mt-0.5">#{paymentLink.id.split('-')[0].toUpperCase()}</p>
+          </div>
+          <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-xs text-gray-500">Date</p>
-              <p className="text-sm font-medium text-gray-900 mt-1">{orderDate}</p>
+              <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold">Date</p>
+              <p className="text-sm font-medium text-gray-900 mt-0.5">{orderDate}</p>
             </div>
+            <button 
+              onClick={() => window.print()} 
+              className="print:hidden flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-md transition-colors"
+            >
+              <Printer className="h-3.5 w-3.5" />
+              Save PDF
+            </button>
           </div>
         </div>
 
@@ -312,30 +319,34 @@ const SecureInvoice = () => {
           </div>
         </div>
 
-        <form onSubmit={handlePay} className="space-y-6">
-          {/* Delivery Address */}
-          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 space-y-4">
-            <div className="flex items-center gap-2 mb-3">
-              <MapPin className="h-5 w-5 text-blue-600" />
-              <p className="font-bold text-gray-900">Delivery Address</p>
+        <form onSubmit={handlePay} className="space-y-5 print:hidden">
+          
+          {/* Shipping & Contact Details (Compressed) */}
+          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 space-y-4">
+            <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
+              <MapPin className="h-4 w-4 text-blue-600" />
+              <p className="font-bold text-gray-900 text-sm">Shipping & Contact Details</p>
             </div>
             
-            <div className="bg-slate-50 p-4 rounded-lg space-y-4 border border-slate-100">
-              <p className="text-sm text-slate-500 mb-2">Search for your location or drop a pin so the vendor can easily find you.</p>
-              
-              <AddressAutocomplete
-                value={address}
-                onAddressSelect={(addr) => {
-                  setAddress(addr.displayName);
-                  if (addr.city) setCity(addr.city);
-                  if (addr.county) setCounty(addr.county);
-                  if (addr.lat) setGpsLat(parseFloat(addr.lat));
-                  if (addr.lon) setGpsLng(parseFloat(addr.lon));
-                }}
-              />
+            <div className="space-y-3">
+              {/* Row 1: Address */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Search Location *</label>
+                <AddressAutocomplete
+                  value={address}
+                  onAddressSelect={(addr) => {
+                    setAddress(addr.displayName);
+                    if (addr.city) setCity(addr.city);
+                    if (addr.county) setCounty(addr.county);
+                    if (addr.lat) setGpsLat(parseFloat(addr.lat));
+                    if (addr.lon) setGpsLng(parseFloat(addr.lon));
+                  }}
+                />
+              </div>
 
-              <div className="pt-2 border-t border-slate-200">
-                <p className="text-sm font-medium mb-3 text-slate-700">Or pin your exact location:</p>
+              {/* Row 2: Map Pin (Slim) */}
+              <div className="bg-slate-50 p-2 rounded-md border border-slate-100">
+                <p className="text-[11px] font-medium text-slate-500 mb-2">Or pin your exact location to help the rider:</p>
                 <LocationPinMap
                   onLocationSelect={(data) => {
                     setGpsLat(data.latitude);
@@ -348,82 +359,80 @@ const SecureInvoice = () => {
                   initialPosition={gpsLat && gpsLng ? [gpsLat, gpsLng] : undefined}
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 gap-3 mt-2">
+              {/* Row 3: Name & Phone (Grid) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Full Name *</label>
+                  <div className="flex items-center px-3 py-2 bg-white rounded-md border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500">
+                    <User className="h-4 w-4 text-gray-400 mr-2" />
+                    <input
+                      type="text"
+                      value={buyerName}
+                      onChange={(e) => setBuyerName(e.target.value)}
+                      required
+                      placeholder="John Doe"
+                      className="bg-transparent w-full focus:outline-none text-gray-900 text-xs"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">M-Pesa Number *</label>
+                  <div className="flex items-center px-3 py-2 bg-white rounded-md border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500">
+                    <Phone className="h-4 w-4 text-gray-400 mr-2" />
+                    <input
+                      type="tel"
+                      value={buyerPhone}
+                      onChange={(e) => setBuyerPhone(e.target.value)}
+                      required
+                      placeholder="07XX XXX XXX"
+                      className="bg-transparent w-full focus:outline-none text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 4: City & Email (Grid) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">City *</label>
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    required
+                    placeholder="Nairobi"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Email (Optional)</label>
+                  <input
+                    type="email"
+                    value={buyerEmail}
+                    onChange={(e) => setBuyerEmail(e.target.value)}
+                    placeholder="john@example.com"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Row 5: Notes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
-                <input
-                  type="text"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  required
-                  placeholder="e.g. Nairobi"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Special Instructions (Optional)</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g. Leave at reception"
+                  rows={1}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs resize-none"
                 />
               </div>
-            </div>
-          </div>
-
-          {/* Customer Details */}
-          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 space-y-4">
-            <p className="font-bold text-gray-900">Customer Details</p>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-              <div className="flex items-center px-4 py-3 bg-white rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500">
-                <User className="h-5 w-5 text-gray-400 mr-3" />
-                <input
-                  type="text"
-                  value={buyerName}
-                  onChange={(e) => setBuyerName(e.target.value)}
-                  required
-                  placeholder="John Doe"
-                  className="bg-transparent w-full focus:outline-none text-gray-900 text-sm"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-              <input
-                type="email"
-                value={buyerEmail}
-                onChange={(e) => setBuyerEmail(e.target.value)}
-                placeholder="john@example.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">M-Pesa Phone Number *</label>
-              <div className="flex items-center px-4 py-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500">
-                <Phone className="h-5 w-5 text-gray-400 mr-3" />
-                <input
-                  type="tel"
-                  value={buyerPhone}
-                  onChange={(e) => setBuyerPhone(e.target.value)}
-                  required
-                  placeholder="07XX XXX XXX"
-                  className="bg-transparent w-full focus:outline-none text-sm"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Special Instructions (Optional)</label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Leave gate open, use side door, etc."
-                rows={2}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
-              />
             </div>
           </div>
 
           {/* Payment Method */}
-          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 space-y-3">
+          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 space-y-3 print:hidden">
             <p className="font-bold text-gray-900">Payment Method</p>
             <div className="space-y-2">
               {[
@@ -448,7 +457,7 @@ const SecureInvoice = () => {
           </div>
 
           {/* Protection Info */}
-          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-200">
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-200 print:hidden">
             <div className="flex items-start gap-3 mb-4">
               <Shield className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
               <h4 className="font-bold text-emerald-900">How your money is protected</h4>
@@ -474,7 +483,7 @@ const SecureInvoice = () => {
           </div>
 
           {/* Terms Checkbox */}
-          <label className="flex items-start gap-3 p-4 bg-white rounded-lg border border-gray-100 cursor-pointer hover:bg-blue-50 transition">
+          <label className="flex items-start gap-3 p-4 bg-white rounded-lg border border-gray-100 cursor-pointer hover:bg-blue-50 transition print:hidden">
             <input
               type="checkbox"
               required
@@ -494,7 +503,7 @@ const SecureInvoice = () => {
           <button
             type="submit"
             disabled={processing || !buyerName || !buyerPhone || !address || !city || !agreeTerms}
-            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-gray-300 disabled:to-gray-400 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition shadow-lg disabled:shadow-none disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-gray-300 disabled:to-gray-400 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition shadow-lg disabled:shadow-none disabled:cursor-not-allowed print:hidden"
           >
             {processing ? (
               <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -507,7 +516,7 @@ const SecureInvoice = () => {
           </button>
 
           {/* Trustmark */}
-          <div className="text-center space-y-2 pb-6">
+          <div className="text-center space-y-2 pb-6 print:hidden">
             <p className="text-xs text-gray-600">
               🔒 Encrypted & Secure • <span className="font-semibold">Sole-ly Escrow Protected</span>
             </p>
