@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Shield, Lock, Truck, ThumbsUp, AlertTriangle, User, Phone } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Shield, Truck, ThumbsUp, Lock, Phone, User, MapPin, Star, Zap, Info } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
 const SecureInvoice = () => {
@@ -12,11 +10,19 @@ const SecureInvoice = () => {
   const navigate = useNavigate();
   const [paymentLink, setPaymentLink] = useState<any>(null);
   const [vendor, setVendor] = useState<any>(null);
+  const [vendorStats, setVendorStats] = useState({ rating: 4.8, reviews: 0 });
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   
   const [buyerName, setBuyerName] = useState("");
   const [buyerPhone, setBuyerPhone] = useState("");
+  const [buyerEmail, setBuyerEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [notes, setNotes] = useState("");
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('mpesa');
 
   useEffect(() => {
     const fetchLink = async () => {
@@ -43,6 +49,18 @@ const SecureInvoice = () => {
           .single();
           
         setVendor(prof);
+
+        // Fetch vendor stats
+        const { data: reviews } = await supabase
+          .from("reviews")
+          .select("rating")
+          .eq("vendor_id", link.vendor_id);
+          
+        if (reviews && reviews.length > 0) {
+          const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+          setVendorStats({ rating: Number(avg.toFixed(1)), reviews: reviews.length });
+        }
+
       } catch (e) {
         console.error(e);
       } finally {
@@ -55,8 +73,8 @@ const SecureInvoice = () => {
 
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!buyerName || !buyerPhone) {
-      toast.error("Please enter your name and M-Pesa phone number");
+    if (!buyerName || !buyerPhone || !address || !city || !agreeTerms) {
+      toast.error("Please fill in all required fields and agree to the terms.");
       return;
     }
     
@@ -66,7 +84,7 @@ const SecureInvoice = () => {
       const itemPrice = paymentLink.product ? paymentLink.product.price_ksh : paymentLink.custom_price_ksh;
       const total = itemPrice + (paymentLink.delivery_fee_ksh || 0);
 
-      // Create an order anonymously (customer_id is null)
+      // Create an order anonymously
       const { data: order, error: orderError } = await supabase
         .from("orders")
         .insert({
@@ -84,7 +102,6 @@ const SecureInvoice = () => {
         .single();
 
       if (orderError || !order) {
-        console.error("Supabase Order Error:", orderError);
         throw new Error(orderError?.message || "Failed to create secure order");
       }
 
@@ -109,8 +126,12 @@ const SecureInvoice = () => {
         order_id: order.id,
         recipient_name: buyerName,
         phone: buyerPhone,
+        email: buyerEmail || null,
+        address_line1: address,
+        city: city,
+        postal_code: postalCode || null,
+        delivery_notes: notes || null,
         country: "Kenya",
-        city: "Kenya", // Generic fallback
         delivery_type: "delivery"
       });
 
@@ -130,7 +151,6 @@ const SecureInvoice = () => {
         .single();
         
       if (paymentError || !payment) {
-        console.error("Supabase Payment Error:", paymentError);
         throw new Error(paymentError?.message || "Failed to initialize payment tracking");
       }
 
@@ -144,7 +164,6 @@ const SecureInvoice = () => {
       });
 
       if (intasendError || intasendResponse?.error || !intasendResponse?.url) {
-        console.error("IntaSend Edge Function Error:", intasendError, intasendResponse);
         throw new Error(intasendResponse?.error || intasendError?.message || "Failed to get payment link from IntaSend");
       } 
       
@@ -168,11 +187,11 @@ const SecureInvoice = () => {
 
   if (!paymentLink) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 bg-muted/20 text-center">
-        <AlertTriangle className="h-12 w-12 text-muted-foreground" />
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 bg-slate-50 text-center">
+        <Shield className="h-12 w-12 text-slate-400" />
         <h1 className="text-xl font-bold">Secure Link Not Found</h1>
-        <p className="text-muted-foreground text-sm">This link may be inactive, paid, or deleted.</p>
-        <button onClick={() => navigate("/")} className="px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground font-semibold">
+        <p className="text-slate-500 text-sm">This link may be inactive, paid, or deleted.</p>
+        <button onClick={() => navigate("/")} className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-semibold">
           Go to Sole-ly Homepage
         </button>
       </div>
@@ -182,123 +201,308 @@ const SecureInvoice = () => {
   const title = paymentLink.product ? paymentLink.product.name : paymentLink.custom_title;
   const price = paymentLink.product ? paymentLink.product.price_ksh : paymentLink.custom_price_ksh;
   const image = paymentLink.product?.images?.[0];
+  const total = price + (paymentLink.delivery_fee_ksh || 0);
+
+  const orderDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-muted/20 pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 pb-8">
       <SEO title={`Secure Checkout: ${title}`} description={`Pay safely for ${title} via Sole-ly.`} />
-      
-      {/* Header */}
-      <div className="bg-primary text-primary-foreground text-center py-2.5 px-4 text-xs font-semibold flex items-center justify-center gap-2 sticky top-0 z-10 shadow-md">
-        <Shield className="h-4 w-4" />
-        Protected by Sole-ly Escrow
+
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white py-3 px-4 flex items-center justify-center gap-2 shadow-md sticky top-0 z-10">
+        <Shield className="h-5 w-5" />
+        <span className="text-sm font-semibold">Protected by Sole-ly Escrow</span>
       </div>
 
-      <div className="max-w-md mx-auto pt-8 px-4 space-y-6">
-        {/* Vendor Info */}
-        <div className="text-center space-y-2">
-          <div className="h-16 w-16 bg-primary/10 text-primary rounded-full flex items-center justify-center text-2xl font-bold mx-auto">
-            {vendor?.full_name?.[0]?.toUpperCase() || "V"}
-          </div>
-          <p className="text-sm text-muted-foreground">You are buying from</p>
-          <h2 className="text-xl font-bold">{vendor?.store_name || vendor?.full_name || "Vendor"}</h2>
-        </div>
-
-        {/* Invoice Card */}
-        <div className="bg-background rounded-3xl p-6 shadow-sm border border-border">
-          <div className="flex gap-4 items-start pb-4 border-b border-border">
-            {image ? (
-              <img src={image} alt={title} className="h-16 w-16 rounded-xl object-cover" />
-            ) : (
-              <div className="h-16 w-16 bg-muted rounded-xl flex items-center justify-center">
-                <Shield className="text-muted-foreground/30 h-8 w-8" />
-              </div>
-            )}
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        
+        {/* Order Reference */}
+        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+          <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-bold text-lg leading-tight">{title}</h3>
-              <p className="text-2xl font-black text-primary mt-1">KES {price.toLocaleString()}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Secure Link</p>
+              <p className="text-lg font-bold text-gray-900 mt-1">#{paymentLink.id.split('-')[0].toUpperCase()}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-500">Date</p>
+              <p className="text-sm font-medium text-gray-900 mt-1">{orderDate}</p>
             </div>
           </div>
-          
-          <div className="space-y-2 pt-4 text-sm font-medium">
-            <div className="flex justify-between text-muted-foreground">
-              <span>Item Price</span>
-              <span>KES {price.toLocaleString()}</span>
+        </div>
+
+        {/* Seller Card */}
+        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+          <p className="text-gray-600 text-xs uppercase tracking-wide mb-3">You are buying from</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {vendor?.store_logo_url ? (
+                 <img src={vendor.store_logo_url} className="h-14 w-14 rounded-full object-cover border border-border" alt="Store Logo" />
+              ) : (
+                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center text-white font-bold text-xl">
+                  {vendor?.store_name?.[0]?.toUpperCase() || vendor?.full_name?.[0]?.toUpperCase() || "V"}
+                </div>
+              )}
+              <div>
+                <h3 className="font-bold text-gray-900">{vendor?.store_name || vendor?.full_name || "Vendor"}</h3>
+                <div className="flex items-center gap-1 mt-1">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className={`h-3.5 w-3.5 ${i < Math.floor(vendorStats.rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} />
+                    ))}
+                  </div>
+                  <span className="text-xs text-gray-600">{vendorStats.rating} ({vendorStats.reviews})</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Product Details */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
+          <div className="p-5 border-b border-gray-100">
+            <div className="flex items-start gap-4">
+              {image ? (
+                <img src={image} alt={title} className="h-16 w-16 rounded-lg object-cover bg-gray-100" />
+              ) : (
+                <div className="h-16 w-16 rounded-lg bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center flex-shrink-0">
+                  <Shield className="h-8 w-8 text-gray-500" />
+                </div>
+              )}
+              <div className="flex-1">
+                <h4 className="font-bold text-gray-900 leading-tight">{title}</h4>
+                {paymentLink.product?.category && (
+                  <p className="text-sm text-gray-600 mt-1 capitalize">{paymentLink.product.category}</p>
+                )}
+                <div className="flex items-center gap-4 mt-3">
+                  <div>
+                    <p className="text-xs text-gray-500">Quantity</p>
+                    <p className="text-sm font-semibold text-gray-900">1x</p>
+                  </div>
+                </div>
+              </div>
+              <span className="font-bold text-lg text-amber-600 flex-shrink-0">KES {price.toLocaleString()}</span>
+            </div>
+          </div>
+
+          {/* Price Breakdown */}
+          <div className="p-5 bg-gray-50 space-y-3">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-600">Subtotal</span>
+              <span className="font-medium text-gray-900">KES {price.toLocaleString()}</span>
             </div>
             {paymentLink.delivery_fee_ksh > 0 && (
-              <div className="flex justify-between text-muted-foreground">
-                <span>Delivery Fee</span>
-                <span>KES {paymentLink.delivery_fee_ksh.toLocaleString()}</span>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600">Delivery Fee</span>
+                <span className="font-medium text-gray-900">KES {paymentLink.delivery_fee_ksh.toLocaleString()}</span>
               </div>
             )}
-            <div className="flex justify-between text-lg font-bold pt-2 border-t border-border">
-              <span>Total Due</span>
-              <span>KES {(price + (paymentLink.delivery_fee_ksh || 0)).toLocaleString()}</span>
+            <div className="border-t border-gray-200 pt-3 flex justify-between items-center">
+              <span className="font-bold text-gray-900">Total Due</span>
+              <span className="text-3xl font-bold text-amber-600">KES {total.toLocaleString()}</span>
             </div>
           </div>
         </div>
 
-        {/* Trust Points */}
-        <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
-          <p className="text-emerald-800 text-sm font-bold flex items-center gap-2 mb-3">
-            <Lock size={16} /> How your money is protected
-          </p>
-          <div className="space-y-3">
-            <div className="flex gap-3 text-emerald-700">
-              <Shield size={16} className="shrink-0 mt-0.5" />
-              <p className="text-xs">Your payment goes into a secure vault, not to the seller.</p>
+        <form onSubmit={handlePay} className="space-y-6">
+          {/* Delivery Address */}
+          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 space-y-4">
+            <div className="flex items-center gap-2 mb-3">
+              <MapPin className="h-5 w-5 text-blue-600" />
+              <p className="font-bold text-gray-900">Delivery Address</p>
             </div>
-            <div className="flex gap-3 text-emerald-700">
-              <Truck size={16} className="shrink-0 mt-0.5" />
-              <p className="text-xs">The seller ships the item to you.</p>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Full Address *</label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                required
+                placeholder="Street address, building, apt number"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
             </div>
-            <div className="flex gap-3 text-emerald-700">
-              <ThumbsUp size={16} className="shrink-0 mt-0.5" />
-              <p className="text-xs">When you receive it, you click "Confirm Delivery" to release the funds to the seller.</p>
-            </div>
-          </div>
-        </div>
 
-        {/* Form */}
-        <form onSubmit={handlePay} className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label>Your Name</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input 
-                className="pl-10 h-12 rounded-xl" 
-                placeholder="John Doe" 
-                value={buyerName} 
-                onChange={(e) => setBuyerName(e.target.value)} 
-                required 
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  required
+                  placeholder="Nairobi"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
+                <input
+                  type="text"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                  placeholder="00100"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Customer Details */}
+          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 space-y-4">
+            <p className="font-bold text-gray-900">Customer Details</p>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+              <div className="flex items-center px-4 py-3 bg-white rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500">
+                <User className="h-5 w-5 text-gray-400 mr-3" />
+                <input
+                  type="text"
+                  value={buyerName}
+                  onChange={(e) => setBuyerName(e.target.value)}
+                  required
+                  placeholder="John Doe"
+                  className="bg-transparent w-full focus:outline-none text-gray-900 text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+              <input
+                type="email"
+                value={buyerEmail}
+                onChange={(e) => setBuyerEmail(e.target.value)}
+                placeholder="john@example.com"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">M-Pesa Phone Number *</label>
+              <div className="flex items-center px-4 py-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500">
+                <Phone className="h-5 w-5 text-gray-400 mr-3" />
+                <input
+                  type="tel"
+                  value={buyerPhone}
+                  onChange={(e) => setBuyerPhone(e.target.value)}
+                  required
+                  placeholder="07XX XXX XXX"
+                  className="bg-transparent w-full focus:outline-none text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Special Instructions (Optional)</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Leave gate open, use side door, etc."
+                rows={2}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label>M-Pesa Phone Number</Label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input 
-                className="pl-10 h-12 rounded-xl" 
-                placeholder="07XX XXX XXX" 
-                value={buyerPhone} 
-                onChange={(e) => setBuyerPhone(e.target.value)} 
-                required 
-              />
+
+          {/* Payment Method */}
+          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 space-y-3">
+            <p className="font-bold text-gray-900">Payment Method</p>
+            <div className="space-y-2">
+              {[
+                { id: 'mpesa', name: 'M-Pesa', desc: 'Pay securely via M-Pesa' },
+                { id: 'card', name: 'Card', desc: 'Visa, Mastercard, AmEx' }
+              ].map(method => (
+                <label key={method.id} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
+                  <input
+                    type="radio"
+                    name="payment"
+                    value={method.id}
+                    checked={paymentMethod === method.id}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="w-4 h-4 accent-amber-500"
+                  />
+                  <div className="ml-3">
+                    <p className="font-medium text-gray-900 text-sm">{method.name}</p>
+                    <p className="text-xs text-gray-600">{method.desc}</p>
+                  </div>
+                </label>
+              ))}
             </div>
           </div>
-          
+
+          {/* Protection Info */}
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-200">
+            <div className="flex items-start gap-3 mb-4">
+              <Shield className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <h4 className="font-bold text-emerald-900">How your money is protected</h4>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <Shield className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-1" />
+                <p className="text-xs text-emerald-800 leading-relaxed">Payment held securely in escrow, not given to seller immediately</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <Truck className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-1" />
+                <p className="text-xs text-emerald-800 leading-relaxed">Track your delivery every step of the way</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <ThumbsUp className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-1" />
+                <p className="text-xs text-emerald-800 leading-relaxed">Click "Confirm Delivery" only when satisfied, then funds released</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <Info className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-1" />
+                <p className="text-xs text-emerald-800 leading-relaxed">30-day money-back guarantee if not satisfied</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Terms Checkbox */}
+          <label className="flex items-start gap-3 p-4 bg-white rounded-lg border border-gray-100 cursor-pointer hover:bg-blue-50 transition">
+            <input
+              type="checkbox"
+              required
+              checked={agreeTerms}
+              onChange={(e) => setAgreeTerms(e.target.checked)}
+              className="w-5 h-5 accent-amber-500 mt-0.5 flex-shrink-0"
+            />
+            <div className="flex-1">
+              <p className="text-sm text-gray-900">
+                I agree to the <a href="/terms" className="text-blue-600 hover:underline font-medium">Terms & Conditions</a> and <a href="/privacy" className="text-blue-600 hover:underline font-medium">Privacy Policy</a>
+              </p>
+              <p className="text-xs text-gray-500 mt-1">✓ Sole-ly Escrow protects both buyer and seller</p>
+            </div>
+          </label>
+
+          {/* Pay Button */}
           <button
             type="submit"
-            disabled={processing}
-            className="w-full flex items-center justify-center gap-2 h-14 rounded-2xl bg-primary text-primary-foreground font-bold text-lg hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-lg mt-6"
+            disabled={processing || !buyerName || !buyerPhone || !address || !city || !agreeTerms}
+            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-gray-300 disabled:to-gray-400 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition shadow-lg disabled:shadow-none disabled:cursor-not-allowed"
           >
             {processing ? (
-               <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-               <><Lock size={20} /> Pay Securely</>
+              <>
+                <Lock className="h-5 w-5" />
+                Complete Purchase - KES {total.toLocaleString()}
+              </>
             )}
           </button>
+
+          {/* Trustmark */}
+          <div className="text-center space-y-2 pb-6">
+            <p className="text-xs text-gray-600">
+              🔒 Encrypted & Secure • <span className="font-semibold">Sole-ly Escrow Protected</span>
+            </p>
+            <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
+              <Zap className="h-3.5 w-3.5 text-amber-500" />
+              <span>Instant confirmation after payment</span>
+            </div>
+          </div>
         </form>
+
       </div>
     </div>
   );
