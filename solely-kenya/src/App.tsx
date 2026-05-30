@@ -42,6 +42,8 @@ const Product = lazyRetry(() => import("./pages/Product"), "Product");
 const About = lazyRetry(() => import("./pages/About"), "About");
 const Contact = lazyRetry(() => import("./pages/Contact"), "Contact");
 const Vendor = lazyRetry(() => import("./pages/Vendor"), "Vendor");
+const VendorStorefront = lazyRetry(() => import("./pages/VendorStorefront"), "VendorStorefront");
+const VendorDirectory = lazyRetry(() => import("./pages/VendorDirectory"), "VendorDirectory");
 const Auth = lazyRetry(() => import("./pages/Auth"), "Auth");
 const ResetPassword = lazyRetry(() => import("./pages/ResetPassword"), "ResetPassword");
 const VendorRegistration = lazyRetry(() => import("./pages/VendorRegistration"), "VendorRegistration");
@@ -62,6 +64,7 @@ const VendorSettings = lazyRetry(() => import("./pages/vendor/VendorSettings"), 
 const VendorOrders = lazyRetry(() => import("./pages/vendor/VendorOrders"), "VendorOrders");
 const VendorRatings = lazyRetry(() => import("./pages/vendor/VendorRatings"), "VendorRatings");
 const VendorDisputes = lazyRetry(() => import("./pages/vendor/VendorDisputes"), "VendorDisputes");
+const VendorPaymentLinks = lazyRetry(() => import("./pages/vendor/VendorPaymentLinks"), "VendorPaymentLinks");
 const AdminDashboard = lazyRetry(() => import("./pages/admin/AdminDashboard"), "AdminDashboard");
 const AdminDisputes = lazyRetry(() => import("./pages/admin/AdminDisputes"), "AdminDisputes");
 const AdminVendors = lazyRetry(() => import("./pages/admin/AdminVendors"), "AdminVendors");
@@ -73,6 +76,10 @@ const HowItWorks = lazyRetry(() => import("./pages/HowItWorks"), "HowItWorks");
 const BuyNow = lazyRetry(() => import("./pages/BuyNow"), "BuyNow");
 const NotFound = lazyRetry(() => import("./pages/NotFound"), "NotFound");
 const WhatsAppButton = lazyRetry(() => import("./components/WhatsAppButton"), "WhatsAppButton");
+
+// Secure Links Feature
+const SecureInvoice = lazyRetry(() => import("./pages/checkout/SecureInvoice"), "SecureInvoice");
+const GuestTracking = lazyRetry(() => import("./pages/checkout/GuestTracking"), "GuestTracking");
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -106,7 +113,9 @@ const AnimatedRoutes = () => {
       <Route path="/product/:id" element={<PageWrapper><MainLayout><Product /></MainLayout></PageWrapper>} />
       <Route path="/about" element={<PageWrapper><MainLayout><About /></MainLayout></PageWrapper>} />
       <Route path="/contact" element={<PageWrapper><MainLayout><Contact /></MainLayout></PageWrapper>} />
+      <Route path="/vendors" element={<PageWrapper><MainLayout><VendorDirectory /></MainLayout></PageWrapper>} />
       <Route path="/vendor" element={<PageWrapper><MainLayout><Vendor /></MainLayout></PageWrapper>} />
+      <Route path="/shop/:vendorId" element={<PageWrapper><MainLayout><VendorStorefront /></MainLayout></PageWrapper>} />
       <Route path="/vendor/register" element={<PageWrapper><MainLayout><VendorRegistration /></MainLayout></PageWrapper>} />
       <Route path="/auth" element={<PageWrapper><MainLayout><Auth /></MainLayout></PageWrapper>} />
       <Route path="/reset-password" element={<PageWrapper><MainLayout><ResetPassword /></MainLayout></PageWrapper>} />
@@ -131,6 +140,7 @@ const AnimatedRoutes = () => {
       <Route path="/vendor/orders" element={<PageWrapper><VendorOrders /></PageWrapper>} />
       <Route path="/vendor/ratings" element={<PageWrapper><VendorRatings /></PageWrapper>} />
       <Route path="/vendor/disputes" element={<PageWrapper><VendorDisputes /></PageWrapper>} />
+      <Route path="/vendor/payment-links" element={<PageWrapper><VendorPaymentLinks /></PageWrapper>} />
       <Route path="/vendor/settings" element={<PageWrapper><VendorSettings /></PageWrapper>} />
       <Route path="/admin" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
       <Route path="/admin/dashboard" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
@@ -141,6 +151,8 @@ const AnimatedRoutes = () => {
 
       {/* Standalone routes */}
       <Route path="/buy/:productId" element={<PageWrapper><BuyNow /></PageWrapper>} />
+      <Route path="/pay/:id" element={<PageWrapper><SecureInvoice /></PageWrapper>} />
+      <Route path="/track/:orderId" element={<PageWrapper><GuestTracking /></PageWrapper>} />
 
       <Route path="*" element={<PageWrapper><MainLayout><NotFound /></MainLayout></PageWrapper>} />
     </Routes>

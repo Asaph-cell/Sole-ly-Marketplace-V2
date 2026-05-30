@@ -49,6 +49,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: "Shop", path: "/shop" },
+    { name: "Stores", path: "/vendors" },
     { name: "Sell", path: "/vendor" },
     { name: "About", path: "/about" },
   ];

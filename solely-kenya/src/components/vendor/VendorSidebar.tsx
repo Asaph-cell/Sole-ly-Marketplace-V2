@@ -11,6 +11,7 @@ import {
   Menu,
   LogOut,
   Download,
+  Link2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ const menuItems = [
   { icon: Package, label: "My Products", path: "/vendor/products", alertKey: null, action: null },
   { icon: PlusCircle, label: "List Item", path: "/vendor/list-item", alertKey: null, action: null },
   { icon: ShoppingBag, label: "Orders", path: "/vendor/orders", alertKey: "pendingOrders" as const, action: null },
+  { icon: Link2, label: "Payment Links", path: "/vendor/payment-links", alertKey: null, action: null },
   { icon: Star, label: "Ratings", path: "/vendor/ratings", alertKey: null, action: null },
   { icon: AlertTriangle, label: "Disputes", path: "/vendor/disputes", alertKey: "openDisputes" as const, action: null },
   { icon: Settings, label: "Account Settings", path: "/vendor/settings", alertKey: null, action: null },

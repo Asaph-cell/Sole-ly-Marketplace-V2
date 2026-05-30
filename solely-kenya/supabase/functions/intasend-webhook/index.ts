@@ -195,6 +195,8 @@ serve(async (req) => {
                 } else if (orderItems && orderItems.length > 0) {
                     console.log(`[IntaSend Webhook] Decrementing stock for ${orderItems.length} items`);
                     for (const item of orderItems) {
+                        if (!item.product_id) continue;
+                        
                         const { data: product, error: productError } = await supabaseClient
                             .from('products')
                             .select('stock')
