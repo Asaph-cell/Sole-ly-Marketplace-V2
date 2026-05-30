@@ -78,7 +78,10 @@ const SecureInvoice = () => {
           status: "pending_payment",
           commission_rate: 6,
           commission_amount: total * 0.06,
-          payout_amount: total - (total * 0.06)
+          payout_amount: total - (total * 0.06),
+          buyer_name: buyerName,
+          buyer_phone: buyerPhone,
+          buyer_email: "guest@solelymarketplace.com" // Provide a dummy email to pass RLS
         })
         .select()
         .single();
