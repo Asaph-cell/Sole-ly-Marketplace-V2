@@ -28,7 +28,7 @@ const VendorMessages = () => {
       <div className="flex">
         <VendorSidebar />
         <main className="flex-1 p-8">
-          <h1 className="text-3xl font-bold mb-8">Messages</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Messages</h1>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[calc(100vh-200px)]">
             <Card className="md:col-span-1 overflow-y-auto">
               <ConversationList

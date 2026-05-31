@@ -145,7 +145,7 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
 
                     {/* Balance Display */}
                     <div className="px-6 py-8 text-center">
-                        <p className="text-5xl font-bold text-emerald-400 tracking-tight">
+                        <p className="text-3xl sm:text-4xl md:text-5xl font-bold text-emerald-400 tracking-tight">
                             KES {pendingBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                         <p className="text-white/60 text-sm mt-2">

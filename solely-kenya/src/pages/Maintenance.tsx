@@ -8,7 +8,7 @@ export default function Maintenance() {
                     <Wrench size={40} strokeWidth={1.5} className="text-primary" />
                 </div>
 
-                <h1 className="text-3xl font-bold text-neutral-900 mb-4">
+                <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-4">
                     We'll be back soon!
                 </h1>
 

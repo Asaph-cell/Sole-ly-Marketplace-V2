@@ -46,7 +46,7 @@ const Contact = () => {
         <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold mb-4">Contact Us</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
             <p className="text-xl text-muted-foreground">
               For complaints, inquiries, or general support, please reach out via email.
             </p>

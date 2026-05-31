@@ -117,7 +117,7 @@ const VendorSettings = () => {
         <main className="flex-1 p-4 md:p-8 overflow-y-auto pb-24">
           <div className="max-w-4xl mx-auto space-y-8">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
               <p className="text-muted-foreground mt-2">
                 Manage your store profile, payouts, and delivery locations.
               </p>

@@ -233,7 +233,7 @@ const NotFound = () => {
             </div>
 
             <p className="text-sm text-muted-foreground mb-1">Oops!</p>
-            <h1 className="text-5xl font-black text-primary mb-2">404</h1>
+            <h1 className="text-4xl sm:text-5xl font-black text-primary mb-2">404</h1>
             <h2 className="text-lg font-bold mb-1">This shoe walked away</h2>
             <p className="text-muted-foreground text-sm mb-4">Let's get you back on track</p>
 

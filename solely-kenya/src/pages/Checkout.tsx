@@ -100,7 +100,7 @@ const Checkout = () => {
           <Store strokeWidth={1.5} className="h-12 w-12 text-muted-foreground" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Checkout Unavailable</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Checkout Unavailable</h1>
           <p className="max-w-md text-muted-foreground">
             We are currently upgrading our payment system to ensure a seamless experience.
             Checkout is temporarily disabled.

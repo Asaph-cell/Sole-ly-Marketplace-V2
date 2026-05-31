@@ -21,11 +21,11 @@ const Vendor = () => {
             alt="Sole-ly Marketplace"
             className="h-20 w-auto mx-auto mb-6"
           />
-          <h1 className="text-5xl font-bold mb-6">Become a Vendor</h1>
-          <p className="text-xl text-muted-foreground leading-relaxed mb-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">Become a Vendor</h1>
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed mb-6 sm:mb-8">
             Join Kenya's secure commission-based marketplace! Start selling with zero upfront fees. We only take 6% commission when you make a sale. Your customers pay through our escrow system, and you receive payouts after delivery confirmation.
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button size="lg" asChild>
               <Link to="/vendor/register">Register as Vendor</Link>
             </Button>
@@ -42,7 +42,7 @@ const Vendor = () => {
 
         {/* Benefits */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Sell on Sole-ly?</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">Why Sell on Sole-ly?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="border-2 shadow-card hover:shadow-hover transition-all">
               <CardHeader>
@@ -90,8 +90,8 @@ const Vendor = () => {
 
         {/* How It Works */}
         <div className="bg-gradient-card border-2 border-border rounded-2xl p-8 md:p-12 mb-20">
-          <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">How It Works</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <div className="text-center">
               <div className="bg-primary text-primary-foreground w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                 1
@@ -133,7 +133,7 @@ const Vendor = () => {
 
         {/* Requirements */}
         <div className="max-w-3xl mx-auto mb-20">
-          <h2 className="text-3xl font-bold text-center mb-8">What You Need</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">What You Need</h2>
           <Card className="border-2 shadow-card">
             <CardContent className="pt-6">
               <ul className="space-y-4">
@@ -174,7 +174,7 @@ const Vendor = () => {
 
         {/* FAQ */}
         <div className="max-w-3xl mx-auto mb-20">
-          <h2 className="text-3xl font-bold text-center mb-8">Common Questions</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">Common Questions</h2>
           <div className="space-y-4">
             <Card className="border-2">
               <CardHeader>
@@ -221,11 +221,11 @@ const Vendor = () => {
 
         {/* Final CTA */}
         <div className="bg-gradient-hero text-primary-foreground rounded-2xl p-8 md:p-12 text-center max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold mb-4">Ready to Start Selling?</h2>
-          <p className="text-xl opacity-90 mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to Start Selling?</h2>
+          <p className="text-base sm:text-xl opacity-90 mb-6 sm:mb-8">
             Join our community of successful vendors and start reaching customers across Kenya today!
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center">
             <Button size="lg" variant="secondary" asChild>
               <Link to="/vendor/register">Register as Vendor</Link>
             </Button>

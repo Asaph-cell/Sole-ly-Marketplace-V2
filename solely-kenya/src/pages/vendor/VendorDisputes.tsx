@@ -292,7 +292,7 @@ const VendorDisputes = () => {
                                 <div className="p-2.5 rounded-xl bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/10">
                                     <ShieldAlert size={24} strokeWidth={1.5} className=" text-red-500" />
                                 </div>
-                                <h1 className="text-3xl font-bold tracking-tight">Disputes</h1>
+                                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Disputes</h1>
                             </div>
                             <p className="text-muted-foreground ml-[52px]">
                                 View and respond to customer complaints

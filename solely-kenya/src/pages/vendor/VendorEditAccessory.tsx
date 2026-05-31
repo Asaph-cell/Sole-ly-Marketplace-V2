@@ -186,7 +186,7 @@ const VendorEditAccessory = () => {
             <div className="flex">
                 <VendorSidebar />
                 <main className="flex-1 p-8">
-                    <h1 className="text-3xl font-bold mb-8">Edit Accessory</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Edit Accessory</h1>
 
                     <Card className="max-w-2xl">
                         <CardHeader>

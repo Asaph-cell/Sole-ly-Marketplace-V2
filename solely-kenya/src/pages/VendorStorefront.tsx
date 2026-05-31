@@ -114,7 +114,7 @@ const VendorStorefront = () => {
             
             <div className="flex-1 space-y-3">
               <div className="flex flex-col md:flex-row items-center gap-2">
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight">{storeName}</h1>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight">{storeName}</h1>
                 {vendor.is_verified && (
                   <ShieldCheck className="text-primary h-6 w-6 shrink-0" fill="currentColor" stroke="white" />
                 )}

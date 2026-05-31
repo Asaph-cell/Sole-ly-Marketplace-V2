@@ -260,7 +260,7 @@ const BuyNow = () => {
               <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">{product.brand}</p>
             )}
             <h1 className="text-2xl font-bold leading-tight">{product.name}</h1>
-            <p className="text-3xl font-black text-primary mt-2">
+            <p className="text-2xl sm:text-3xl font-black text-primary mt-2">
               KES {product.price_ksh.toLocaleString()}
             </p>
             <div className="flex items-center gap-2 mt-2">

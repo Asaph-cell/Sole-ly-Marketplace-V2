@@ -31,21 +31,21 @@ const About = () => {
       />
       <div className="container mx-auto px-4">
         {/* Hero Section */}
-        <div className="max-w-3xl mx-auto text-center mb-16">
+        <div className="max-w-3xl mx-auto text-center mb-10 sm:mb-16">
           <img
             src={logo}
             alt="Solely Marketplace"
-            className="h-20 w-auto mx-auto mb-6"
+            className="h-14 sm:h-20 w-auto mx-auto mb-4 sm:mb-6"
           />
-          <h1 className="text-5xl font-bold mb-6">About Sole-ly Marketplace</h1>
-          <p className="text-xl text-muted-foreground leading-relaxed">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">About Sole-ly Marketplace</h1>
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
            Kenya's safest social commerce marketplace — where buying and selling anything is simple, safe, and exciting. We're on a mission to connect shoppers with amazing vendors across Kenya.
           </p>
         </div>
 
         {/* Values */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center mb-12">What We Stand For</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">What We Stand For</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -80,8 +80,8 @@ const About = () => {
         {/* Mission Section */}
         <div className="bg-gradient-hero text-primary-foreground rounded-2xl p-8 md:p-12 mb-20">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-6">Our Mission</h2>
-            <p className="text-xl leading-relaxed opacity-90">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Our Mission</h2>
+            <p className="text-base sm:text-lg md:text-xl leading-relaxed opacity-90">
               To make Sole-ly Marketplace the easiest and most trusted place to buy and sell shoes in Kenya. We believe everyone deserves access to quality shoes at fair prices, and every seller deserves a platform where they can grow their business without barriers.
             </p>
           </div>
@@ -89,7 +89,7 @@ const About = () => {
 
         {/* Why Choose Us */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose Sole-ly?</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">Why Choose Sole-ly?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <div className="bg-card p-6 rounded-xl border-2 border-border shadow-soft">
               <h3 className="text-xl font-semibold mb-3">For Buyers</h3>
@@ -142,7 +142,7 @@ const About = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
               {/* Left: Story Content */}
               <div className="space-y-8">
-                <h2 className="text-4xl font-bold text-foreground">Our Story</h2>
+                <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Our Story</h2>
 
                 {/* Genesis Section */}
                 <div className="space-y-2">
@@ -243,11 +243,11 @@ const About = () => {
 
         {/* CTA Section */}
         <div className="text-center max-w-2xl mx-auto">
-          <h2 className="text-3xl font-bold mb-6">Join Our Community</h2>
-          <p className="text-muted-foreground mb-8 text-lg">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Join Our Community</h2>
+          <p className="text-muted-foreground mb-6 sm:mb-8 text-base sm:text-lg">
             Whether you're here to shop or sell, we're excited to have you as part of the Sole-ly family.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center">
             <Button size="lg" asChild>
               <Link to="/shop">Start Shopping</Link>
             </Button>
