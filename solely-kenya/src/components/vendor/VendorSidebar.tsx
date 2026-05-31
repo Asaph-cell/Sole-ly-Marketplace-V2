@@ -13,7 +13,7 @@ import {
   Download,
   Link2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { playNotificationSound } from "@/lib/audio";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -168,28 +168,7 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
 
     // Play a pleasant chime when a new order arrives
     const playNewOrderSound = () => {
-      try {
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const play = (freq: number, startTime: number, duration: number) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(freq, startTime);
-          gain.gain.setValueAtTime(0, startTime);
-          gain.gain.linearRampToValueAtTime(0.3, startTime + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-          osc.start(startTime);
-          osc.stop(startTime + duration);
-        };
-        const t = ctx.currentTime;
-        play(880, t, 0.3);        // A5
-        play(1108, t + 0.18, 0.4); // C#6
-        play(1318, t + 0.36, 0.5); // E6
-      } catch (e) {
-        // Audio context not available (e.g. no user interaction yet) — silent fail
-      }
+      playNotificationSound();
     };
 
     // Show a browser notification if permission already granted

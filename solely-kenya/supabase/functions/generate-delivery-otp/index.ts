@@ -17,11 +17,11 @@ const corsHeaders = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-/** Generate a cryptographically random 3-digit PIN (100–999) */
-function generatePackagePIN(): string {
+/** Generate a cryptographically random 6-digit OTP (100000–999999) */
+function generateDeliveryOTP(): string {
     const arr = new Uint32Array(1);
     crypto.getRandomValues(arr);
-    return (100 + (arr[0] % 900)).toString();
+    return (100000 + (arr[0] % 900000)).toString();
 }
 
 serve(async (req: Request) => {
@@ -49,45 +49,38 @@ serve(async (req: Request) => {
         // Fetch order & verify vendor ownership
         const { data: order, error: orderError } = await supabase
             .from("orders")
-            .select("id, vendor_id, status, package_pin")
+            .select("id, vendor_id, status")
             .eq("id", orderId)
             .single();
 
         if (orderError || !order) throw new Error("Order not found");
         if (order.vendor_id !== userId) throw new Error("Unauthorized — not your order");
 
-        // Only allowed when status is 'accepted'
-        if (order.status !== "accepted") {
-            throw new Error(`Cannot dispatch order in status: ${order.status}. Must be 'accepted'.`);
+        // Allowed statuses when vendor marks as shipped/arrived
+        const validStatuses = ["accepted", "shipped", "arrived", "dispatched"];
+        if (!validStatuses.includes(order.status)) {
+            throw new Error(`Cannot generate OTP for order in status: ${order.status}.`);
         }
 
-        const pin = generatePackagePIN();
+        const otp = generateDeliveryOTP();
         const now = new Date().toISOString();
 
-        // Update order: mark as dispatched with the PIN
+        // Update order: set the 6-digit delivery OTP
         const { error: updateError } = await supabase
             .from("orders")
             .update({
-                status: "dispatched",
-                package_pin: pin,
-                package_pin_generated_at: now,
+                delivery_otp: otp,
             })
             .eq("id", order.id);
 
         if (updateError) throw updateError;
 
-        console.log(`Package PIN generated for order ${orderId}: ${pin}`);
-
-        // Notify vendor-facing notification log (non-blocking)
-        supabase.functions.invoke("notify-buyer-order-shipped", {
-            body: { orderId: order.id },
-        }).catch((e: Error) => console.error("Notify dispatched failed:", e));
+        console.log(`Delivery OTP generated for order ${orderId}`);
 
         return new Response(
             JSON.stringify({
                 success: true,
-                message: "Order dispatched. Write the PIN on the package.",
-                pin,         // Returned to vendor — they write it on the physical package
+                message: "Delivery code generated successfully.",
                 orderId,
             }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

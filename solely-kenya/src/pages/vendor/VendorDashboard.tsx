@@ -15,6 +15,7 @@ import {
   DollarSign, AlertTriangle, ArrowRight, Clock,
   CheckCircle, Zap,
 } from "lucide-react";
+import { playNotificationSound } from "@/lib/audio";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 // ── Status badge colour map ───────────────────────────────────────────────────
@@ -179,20 +180,7 @@ const VendorDashboard = () => {
                 title="Preview notification sound"
                 onClick={() => {
                   try {
-                    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-                    const play = (freq: number, t: number, dur: number) => {
-                      const osc = ctx.createOscillator();
-                      const gain = ctx.createGain();
-                      osc.connect(gain); gain.connect(ctx.destination);
-                      osc.type = "sine";
-                      osc.frequency.setValueAtTime(freq, t);
-                      gain.gain.setValueAtTime(0, t);
-                      gain.gain.linearRampToValueAtTime(0.3, t + 0.02);
-                      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
-                      osc.start(t); osc.stop(t + dur);
-                    };
-                    const t = ctx.currentTime;
-                    play(880, t, 0.3); play(1108, t + 0.18, 0.4); play(1318, t + 0.36, 0.5);
+                    playNotificationSound();
                   } catch {}
                 }}
                 className="h-8 w-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center text-base transition-colors"
