@@ -83,9 +83,6 @@ serve(async (req) => {
                     commission_rate: commissionRate,
                     commission_amount: commissionAmount,
                     payout_amount: payoutAmount,
-                    buyer_name: buyerName,
-                    buyer_phone: buyerPhone,
-                    buyer_email: buyerEmail || null,
                 })
                 .select()
                 .single();
@@ -131,7 +128,6 @@ serve(async (req) => {
                     county: county || null,
                     gps_latitude: gpsLat || null,
                     gps_longitude: gpsLng || null,
-                    google_maps_link: googleMapsLink || null,
                     delivery_notes: notes || null,
                     country: 'Kenya',
                     delivery_type: 'delivery'
