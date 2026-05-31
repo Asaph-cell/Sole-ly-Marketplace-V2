@@ -214,19 +214,19 @@ serve(async (req) => {
                     }
                 }
 
-                // Notify vendor about new order (non-blocking)
-                supabaseClient.functions
-                    .invoke('notify-vendor-new-order', {
+                // Notify vendor and buyer concurrently but await completion before returning
+                // (Deno terminates background promises when the main response is sent)
+                console.log(`[IntaSend Webhook] Triggering notifications for order ${orderId}...`);
+                await Promise.allSettled([
+                    supabaseClient.functions.invoke('notify-vendor-new-order', {
                         body: { orderId: orderId },
-                    })
-                    .catch(err => console.log('[IntaSend Webhook] Vendor notification failed (non-critical):', err));
-
-                // Notify buyer that order has been placed (non-blocking)
-                supabaseClient.functions
-                    .invoke('notify-buyer-order-placed', {
+                    }).catch(err => console.log('[IntaSend Webhook] Vendor notification failed:', err)),
+                    
+                    supabaseClient.functions.invoke('notify-buyer-order-placed', {
                         body: { orderId: orderId },
-                    })
-                    .catch(err => console.log('[IntaSend Webhook] Buyer notification failed (non-critical):', err));
+                    }).catch(err => console.log('[IntaSend Webhook] Buyer notification failed:', err))
+                ]);
+                console.log(`[IntaSend Webhook] Notifications triggered successfully.`);
             }
 
         } else if (state === 'FAILED') {

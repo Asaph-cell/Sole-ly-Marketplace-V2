@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, Truck, Package, Clock, Shield, AlertTriangle } from "lucide-react";
+import { CheckCircle, Truck, Package, Clock, Shield, AlertTriangle, Store, MessageCircle, MapPin } from "lucide-react";
+import { LocationViewMap } from "@/components/LocationViewMap";
 import { SEO } from "@/components/SEO";
 
 const GuestTracking = () => {
@@ -18,7 +19,7 @@ const GuestTracking = () => {
       try {
         const { data, error } = await supabase
           .from("orders")
-          .select(`*, vendor:vendor_id(store_name, full_name, whatsapp_number)`)
+          .select(`*, vendor:vendor_id(store_name, full_name, whatsapp_number), order_shipping_details(*)`)
           .eq("id", orderId)
           .single();
 
@@ -149,18 +150,61 @@ const GuestTracking = () => {
           </div>
         )}
 
+        {/* Tracking Information */}
+        {order.status !== "pending_payment" && order.order_shipping_details && (order.order_shipping_details.courier_name || order.order_shipping_details.tracking_number || order.order_shipping_details.delivery_tracking_enabled) && (
+          <div className="bg-background rounded-3xl p-6 shadow-sm border border-border">
+            <h3 className="font-bold mb-4 flex items-center gap-2"><Truck className="w-5 h-5 text-primary"/> Tracking Details</h3>
+            
+            {(order.order_shipping_details.courier_name || order.order_shipping_details.tracking_number) && (
+              <div className="grid grid-cols-2 gap-4 mb-4 bg-muted/50 p-4 rounded-2xl">
+                {order.order_shipping_details.courier_name && (
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Courier</p>
+                    <p className="font-semibold">{order.order_shipping_details.courier_name}</p>
+                  </div>
+                )}
+                {order.order_shipping_details.tracking_number && (
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Tracking Number</p>
+                    <p className="font-semibold">{order.order_shipping_details.tracking_number}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {order.order_shipping_details.delivery_tracking_enabled && (
+              <div className="mt-4">
+                <p className="text-sm font-semibold mb-3 flex items-center gap-2 text-primary">
+                  <MapPin className="w-4 h-4 animate-bounce" />
+                  Live Location Tracking Active
+                </p>
+                <div className="rounded-2xl overflow-hidden border border-border h-[250px]">
+                  <LocationViewMap orderId={order.id} />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Vendor Contact Info */}
         <div className="bg-background rounded-3xl p-6 shadow-sm border border-border">
           <h3 className="font-bold mb-4">Vendor Details</h3>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <p className="font-semibold">{vendorName}</p>
             </div>
-            {order.vendor?.whatsapp_number && (
-              <a href={`tel:${order.vendor.whatsapp_number}`} className="h-10 px-4 rounded-xl bg-muted flex items-center justify-center font-semibold text-sm">
-                Call Vendor
+            <div className="flex w-full sm:w-auto items-center gap-2">
+              <a href={`/vendor-store/${order.vendor_id}`} className="flex-1 sm:flex-none h-10 px-4 rounded-xl bg-primary text-primary-foreground flex items-center justify-center gap-2 font-semibold text-sm">
+                <Store className="w-4 h-4" />
+                Visit Store
               </a>
-            )}
+              {order.vendor?.whatsapp_number && (
+                <a href={`https://wa.me/${order.vendor.whatsapp_number.replace(/\+/g, '')}`} target="_blank" rel="noreferrer" className="flex-1 sm:flex-none h-10 px-4 rounded-xl bg-[#25D366] text-white flex items-center justify-center gap-2 font-semibold text-sm">
+                  <MessageCircle className="w-4 h-4" />
+                  Support
+                </a>
+              )}
+            </div>
           </div>
         </div>
 

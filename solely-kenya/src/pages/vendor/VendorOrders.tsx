@@ -137,7 +137,6 @@ const VendorOrders = () => {
         const isHidden = [
           "cancelled_by_vendor",
           "cancelled_by_customer",
-          "pending_payment",
         ].includes(order.status);
 
         return !isHidden;
@@ -468,42 +467,7 @@ const VendorOrders = () => {
       }
     }
 
-    // Check payment if attempting to ship
-    if (!isPickup && order.shipping_fee_ksh > 0 && !isMarkingAsArrived) {
-      // Check for pending delivery fee payments
-      const { data: payments, error: paymentsError } = await supabase
-        .from("payments")
-        .select("id, status, amount_ksh, metadata")
-        .eq("order_id", order.id)
-        .order("created_at", { ascending: true });
 
-      if (paymentsError) {
-        toast.error("Failed to verify payment status");
-        return;
-      }
-
-      // Calculate total paid amount
-      const totalPaid = payments
-        ?.filter((p) => p.status === "captured")
-        .reduce((sum, p) => sum + Number(p.amount_ksh), 0) || 0;
-
-      // Check if delivery fee payment is pending
-      const hasPendingDeliveryFee = payments?.some(
-        (p) => p.metadata?.is_delivery_fee === true && p.status !== "captured"
-      );
-
-      if (hasPendingDeliveryFee) {
-        toast.error("Cannot ship order. Delivery fee payment is still pending.");
-        return;
-      }
-
-      // Verify total paid matches order total
-      if (totalPaid < order.total_ksh) {
-        const remaining = order.total_ksh - totalPaid;
-        toast.error(`Cannot ship order. Payment incomplete. Remaining amount: KES ${remaining.toLocaleString()}`);
-        return;
-      }
-    }
 
     setSaving(true);
     const now = new Date();
@@ -696,6 +660,7 @@ const VendorOrders = () => {
 
   // ── Status helpers ──────────────────────────────────────────────────────────
   const STATUS_PILL: Record<string, string> = {
+    pending_payment: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border border-dashed border-gray-300",
     pending_vendor_confirmation: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
     accepted:   "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
     shipped:    "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
@@ -705,6 +670,7 @@ const VendorOrders = () => {
     refunded:   "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
   };
   const STATUS_LABEL_MAP: Record<string, string> = {
+    pending_payment: "Awaiting Payment",
     pending_vendor_confirmation: "Needs Action",
     accepted: "Accepted",
     shipped: "In Transit",
@@ -958,7 +924,7 @@ const VendorOrders = () => {
                                 onChange={e => handleFieldChange(order.id, "notes", e.target.value)} />
                             </div>
                             <Button className="w-full h-10 text-sm" onClick={() => handleMarkShipped(order)}
-                              disabled={saving || hasPendingDeliveryFee(order)}>
+                              disabled={saving}>
                               {saving ? "Updating…" : isPickup ? "Mark Ready for Pickup" : "Mark as Shipped"}
                             </Button>
                           </div>
