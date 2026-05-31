@@ -350,11 +350,12 @@ const SecureInvoice = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Email (Optional)</label>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Email *</label>
                   <input
                     type="email"
                     value={buyerEmail}
                     onChange={(e) => setBuyerEmail(e.target.value)}
+                    required
                     placeholder="john@example.com"
                     className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
                   />
@@ -446,7 +447,7 @@ const SecureInvoice = () => {
           {/* Pay Button */}
           <button
             type="submit"
-            disabled={processing || !buyerName || !buyerPhone || !address || !city || !agreeTerms}
+            disabled={processing || !buyerName || !buyerPhone || !buyerEmail || !address || !city || !agreeTerms}
             className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-gray-300 disabled:to-gray-400 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition shadow-lg disabled:shadow-none disabled:cursor-not-allowed print:hidden"
           >
             {processing ? (

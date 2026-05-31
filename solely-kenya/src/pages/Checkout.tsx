@@ -399,8 +399,8 @@ const Checkout = () => {
                   <Input id="phone" value={shipping.phone} onChange={handleInputChange("phone")} required />
                 </div>
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="email">Email (optional)</Label>
-                  <Input id="email" type="email" value={shipping.email} onChange={handleInputChange("email")} />
+                  <Label htmlFor="email">Email *</Label>
+                  <Input id="email" type="email" value={shipping.email} onChange={handleInputChange("email")} required />
                 </div>
 
                 <div className="space-y-4 md:col-span-2 pt-4 border-t">
