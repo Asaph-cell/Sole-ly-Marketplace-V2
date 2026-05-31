@@ -13,8 +13,9 @@ import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import {
   Package, Star, Eye, ShoppingCart, TrendingUp,
   DollarSign, AlertTriangle, ArrowRight, Clock,
-  CheckCircle, Zap,
+  CheckCircle, Zap, Share2
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { playNotificationSound } from "@/lib/audio";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
@@ -40,6 +41,7 @@ const STATUS_LABEL: Record<string, string> = {
 const VendorDashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [profile, setProfile]               = useState<any>(null);
   const [dataLoading, setDataLoading]       = useState(true);
@@ -176,6 +178,21 @@ const VendorDashboard = () => {
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{vendorName} 👋</h1>
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-1.5 text-xs sm:text-sm bg-white"
+                onClick={() => {
+                  const link = `${window.location.origin}/store/${profile?.store_link || profile?.id}`;
+                  navigator.clipboard.writeText(link);
+                  toast({
+                    title: "Link Copied!",
+                    description: "Your store link has been copied to your clipboard.",
+                  });
+                }}
+              >
+                <Share2 size={14} strokeWidth={1.5} /> Copy Store Link
+              </Button>
               <button
                 title="Preview notification sound"
                 onClick={() => {

@@ -115,6 +115,9 @@ const AnimatedRoutes = () => {
       <Route path="/contact" element={<PageWrapper><MainLayout><Contact /></MainLayout></PageWrapper>} />
       <Route path="/vendors" element={<PageWrapper><MainLayout><VendorDirectory /></MainLayout></PageWrapper>} />
       <Route path="/vendor" element={<PageWrapper><MainLayout><Vendor /></MainLayout></PageWrapper>} />
+      {/* New Vanity URL Route */}
+      <Route path="/store/:storeLink" element={<PageWrapper><MainLayout><VendorStorefront /></MainLayout></PageWrapper>} />
+      {/* Legacy Route */}
       <Route path="/shop/:vendorId" element={<PageWrapper><MainLayout><VendorStorefront /></MainLayout></PageWrapper>} />
       <Route path="/vendor/register" element={<PageWrapper><MainLayout><VendorRegistration /></MainLayout></PageWrapper>} />
       <Route path="/auth" element={<PageWrapper><MainLayout><Auth /></MainLayout></PageWrapper>} />

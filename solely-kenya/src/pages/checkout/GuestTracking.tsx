@@ -19,7 +19,7 @@ const GuestTracking = () => {
       try {
         const { data, error } = await supabase
           .from("orders")
-          .select(`*, vendor:vendor_id(store_name, full_name, whatsapp_number), order_shipping_details(*)`)
+          .select(`*, vendor:vendor_id(store_name, full_name, whatsapp_number, store_link), order_shipping_details(*)`)
           .eq("id", orderId)
           .single();
 
@@ -205,7 +205,7 @@ const GuestTracking = () => {
               <p className="font-semibold">{vendorName}</p>
             </div>
             <div className="flex w-full sm:w-auto items-center gap-2">
-              <a href={`/vendor-store/${order.vendor_id}`} className="flex-1 sm:flex-none h-10 px-4 rounded-xl bg-primary text-primary-foreground flex items-center justify-center gap-2 font-semibold text-sm">
+              <a href={`/store/${order.vendor?.store_link || order.vendor_id}`} className="flex-1 sm:flex-none h-10 px-4 rounded-xl bg-primary text-primary-foreground flex items-center justify-center gap-2 font-semibold text-sm">
                 <Store className="w-4 h-4" />
                 Visit Store
               </a>

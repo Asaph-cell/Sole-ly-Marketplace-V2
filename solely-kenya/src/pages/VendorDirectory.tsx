@@ -19,7 +19,9 @@ const VendorDirectory = () => {
     // Fetch all profiles that have listed items (or just fetch all for now)
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, store_name, full_name, is_verified, vendor_city, vendor_county")
+      .select(`
+        id, store_name, full_name, is_verified, vendor_city, vendor_county, store_link
+      `)
       .order("is_verified", { ascending: false });
 
     if (!error && data) {
@@ -81,7 +83,7 @@ const VendorDirectory = () => {
               return (
                 <Link 
                   key={vendor.id} 
-                  to={`/shop/${vendor.id}`}
+                  to={`/store/${vendor.store_link || vendor.id}`}
                   className="bg-card rounded-2xl border border-border p-6 hover:shadow-md hover:border-primary/30 transition-all group flex flex-col items-center text-center gap-4"
                 >
                   <div className="h-20 w-20 rounded-full bg-primary/10 text-primary border-4 border-background flex items-center justify-center text-3xl font-black shadow-sm group-hover:scale-105 transition-transform">

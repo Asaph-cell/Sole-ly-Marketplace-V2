@@ -6,7 +6,8 @@ import ProductCard from "@/components/ProductCard";
 import { Store, MapPin, Star, AlertTriangle, ShieldCheck } from "lucide-react";
 
 const VendorStorefront = () => {
-  const { vendorId } = useParams();
+  const { vendorId, storeLink } = useParams();
+  const identifier = storeLink || vendorId;
   const navigate = useNavigate();
   
   const [vendor, setVendor] = useState<any>(null);
@@ -15,20 +16,27 @@ const VendorStorefront = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (vendorId) {
+    if (identifier) {
       fetchVendor();
     }
-  }, [vendorId]);
+  }, [identifier]);
 
   const fetchVendor = async () => {
     setLoading(true);
     try {
-      // 1. Fetch vendor profile
-      const { data: prof, error: profError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", vendorId)
-        .single();
+      // 1. Fetch vendor profile (by store_link or id fallback)
+      let profQuery = supabase.from("profiles").select("*");
+      
+      // UUID check
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier || '');
+      
+      if (isUUID) {
+        profQuery = profQuery.eq("id", identifier);
+      } else {
+        profQuery = profQuery.eq("store_link", identifier);
+      }
+
+      const { data: prof, error: profError } = await profQuery.single();
         
       if (profError || !prof) throw new Error("Vendor not found");
       setVendor(prof);
@@ -37,7 +45,7 @@ const VendorStorefront = () => {
       const { data: prods } = await supabase
         .from("products")
         .select("id, name, price_ksh, old_price_ksh, images, brand, is_discounted, category_id, vendor_id, stock, condition")
-        .eq("vendor_id", vendorId)
+        .eq("vendor_id", prof.id)
         .eq("status", "active")
         .order("created_at", { ascending: false });
         
@@ -47,7 +55,7 @@ const VendorStorefront = () => {
       const { data: reviews } = await supabase
         .from("reviews")
         .select("rating")
-        .eq("vendor_id", vendorId);
+        .eq("vendor_id", prof.id);
         
       if (reviews && reviews.length > 0) {
         const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
