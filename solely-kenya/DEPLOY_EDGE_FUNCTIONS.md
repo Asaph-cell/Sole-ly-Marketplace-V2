@@ -34,7 +34,7 @@ supabase login
 
 ```bash
 # Get your project reference ID from Supabase Dashboard > Settings > General
-supabase link --project-ref cqcklvdblhcdowisjnsf
+supabase link --project-ref ktoodrjfytteppnpyhvi
 ```
 
 #### Step 4: Deploy the Function
@@ -82,7 +82,7 @@ MPESA_CONSUMER_KEY=VUOZt9q1JBoNlAxHULNGSdQaLUj9AyM8M5sgXU9X9noKnYdp
 MPESA_CONSUMER_SECRET=YLj1KVJ2bM2zfyOnVoKRAeU5HAtsGiBRUGtpFQ1qkUb8dxjqJH73cLs1Hgl9P6Xl
 MPESA_SHORTCODE=174379
 MPESA_PASSKEY=bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919
-MPESA_CALLBACK_URL=https://cqcklvdblhcdowisjnsf.supabase.co/functions/v1/mpesa-callback
+MPESA_CALLBACK_URL=https://ktoodrjfytteppnpyhvi.supabase.co/functions/v1/mpesa-callback
 ```
 
 ## Test the Function

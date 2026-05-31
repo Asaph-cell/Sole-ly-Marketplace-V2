@@ -21,8 +21,8 @@ export default {
         // Dynamic sitemap: proxy the Supabase generate-sitemap edge function
         if (url.pathname === '/sitemap.xml') {
             try {
-                const SUPABASE_URL = 'https://cqcklvdblhcdowisjnsf.supabase.co';
-                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxY2tsdmRibGhjZG93aXNqbnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3Njc0MDMsImV4cCI6MjA3NzM0MzQwM30.XEDVTzEQIG2LyEVkVV88vNIJTqVHX6aHXut6BVSP6-g';
+                const SUPABASE_URL = 'https://ktoodrjfytteppnpyhvi.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0b29kcmpmeXR0ZXBwbnB5aHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMDA0MDMsImV4cCI6MjA5Mjg3NjQwM30.4VknmxjOv9YjyvOzXHHfOIo3h2czfuT5NNu0-pXz-As';
                 const sitemapResponse = await fetch(SUPABASE_URL + '/functions/v1/generate-sitemap', {
                     headers: {
                         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
@@ -62,8 +62,8 @@ export default {
                 if (!productId) return response;
 
                 // Fetch product data from Supabase
-                const SUPABASE_URL = 'https://cqcklvdblhcdowisjnsf.supabase.co';
-                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxY2tsdmRibGhjZG93aXNqbnNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3Njc0MDMsImV4cCI6MjA3NzM0MzQwM30.XEDVTzEQIG2LyEVkVV88vNIJTqVHX6aHXut6BVSP6-g';
+                const SUPABASE_URL = 'https://ktoodrjfytteppnpyhvi.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0b29kcmpmeXR0ZXBwbnB5aHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMDA0MDMsImV4cCI6MjA5Mjg3NjQwM30.4VknmxjOv9YjyvOzXHHfOIo3h2czfuT5NNu0-pXz-As';
 
                 const apiUrl = SUPABASE_URL + '/rest/v1/products?id=eq.' + productId + '&select=name,description,price_ksh,images';
 

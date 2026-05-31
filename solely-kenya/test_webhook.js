@@ -1,5 +1,5 @@
 
-const webhookUrl = "https://cqcklvdblhcdowisjnsf.supabase.co/functions/v1/intasend-webhook";
+const webhookUrl = "https://ktoodrjfytteppnpyhvi.supabase.co/functions/v1/intasend-webhook";
 
 const payload = {
     invoice_id: "test_invoice",
