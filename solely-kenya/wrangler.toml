@@ -4,3 +4,5 @@ main = "public/_worker.js"
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"
+
