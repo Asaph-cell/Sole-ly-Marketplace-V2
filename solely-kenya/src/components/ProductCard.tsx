@@ -166,7 +166,7 @@ const ProductCard = ({
             <span className="text-xs text-muted-foreground uppercase tracking-wide min-h-[1.5em] block">
               {brand || "\u00A0"}
             </span>
-            <h3 className="font-semibold text-lg group-hover:text-primary transition-colors line-clamp-2">
+            <h3 className="font-semibold text-[clamp(0.9rem,3vw,1.125rem)] group-hover:text-primary transition-colors line-clamp-2 break-words">
               {name}
             </h3>
             <div className="flex items-center gap-1 mb-2">
@@ -180,7 +180,7 @@ const ProductCard = ({
                 <span className="text-xs text-muted-foreground">No reviews yet</span>
               )}
             </div>
-            <p className="text-2xl font-bold text-primary mt-auto pt-2">KES {price.toLocaleString()}</p>
+            <p className="text-[clamp(1.1rem,3.5vw,1.5rem)] font-bold text-primary mt-auto pt-2">KES {price.toLocaleString()}</p>
           </CardFooter>
         </Card>
       </Link>

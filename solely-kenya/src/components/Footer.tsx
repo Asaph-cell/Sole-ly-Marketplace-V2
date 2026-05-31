@@ -51,11 +51,11 @@ const Footer = () => {
             {faqs.map((faq, index) => (
               <div key={index} className="border border-secondary-foreground/20 rounded-lg overflow-hidden">
                 <button
-                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-muted transition-colors text-foreground"
+                  className="w-full px-4 sm:px-6 py-4 text-left flex items-start sm:items-center justify-between hover:bg-muted transition-colors text-foreground gap-3 min-h-[44px]"
                   onClick={() => setOpenFaq(openFaq === index ? null : index)}
                 >
-                  <span className="font-medium">{faq.question}</span>
-                  <ChevronDown size={20} strokeWidth={1.5} className={` transition-transform ${openFaq === index ? 'rotate-180' : ''}`} />
+                  <span className="font-medium text-[clamp(0.85rem,2.5vw,1rem)] leading-snug">{faq.question}</span>
+                  <ChevronDown size={20} strokeWidth={1.5} className={`shrink-0 mt-0.5 sm:mt-0 transition-transform ${openFaq === index ? 'rotate-180' : ''}`} />
                 </button>
                 {openFaq === index && (
                   <div className="px-6 pb-4 text-sm text-muted-foreground">

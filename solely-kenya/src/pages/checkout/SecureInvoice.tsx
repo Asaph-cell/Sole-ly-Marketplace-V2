@@ -305,10 +305,10 @@ const SecureInvoice = () => {
               </div>
 
               {/* Row 3: Name & Phone (Grid) */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Full Name *</label>
-                  <div className="flex items-center px-3 py-2 bg-white rounded-md border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500">
+                  <div className="flex items-center px-3 min-h-[44px] bg-white rounded-md border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500">
                     <User className="h-4 w-4 text-gray-400 mr-2" />
                     <input
                       type="text"
@@ -322,7 +322,7 @@ const SecureInvoice = () => {
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Delivery Phone Number *</label>
-                  <div className="flex items-center px-3 py-2 bg-white rounded-md border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500">
+                  <div className="flex items-center px-3 min-h-[44px] bg-white rounded-md border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500">
                     <Phone className="h-4 w-4 text-gray-400 mr-2" />
                     <input
                       type="tel"
@@ -337,7 +337,7 @@ const SecureInvoice = () => {
               </div>
 
               {/* Row 4: City & Email (Grid) */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">City *</label>
                   <input
@@ -346,7 +346,7 @@ const SecureInvoice = () => {
                     onChange={(e) => setCity(e.target.value)}
                     required
                     placeholder="Nairobi"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+                    className="w-full px-3 min-h-[44px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
                   />
                 </div>
                 <div>
@@ -357,7 +357,7 @@ const SecureInvoice = () => {
                     onChange={(e) => setBuyerEmail(e.target.value)}
                     required
                     placeholder="john@example.com"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+                    className="w-full px-3 min-h-[44px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
                   />
                 </div>
               </div>
@@ -369,8 +369,8 @@ const SecureInvoice = () => {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g. Leave at reception"
-                  rows={1}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs resize-none"
+                  rows={2}
+                  className="w-full px-3 py-3 min-h-[44px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs resize-none"
                 />
               </div>
             </div>
@@ -385,7 +385,7 @@ const SecureInvoice = () => {
               required
               checked={agreeTerms}
               onChange={(e) => setAgreeTerms(e.target.checked)}
-              className="w-5 h-5 accent-amber-500 mt-0.5 flex-shrink-0"
+              className="w-5 h-5 accent-amber-500 mt-1 flex-shrink-0"
             />
             <div className="flex-1">
               <p className="text-sm text-gray-900">
@@ -399,7 +399,7 @@ const SecureInvoice = () => {
           <button
             type="submit"
             disabled={processing || !buyerName || !buyerPhone || !buyerEmail || !address || !city || !agreeTerms}
-            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-gray-300 disabled:to-gray-400 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition shadow-lg disabled:shadow-none disabled:cursor-not-allowed print:hidden"
+            className="w-full min-h-[56px] bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 disabled:from-gray-300 disabled:to-gray-400 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition shadow-lg disabled:shadow-none disabled:cursor-not-allowed print:hidden"
           >
             {processing ? (
               <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -415,7 +415,7 @@ const SecureInvoice = () => {
           <button
             type="button"
             onClick={() => window.print()}
-            className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition print:hidden border border-blue-200"
+            className="w-full min-h-[56px] bg-blue-50 hover:bg-blue-100 text-blue-700 py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition print:hidden border border-blue-200"
           >
             Download Invoice as PDF
           </button>

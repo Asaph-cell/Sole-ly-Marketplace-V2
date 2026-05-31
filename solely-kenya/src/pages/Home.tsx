@@ -300,7 +300,7 @@ const Home = () => {
         </div>
 
         {/* ── Unified Responsive Grid ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 container mx-auto px-4 sm:px-6 lg:px-8">
           {SHOWCASE_CARDS.map((card, i) => {
             const isLastOdd = i === SHOWCASE_CARDS.length - 1 && SHOWCASE_CARDS.length % 2 !== 0;
             return (
@@ -328,11 +328,11 @@ const Home = () => {
                   </div>
 
                   {/* Text on the left */}
-                  <div className="relative z-10 p-3.5 sm:p-6 lg:p-8 flex flex-col justify-center flex-1 max-w-[65%] sm:max-w-[60%]">
-                    <p className="text-[10px] sm:text-sm font-medium text-muted-foreground mb-1.5 opacity-90">
+                  <div className="relative z-10 p-3 sm:p-5 lg:p-8 flex flex-col justify-center flex-1 max-w-[65%] sm:max-w-[60%]">
+                    <p className="text-[clamp(0.65rem,2.2vw,0.875rem)] font-medium text-muted-foreground mb-1 opacity-90 leading-tight">
                       {card.subtitle}
                     </p>
-                    <h3 className="text-base sm:text-2xl lg:text-3xl font-extrabold text-foreground mb-3 sm:mb-4 tracking-tight leading-none">
+                    <h3 className="text-[clamp(0.9rem,3.5vw,1.5rem)] font-extrabold text-foreground mb-2 sm:mb-4 tracking-tight leading-none break-words hyphens-auto">
                       {card.name}
                     </h3>
                     <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-sm font-medium text-primary group-hover:gap-2 transition-all">

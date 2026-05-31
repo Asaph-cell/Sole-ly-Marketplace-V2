@@ -138,32 +138,32 @@ const Vendor = () => {
             <CardContent className="pt-6">
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
-                  <span className="text-primary text-xl">✓</span>
-                  <span>
+                  <span className="text-primary text-xl shrink-0">✓</span>
+                  <span className="text-[clamp(0.85rem,2.5vw,1rem)] leading-snug">
                     <strong>Quality shoes to sell</strong> – Whether new or gently used, make sure they're in good condition
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-primary text-xl">✓</span>
-                  <span>
+                  <span className="text-primary text-xl shrink-0">✓</span>
+                  <span className="text-[clamp(0.85rem,2.5vw,1rem)] leading-snug">
                     <strong>Clear photos</strong> – Good pictures help sell shoes faster
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-primary text-xl">✓</span>
-                  <span>
+                  <span className="text-primary text-xl shrink-0">✓</span>
+                  <span className="text-[clamp(0.85rem,2.5vw,1rem)] leading-snug">
                     <strong>Product details</strong> – Brand, size, condition, and price
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-primary text-xl">✓</span>
-                  <span>
+                  <span className="text-primary text-xl shrink-0">✓</span>
+                  <span className="text-[clamp(0.85rem,2.5vw,1rem)] leading-snug">
                     <strong>Contact information</strong> – So we can reach you and verify your business
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-primary text-xl">✓</span>
-                  <span>
+                  <span className="text-primary text-xl shrink-0">✓</span>
+                  <span className="text-[clamp(0.85rem,2.5vw,1rem)] leading-snug">
                     <strong>Commitment to customer service</strong> – We want all our vendors to provide great experiences
                   </span>
                 </li>
