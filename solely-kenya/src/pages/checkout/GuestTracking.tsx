@@ -18,7 +18,7 @@ const GuestTracking = () => {
       try {
         const { data, error } = await supabase
           .from("orders")
-          .select(`*, vendor:vendor_id(store_name, full_name, phone)`)
+          .select(`*, vendor:vendor_id(store_name, full_name, whatsapp_number)`)
           .eq("id", orderId)
           .single();
 
@@ -156,8 +156,8 @@ const GuestTracking = () => {
             <div>
               <p className="font-semibold">{vendorName}</p>
             </div>
-            {order.vendor?.phone && (
-              <a href={`tel:${order.vendor.phone}`} className="h-10 px-4 rounded-xl bg-muted flex items-center justify-center font-semibold text-sm">
+            {order.vendor?.whatsapp_number && (
+              <a href={`tel:${order.vendor.whatsapp_number}`} className="h-10 px-4 rounded-xl bg-muted flex items-center justify-center font-semibold text-sm">
                 Call Vendor
               </a>
             )}
