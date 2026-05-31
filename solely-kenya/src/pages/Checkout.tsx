@@ -395,7 +395,7 @@ const Checkout = () => {
                   <Input id="recipientName" value={shipping.recipientName} onChange={handleInputChange("recipientName")} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone number *</Label>
+                  <Label htmlFor="phone">Delivery Phone Number *</Label>
                   <Input id="phone" value={shipping.phone} onChange={handleInputChange("phone")} required />
                 </div>
                 <div className="space-y-2 md:col-span-2">
@@ -471,30 +471,7 @@ const Checkout = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Choose Payment Method</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <RadioGroup value={paymentGateway} onValueChange={setPaymentGateway} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {paymentOptions.map((option) => (
-                  <label key={option.value} className="flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer hover:bg-muted">
-                    <RadioGroupItem value={option.value} id={option.value} />
-                    <span className="text-xl">{option.icon}</span>
-                    <span>{option.label}</span>
-                  </label>
-                ))}
-              </RadioGroup>
 
-              {paymentGateway === "intasend" && (
-                <div className="pt-4 border-t">
-                  <p className="text-sm text-muted-foreground">
-                    You'll be redirected to IntaSend's secure checkout page to pay via M-Pesa or Card.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
           <div className="flex items-center justify-between">
             <Button type="button" variant="ghost" onClick={() => navigate("/cart")}>Back to cart</Button>

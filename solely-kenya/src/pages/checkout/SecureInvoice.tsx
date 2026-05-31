@@ -321,7 +321,7 @@ const SecureInvoice = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">M-Pesa Number *</label>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1">Delivery Phone Number *</label>
                   <div className="flex items-center px-3 py-2 bg-white rounded-md border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500">
                     <Phone className="h-4 w-4 text-gray-400 mr-2" />
                     <input
@@ -376,56 +376,7 @@ const SecureInvoice = () => {
             </div>
           </div>
 
-          {/* Payment Method */}
-          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 space-y-3 print:hidden">
-            <p className="font-bold text-gray-900">Payment Method</p>
-            <div className="space-y-2">
-              {[
-                { id: 'mpesa', name: 'M-Pesa', desc: 'Pay securely via M-Pesa' }
-              ].map(method => (
-                <label key={method.id} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition">
-                  <input
-                    type="radio"
-                    name="payment"
-                    value={method.id}
-                    checked={paymentMethod === method.id}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="w-4 h-4 accent-amber-500"
-                  />
-                  <div className="ml-3">
-                    <p className="font-medium text-gray-900 text-sm">{method.name}</p>
-                    <p className="text-xs text-gray-600">{method.desc}</p>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </div>
 
-          {/* Protection Info */}
-          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-4 border border-emerald-200 print:hidden">
-            <div className="flex items-start gap-3 mb-4">
-              <Shield className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-              <h4 className="font-bold text-emerald-900">How your money is protected</h4>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <Shield className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-1" />
-                <p className="text-xs text-emerald-800 leading-relaxed">Payment held securely in escrow, not given to seller immediately</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <Truck className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-1" />
-                <p className="text-xs text-emerald-800 leading-relaxed">Track your delivery every step of the way</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <ThumbsUp className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-1" />
-                <p className="text-xs text-emerald-800 leading-relaxed">When you receive the item, give the unique delivery code to the vendor to release the funds</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <Info className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-1" />
-                <p className="text-xs text-emerald-800 leading-relaxed">30-day money-back guarantee if not satisfied</p>
-              </div>
-            </div>
-          </div>
 
           {/* Terms Checkbox */}
           <label className="flex items-start gap-3 p-4 bg-white rounded-lg border border-gray-100 cursor-pointer hover:bg-blue-50 transition print:hidden">
@@ -458,6 +409,15 @@ const SecureInvoice = () => {
                 Complete Purchase - KES {total.toLocaleString()}
               </>
             )}
+          </button>
+
+          {/* Download Invoice Button */}
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition print:hidden border border-blue-200"
+          >
+            Download Invoice as PDF
           </button>
 
           {/* Trustmark */}

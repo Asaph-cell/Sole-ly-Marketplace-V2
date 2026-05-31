@@ -1,7 +1,7 @@
 /**
- * Notify Buyer Order Placed
+ * Notify Order Completed
  * 
- * Sends order confirmation email to buyer when order is successfully created.
+ * Sends final receipt/completed emails to both buyer and vendor after OTP verification.
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -38,9 +38,12 @@ Deno.serve(async (req: Request) => {
             .select(`
                 id,
                 customer_id,
+                vendor_id,
                 total_ksh,
+                payout_amount,
                 order_items(product_name, quantity),
-                order_shipping_details(recipient_name, email, delivery_type)
+                order_shipping_details(recipient_name, email),
+                vendor:vendor_id(full_name, store_name, email)
             `)
             .eq("id", orderId)
             .single();
@@ -53,18 +56,11 @@ Deno.serve(async (req: Request) => {
             );
         }
 
-        // Get customer email
+        // 1. Get Customer Email
         let customerEmail = order.order_shipping_details?.email;
         if (!customerEmail && order.customer_id) {
             const { data: customerAuth } = await supabase.auth.admin.getUserById(order.customer_id);
             customerEmail = customerAuth?.user?.email;
-        }
-
-        if (!customerEmail) {
-            return new Response(
-                JSON.stringify({ success: true, message: "No customer email available", emailSent: false }),
-                { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
         }
 
         const customerName = order.order_shipping_details?.recipient_name || "Customer";
@@ -72,47 +68,56 @@ Deno.serve(async (req: Request) => {
             ?.map((item: any) => `${item.quantity}x ${item.product_name}`)
             .join(", ") || "Items";
 
-        const isPickup = order.order_shipping_details?.delivery_type === "pickup";
-
-        const deliveryType = isPickup
-            ? "Pickup from vendor"
-            : "Home Delivery";
-
-        // Send email
-        const emailResult = await sendEmail({
-            to: customerEmail,
-            subject: `🎉 Order Confirmed - #${orderId.slice(0, 8)}`,
-            html: emailTemplates.buyerOrderPlaced({
-                customerName,
-                orderId: orderId.slice(0, 8),
-                items: itemsList,
-                total: order.total_ksh,
-                deliveryType,
-                isPickup,
-                orderTrackingUrl: `https://solelymarketplace.com/track/${orderId}`,
-            }),
-        });
-
-        console.log("Buyer order confirmation sent:", emailResult);
-
-        // Store notification
-        try {
-            await supabase.from("notifications").insert({
-                user_id: order.customer_id,
-                type: "order_placed",
-                title: "Order Confirmed",
-                message: `Your order #${orderId.slice(0, 8)} has been placed successfully! Total: KES ${order.total_ksh.toLocaleString()}`,
-                related_id: orderId,
-            });
-        } catch (notifError) {
-            console.log("Could not store notification");
+        // 2. Get Vendor Email
+        let vendorEmail = order.vendor?.email;
+        if (!vendorEmail && order.vendor_id) {
+             const { data: vendorAuth } = await supabase.auth.admin.getUserById(order.vendor_id);
+             vendorEmail = vendorAuth?.user?.email;
         }
+        
+        const vendorName = order.vendor?.store_name || order.vendor?.full_name || "Vendor";
+        const payoutAmount = order.payout_amount || (order.total_ksh * 0.94);
+
+        const promises = [];
+
+        // Notify Buyer
+        if (customerEmail) {
+            promises.push(
+                sendEmail({
+                    to: customerEmail,
+                    subject: `✅ Order Completed & Receipt - #${orderId.slice(0, 8)}`,
+                    html: emailTemplates.buyerOrderCompleted({
+                        customerName,
+                        orderId: orderId.slice(0, 8),
+                        items: itemsList,
+                        reviewUrl: `https://solelymarketplace.com/track/${orderId}`, // Can point to track page or dedicated review
+                    }),
+                })
+            );
+        }
+
+        // Notify Vendor
+        if (vendorEmail) {
+            promises.push(
+                sendEmail({
+                    to: vendorEmail,
+                    subject: `💰 Payment Released - Order #${orderId.slice(0, 8)}`,
+                    html: emailTemplates.vendorPaymentReleased({
+                        vendorName,
+                        orderId: orderId.slice(0, 8),
+                        payoutAmount,
+                    }),
+                })
+            );
+        }
+
+        const results = await Promise.allSettled(promises);
+        console.log("Completion emails sent:", results);
 
         return new Response(
             JSON.stringify({
                 success: true,
-                message: "Order confirmation sent",
-                emailSent: emailResult.success,
+                message: "Order completion notifications processed",
                 orderId,
             }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

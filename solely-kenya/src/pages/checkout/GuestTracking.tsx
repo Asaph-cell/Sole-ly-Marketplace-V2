@@ -109,6 +109,12 @@ const GuestTracking = () => {
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold">Order Tracking</h1>
           <p className="text-muted-foreground text-sm">Order #{order.id.slice(0, 8).toUpperCase()}</p>
+          <button
+            onClick={() => window.print()}
+            className="mt-4 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-semibold border border-blue-200 transition hover:bg-blue-100 print:hidden mx-auto inline-flex items-center gap-2"
+          >
+            Download Receipt / Invoice
+          </button>
         </div>
 
         {/* Status Timeline */}

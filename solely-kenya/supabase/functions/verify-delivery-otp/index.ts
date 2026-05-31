@@ -178,6 +178,14 @@ serve(async (req: Request) => {
             console.error('Fund transfer exception:', err);
         });
 
+        // E2. Send completion email notifications (non-blocking)
+        console.log(`Initiating completion notifications for order ${orderId}`);
+        supabase.functions.invoke('notify-order-completed', {
+            body: { orderId: orderId }
+        }).catch((err: Error) => {
+            console.error('Failed to trigger notify-order-completed:', err);
+        });
+
         // F. Decrement Stock for each order item
         const { data: orderItems, error: itemsError } = await supabase
             .from("order_items")

@@ -782,6 +782,16 @@ const VendorOrders = () => {
                         {/* Items, financials & delivery — hidden for missed orders */}
                         {!isExpired && (<>
 
+                        {/* Top Actions */}
+                        <div className="flex justify-end pb-3 mb-3 border-b border-border/50">
+                          <button
+                            onClick={() => window.print()}
+                            className="text-[11px] font-semibold px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/40 transition print:hidden"
+                          >
+                            Download Receipt / Invoice
+                          </button>
+                        </div>
+
                         {/* Items */}
                         <div className="space-y-1">
                           {order.order_items?.map((item) => (
