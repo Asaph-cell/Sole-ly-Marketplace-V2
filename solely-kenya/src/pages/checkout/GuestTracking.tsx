@@ -178,7 +178,7 @@ const GuestTracking = () => {
               </div>
             )}
             
-            {order.order_shipping_details.delivery_tracking_enabled && order.order_shipping_details.latitude && order.order_shipping_details.longitude && (
+            {order.order_shipping_details.delivery_tracking_enabled && order.order_shipping_details.gps_latitude && order.order_shipping_details.gps_longitude && (
               <div className="mt-4">
                 <p className="text-sm font-semibold mb-3 flex items-center gap-2 text-primary">
                   <MapPin className="w-4 h-4 animate-bounce" />
@@ -186,8 +186,8 @@ const GuestTracking = () => {
                 </p>
                 <div className="rounded-2xl overflow-hidden border border-border h-[250px]">
                   <LocationViewMap 
-                    latitude={Number(order.order_shipping_details.latitude)} 
-                    longitude={Number(order.order_shipping_details.longitude)} 
+                    latitude={Number(order.order_shipping_details.gps_latitude)} 
+                    longitude={Number(order.order_shipping_details.gps_longitude)} 
                     address={order.order_shipping_details.city}
                     recipientName={order.order_shipping_details.recipient_name}
                   />
