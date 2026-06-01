@@ -133,8 +133,9 @@ const VendorOrders = () => {
       // Show ALL orders except cancelled ones - payment status will be shown as badge
       // This ensures vendors always see orders even if payment webhook was delayed
       const visibleOrders = ordersWithPayments.filter((order) => {
-        // Hide cancelled orders and abandoned checkouts (buyer never paid — vendor was never involved)
+        // Hide cancelled orders, abandoned checkouts, and unpaid orders
         const isHidden = [
+          "pending_payment",
           "cancelled_by_vendor",
           "cancelled_by_customer",
         ].includes(order.status);
