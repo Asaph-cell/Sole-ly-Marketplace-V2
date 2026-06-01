@@ -125,6 +125,22 @@ const VendorPaymentLinks = () => {
     }
   };
 
+  const deleteLink = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this payment link? This action cannot be undone.")) return;
+    
+    const { error } = await supabase
+      .from("payment_links")
+      .delete()
+      .eq("id", id);
+      
+    if (error) {
+      toast.error("Failed to delete link");
+    } else {
+      toast.success("Link deleted successfully");
+      setLinks(links.filter(l => l.id !== id));
+    }
+  };
+
   const copyToClipboard = (id: string) => {
     const url = `${window.location.origin}/pay/${id}`;
     navigator.clipboard.writeText(url);
@@ -325,11 +341,20 @@ const VendorPaymentLinks = () => {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className={link.is_active ? "text-muted-foreground hover:text-destructive" : "text-emerald-600 hover:text-emerald-700"}
+                                className={link.is_active ? "text-muted-foreground hover:text-amber-600" : "text-emerald-600 hover:text-emerald-700"}
                                 onClick={() => toggleLinkStatus(link.id, link.is_active)}
                                 title={link.is_active ? "Deactivate Link" : "Activate Link"}
                               >
                                 {link.is_active ? <EyeOff size={16} /> : <CheckCircle size={16} />}
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => deleteLink(link.id)}
+                                title="Delete Link"
+                              >
+                                <Trash2 size={16} />
                               </Button>
                             </div>
                           </td>
