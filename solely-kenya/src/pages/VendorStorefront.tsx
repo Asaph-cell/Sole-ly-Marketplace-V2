@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO } from "@/components/SEO";
 import ProductCard from "@/components/ProductCard";
-import { Store, MapPin, Star, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Store, MapPin, Star, AlertTriangle, ShieldCheck, Package } from "lucide-react";
 
 const VendorStorefront = () => {
   const { vendorId, storeLink } = useParams();
