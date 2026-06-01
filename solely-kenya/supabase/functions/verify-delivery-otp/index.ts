@@ -155,7 +155,7 @@ serve(async (req: Request) => {
             .insert({
                 order_id: orderId,
                 vendor_id: order.vendor_id,
-                commission_rate: order.commission_rate || 10,
+                commission_rate: order.commission_rate || 6,
                 commission_amount: commissionAmount,
                 notes: "Funds released via vendor OTP entry",
             });

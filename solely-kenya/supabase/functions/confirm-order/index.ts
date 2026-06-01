@@ -90,10 +90,7 @@ serve(async (req: Request) => {
         if (updateEscrowError) console.error('Escrow update failed (non-critical if order is completed):', updateEscrowError);
 
         // C. Create Payout Record (CRITICAL MISSING STEP)
-        // Calculate 95% of total order value (assuming 5% commission) - or use stored commission
-        // The previous code in `VendorOrders.tsx` didn't seem to set `payout_amount` on creation?
-        // Let's check if `payout_amount` exists on the order.
-
+        // Calculate 94% of total order value (assuming 6% commission) - or use stored commission
         const payoutAmount = order.payout_amount ?? (order.total_ksh * 0.94);
         const commissionAmount = order.commission_amount ?? (order.total_ksh * 0.06);
 
