@@ -57,9 +57,9 @@ const VendorSettings = () => {
       
       // Auto-save the logo directly to the profile so it doesn't disappear on refresh
       const { error: updateError } = await supabase
-        .from(\"profiles\")
+        .from("profiles")
         .update({ store_logo_url: publicUrl })
-        .eq(\"id\", user?.id);
+        .eq("id", user?.id);
 
       if (updateError) throw updateError;
 
