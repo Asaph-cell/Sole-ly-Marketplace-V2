@@ -91,50 +91,188 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
 
 // Email templates
 
-const baseEmailLayout = (title: string, content: string, titleColor: string = '#111827') => `
+const baseEmailLayout = (title: string, content: string, titleColor: string = '#1a1a1a') => `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #111827; background-color: #f9fafb; margin: 0; padding: 20px; }
-    .container { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-    .header { padding: 32px 24px 24px; text-align: center; border-bottom: 1px solid #f3f4f6; }
-    .header h1 { margin: 0; font-size: 24px; font-weight: 700; color: ${titleColor}; letter-spacing: -0.5px; }
-    .content { padding: 32px 24px; }
-    .content p { margin: 0 0 16px; font-size: 15px; color: #4b5563; }
-    .order-details { background: #f9fafb; padding: 20px; border-radius: 8px; margin: 24px 0; border: 1px solid #e5e7eb; }
-    .order-details p { margin: 0 0 8px; font-size: 14px; color: #374151; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      line-height: 1.6; 
+      color: #333333; 
+      background-color: #f4f5f7; 
+      margin: 0; 
+      padding: 40px 20px; 
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper {
+      max-width: 600px; 
+      margin: 0 auto; 
+    }
+    .brand-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .brand-header h2 {
+      color: #1a1a1a;
+      font-weight: 800;
+      font-size: 28px;
+      margin: 0;
+      letter-spacing: -1px;
+    }
+    .brand-header span {
+      color: #d4a327; /* Golden Yellow */
+    }
+    .container { 
+      background: #ffffff; 
+      border-radius: 16px; 
+      overflow: hidden; 
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+      border: 1px solid #eaeaea;
+    }
+    .header { 
+      padding: 40px 32px 24px; 
+      text-align: center; 
+      background: linear-gradient(to bottom, #ffffff, #fafafa);
+      border-bottom: 1px solid #f0f0f0; 
+    }
+    .header h1 { 
+      margin: 0; 
+      font-size: 26px; 
+      font-weight: 700; 
+      color: ${titleColor}; 
+      letter-spacing: -0.5px; 
+    }
+    .content { 
+      padding: 32px; 
+    }
+    .content p { 
+      margin: 0 0 20px; 
+      font-size: 16px; 
+      color: #4b5563; 
+    }
+    .order-details { 
+      background: #fafafa; 
+      padding: 24px; 
+      border-radius: 12px; 
+      margin: 28px 0; 
+      border: 1px solid #f0f0f0; 
+    }
+    .order-details p { 
+      margin: 0 0 12px; 
+      font-size: 15px; 
+      color: #374151; 
+      display: flex;
+    }
     .order-details p:last-child { margin: 0; }
-    .order-details strong { color: #111827; font-weight: 600; display: inline-block; width: 100px; }
-    .cta-button { display: inline-block; background: #111827; color: #ffffff !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px; text-align: center; width: 100%; box-sizing: border-box; }
-    .alert-box { background: #fef3c7; border: 1px solid #fde68a; padding: 16px; border-radius: 8px; margin: 24px 0; }
-    .alert-box p { margin: 0; font-size: 14px; color: #92400e; }
-    .success-box { background: #ecfdf5; border: 1px solid #a7f3d0; padding: 16px; border-radius: 8px; margin: 24px 0; }
-    .success-box p { margin: 0; font-size: 14px; color: #065f46; }
-    .info-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 16px; border-radius: 8px; margin: 24px 0; }
-    .info-box p { margin: 0; font-size: 14px; color: #1e40af; }
-    .error-box { background: #fef2f2; border: 1px solid #fecaca; padding: 16px; border-radius: 8px; margin: 24px 0; }
-    .error-box p { margin: 0; font-size: 14px; color: #991b1b; }
-    .footer { text-align: center; padding: 24px; background: #f9fafb; border-top: 1px solid #e5e7eb; }
-    .footer p { margin: 0 0 8px; font-size: 13px; color: #6b7280; }
-    .footer a { color: #111827; text-decoration: underline; }
-    .status-badge { display: inline-block; background: #f3f4f6; color: #374151; padding: 4px 12px; border-radius: 16px; font-size: 13px; font-weight: 600; margin-top: 8px; border: 1px solid #e5e7eb; }
-    .otp-code { font-size: 32px; font-weight: 700; color: #111827; letter-spacing: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; text-align: center; margin: 16px 0; }
-    .tracking-number { font-size: 20px; font-weight: 600; color: #111827; text-align: center; margin: 8px 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    .divider { height: 1px; background: #e5e7eb; margin: 24px 0; }
+    .order-details strong { 
+      color: #1a1a1a; 
+      font-weight: 600; 
+      display: inline-block; 
+      width: 120px; 
+    }
+    .cta-container {
+      text-align: center;
+      margin: 32px 0;
+    }
+    .cta-button { 
+      display: inline-block; 
+      background-color: #d4a327; 
+      color: #1a1a1a !important; 
+      padding: 14px 32px; 
+      text-decoration: none; 
+      border-radius: 8px; 
+      font-weight: 600; 
+      font-size: 16px; 
+      box-shadow: 0 4px 6px -1px rgba(212, 163, 39, 0.3);
+      transition: all 0.2s ease;
+    }
+    .alert-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px 20px; border-radius: 4px 8px 8px 4px; margin: 24px 0; }
+    .alert-box p { margin: 0; font-size: 15px; color: #92400e; }
+    
+    .success-box { background: #ecfdf5; border-left: 4px solid #10b981; padding: 16px 20px; border-radius: 4px 8px 8px 4px; margin: 24px 0; }
+    .success-box p { margin: 0; font-size: 15px; color: #065f46; }
+    
+    .info-box { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 16px 20px; border-radius: 4px 8px 8px 4px; margin: 24px 0; }
+    .info-box p { margin: 0; font-size: 15px; color: #1e40af; }
+    
+    .error-box { background: #fef2f2; border-left: 4px solid #ef4444; padding: 16px 20px; border-radius: 4px 8px 8px 4px; margin: 24px 0; }
+    .error-box p { margin: 0; font-size: 15px; color: #991b1b; }
+    
+    .footer { 
+      text-align: center; 
+      padding: 32px; 
+      background: #fafafa; 
+      border-top: 1px solid #eaeaea; 
+    }
+    .footer p { 
+      margin: 0 0 8px; 
+      font-size: 13px; 
+      color: #9ca3af; 
+    }
+    .footer a { 
+      color: #6b7280; 
+      text-decoration: underline; 
+    }
+    .status-badge { 
+      display: inline-block; 
+      background: #1a1a1a; 
+      color: #ffffff; 
+      padding: 6px 16px; 
+      border-radius: 20px; 
+      font-size: 14px; 
+      font-weight: 600; 
+      margin-top: 12px; 
+      letter-spacing: 0.5px;
+    }
+    .otp-code { 
+      font-size: 36px; 
+      font-weight: 800; 
+      color: #1a1a1a; 
+      letter-spacing: 8px; 
+      font-family: 'SFMono-Regular', Consolas, monospace; 
+      text-align: center; 
+      margin: 24px 0; 
+      background: #f4f5f7;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px dashed #d1d5db;
+    }
+    .tracking-number { 
+      font-size: 22px; 
+      font-weight: 700; 
+      color: #d4a327; 
+      text-align: center; 
+      margin: 12px 0; 
+      font-family: 'SFMono-Regular', Consolas, monospace; 
+    }
+    .divider { 
+      height: 1px; 
+      background: #eaeaea; 
+      margin: 32px 0; 
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>${title}</h1>
+  <div class="wrapper">
+    <div class="brand-header">
+      <h2>Sole<span>-ly</span></h2>
     </div>
-    <div class="content">
-      ${content}
-    </div>
-    <div class="footer">
-      <p>This is an automated message from Solely</p>
-      <p>This email cannot be replied to. For support, visit <a href="https://solelymarketplace.com/contact">solelymarketplace.com/contact</a></p>
+    <div class="container">
+      <div class="header">
+        <h1>${title}</h1>
+      </div>
+      <div class="content">
+        ${content}
+      </div>
+      <div class="footer">
+        <p>This is an automated message from Sole-ly</p>
+        <p>Do not reply to this email. For support, visit <a href="https://solelymarketplace.com/contact">solelymarketplace.com/contact</a></p>
+      </div>
     </div>
   </div>
 </body>
