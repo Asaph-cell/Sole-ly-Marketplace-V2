@@ -27,7 +27,7 @@ const PILL_CATEGORIES = [
   { key: "shoes",          name: "Shoes" },
   { key: "electronics",    name: "Electronics" },
   { key: "beauty",         name: "Beauty" },
-  { key: "bags",           name: "Bags" },
+  { key: "bags",           name: "Accessories" },
   { key: "sports",         name: "Sports" },
   { key: "home",           name: "Home" },
 ];
@@ -61,7 +61,7 @@ const SHOWCASE_CARDS = [
   },
   {
     key: "bags",
-    name: "Bags & Accessories",
+    name: "Accessories",
     subtitle: "Luxury & everyday",
     image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=700&h=460&fit=crop&crop=center",
     gradient: "from-[#FAF5F0] to-[#EBE3D5] dark:from-[#3D332D] dark:to-[#2D2520]",
