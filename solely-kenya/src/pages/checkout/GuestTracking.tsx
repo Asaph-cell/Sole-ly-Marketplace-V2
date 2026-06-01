@@ -14,14 +14,13 @@ const GuestTracking = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let pollInterval: NodeJS.Timeout;
+
     const fetchOrder = async () => {
       if (!orderId) return;
       try {
         const { data, error } = await supabase
-          .from("orders")
-          .select(`*, vendor:vendor_id(store_name, full_name, whatsapp_number, store_link), order_shipping_details(*)`)
-          .eq("id", orderId)
-          .single();
+          .rpc('get_guest_order_details', { target_order_id: orderId });
 
         if (error) throw error;
         setOrder(data);
@@ -34,20 +33,11 @@ const GuestTracking = () => {
 
     fetchOrder();
 
-    // Set up real-time subscription for order status updates
-    const channel = supabase
-      .channel(`order-${orderId}`)
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${orderId}` },
-        (payload) => {
-          setOrder((prev: any) => ({ ...prev, ...payload.new }));
-        }
-      )
-      .subscribe();
+    // Poll every 15 seconds instead of using Real-time (since RLS is now locked down for guests)
+    pollInterval = setInterval(fetchOrder, 15000);
 
     return () => {
-      supabase.removeChannel(channel);
+      if (pollInterval) clearInterval(pollInterval);
     };
   }, [orderId]);
 
