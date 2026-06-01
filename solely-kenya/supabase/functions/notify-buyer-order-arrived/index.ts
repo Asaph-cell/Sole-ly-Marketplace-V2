@@ -84,24 +84,13 @@ Deno.serve(async (req: Request) => {
         const emailResult = await sendEmail({
             to: customerEmail,
             subject: `📦 Order #${orderId.slice(0, 8)} Has Arrived!`,
-            html: `
-                <h2>Your Order Has Arrived!</h2>
-                <p>Hi ${customerName},</p>
-                <p>Great news! Your order <strong>#${orderId.slice(0, 8)}</strong> from <strong>${vendorName}</strong> has arrived.</p>
-                
-                <h3>Items:</h3>
-                <p>${itemsList}</p>
-                
-                <p style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
-                    <strong>Action Required:</strong> Please log in to your account to confirm delivery and inspect your items. 
-                    <br><br>
-                    <a href="https://solelymarketplace.com/orders" style="display: inline-block; background-color: #16a34a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Confirm Delivery</a>
-                </p>
-                
-                <p>If you have any issues, please contact us immediately.</p>
-                
-                <p>Thank you for shopping with Solely!</p>
-            `,
+            html: emailTemplates.buyerOrderArrived({
+                customerName: customerName,
+                orderId: orderId,
+                items: itemsList,
+                vendorName: vendorName,
+                confirmUrl: `https://solelymarketplace.com/track/${orderId}`,
+            }),
         });
 
         console.log("Buyer arrival notification sent:", emailResult);

@@ -97,7 +97,7 @@ Deno.serve(async (req: Request) => {
                 courierName,
                 trackingNumber,
                 deliveryNotes,
-                orderTrackingUrl: `https://solelymarketplace.com/orders/${orderId}`,
+                orderTrackingUrl: `https://solelymarketplace.com/track/${orderId}`,
                 deliveryOtp: order.delivery_otp || undefined,
             }),
         });

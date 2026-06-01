@@ -13,6 +13,7 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { emailTemplates } from "../_shared/email-service.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -122,16 +123,11 @@ Deno.serve(async (req: Request) => {
                         body: JSON.stringify({
                             to: shippingDetails.email,
                             subject: `Order #${order.id.slice(0, 8)} - Delivery Delay Investigation`,
-                            html: `
-                                <h2>Your Order is Under Review</h2>
-                                <p>Dear ${shippingDetails.recipient_name || 'Customer'},</p>
-                                <p>Your order has not been marked as delivered within our 5-day delivery window.</p>
-                                <p>We have automatically raised this for admin review. Our team will contact the vendor to investigate the delay.</p>
-                                <p>Your payment of <strong>KES ${order.total_ksh?.toLocaleString()}</strong> remains safely held in escrow until this is resolved.</p>
-                                <p>If you have already received your order, please log in to Solely and confirm delivery.</p>
-                                <p>If you have any concerns, please contact us at contact@solelymarketplace.com</p>
-                                <p>Best regards,<br>Solely Marketplace</p>
-                            `,
+                            html: emailTemplates.buyerAutoDisputeDelay({
+                                customerName: shippingDetails.recipient_name || 'Customer',
+                                orderId: order.id,
+                                totalAmount: order.total_ksh,
+                            }),
                         }),
                     }).catch(err => console.log(`Email notification failed for ${order.id}:`, err));
                 }

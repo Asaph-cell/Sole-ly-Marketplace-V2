@@ -90,7 +90,7 @@ Deno.serve(async (req: Request) => {
 
         const customerName = order.order_shipping_details?.recipient_name || "Customer";
         const itemsList = order.order_items?.map((item: any) => `${item.quantity}x ${item.product_name}`).join(", ") || "Items";
-        const reviewUrl = `https://solelymarketplace.com/orders/${orderId}`;
+        const reviewUrl = `https://solelymarketplace.com/track/${orderId}`;
 
         const emailResult = await sendEmail({
             to: customerEmail,
