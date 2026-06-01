@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-import { Check, User, Store, CreditCard, MapPin, Save, Phone } from "lucide-react";
+import { Check, User, Store, CreditCard, MapPin, Save, Phone, ImagePlus, Loader2 } from "lucide-react";
 
 const VendorSettings = () => {
   const { user, loading } = useAuth();
@@ -28,7 +28,39 @@ const VendorSettings = () => {
     vendor_county: "",
     vendor_address_line1: "",
     vendor_address_line2: "",
+    store_logo_url: "",
   });
+
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!e.target.files || e.target.files.length === 0) return;
+      
+      const file = e.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user?.id}-${Math.random()}.${fileExt}`;
+
+      setUploadingLogo(true);
+
+      const { error: uploadError } = await supabase.storage
+        .from('store-logos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('store-logos')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, store_logo_url: publicUrl });
+      toast.success("Logo uploaded successfully. Don't forget to save changes!");
+    } catch (error: any) {
+      toast.error(error.message || "Error uploading image");
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -60,6 +92,7 @@ const VendorSettings = () => {
         vendor_county: data.vendor_county || "",
         vendor_address_line1: data.vendor_address_line1 || "",
         vendor_address_line2: data.vendor_address_line2 || "",
+        store_logo_url: data.store_logo_url || "",
       });
 
     }
@@ -178,6 +211,37 @@ const VendorSettings = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label>Store Logo</Label>
+                    <div className="flex items-center gap-4">
+                      <div className="h-20 w-20 rounded-full border-2 border-border overflow-hidden bg-muted flex items-center justify-center shrink-0">
+                        {formData.store_logo_url ? (
+                          <img src={formData.store_logo_url} alt="Store Logo" className="h-full w-full object-cover" />
+                        ) : (
+                          <Store size={24} className="text-muted-foreground" />
+                        )}
+                      </div>
+                      <div>
+                        <Label htmlFor="logo_upload" className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md text-sm font-medium transition-colors">
+                          {uploadingLogo ? (
+                            <><Loader2 size={16} className="animate-spin" /> Uploading...</>
+                          ) : (
+                            <><ImagePlus size={16} /> Choose Image</>
+                          )}
+                        </Label>
+                        <Input 
+                          id="logo_upload" 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={handleLogoUpload} 
+                          disabled={uploadingLogo} 
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">Recommended: 256x256px JPG or PNG</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="store_name">Store Name</Label>
                     <Input

@@ -44,7 +44,7 @@ const VendorStorefront = () => {
       // 2. Fetch active products
       const { data: prods } = await supabase
         .from("products")
-        .select("id, name, price_ksh, old_price_ksh, images, brand, is_discounted, category_id, vendor_id, stock, condition")
+        .select("id, name, price_ksh, old_price_ksh, images, brand, is_discounted, category, vendor_id, stock, condition")
         .eq("vendor_id", prof.id)
         .eq("status", "active")
         .order("created_at", { ascending: false });
@@ -108,8 +108,12 @@ const VendorStorefront = () => {
       <div className="bg-primary/5 border-b border-primary/10">
         <div className="container mx-auto px-4 py-8 md:py-12">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
-            <div className="h-24 w-24 md:h-32 md:w-32 bg-primary/10 text-primary border-4 border-background rounded-full flex items-center justify-center text-4xl md:text-5xl font-black shadow-sm shrink-0">
-              {storeName.charAt(0).toUpperCase()}
+            <div className="h-24 w-24 md:h-32 md:w-32 bg-primary/10 text-primary border-4 border-background rounded-full flex items-center justify-center text-4xl md:text-5xl font-black shadow-sm shrink-0 overflow-hidden">
+              {vendor.store_logo_url ? (
+                <img src={vendor.store_logo_url} alt={storeName} className="h-full w-full object-cover" />
+              ) : (
+                storeName.charAt(0).toUpperCase()
+              )}
             </div>
             
             <div className="flex-1 space-y-3">
