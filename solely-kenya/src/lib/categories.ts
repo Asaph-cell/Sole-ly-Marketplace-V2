@@ -85,7 +85,7 @@ export const ALL_CATEGORIES: Category[] = [
     ],
   },
   {
-    name: "Bags & Accessories",
+    name: "Accessories",
     key: "bags",
     icon: "👜",
     coverGradient: "from-amber-700 to-yellow-600",
