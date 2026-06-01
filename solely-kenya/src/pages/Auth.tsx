@@ -315,7 +315,7 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center py-12 pb-28 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <img src={logo} alt="Solely Marketplace" className="h-16 w-auto mx-auto mb-4" />

@@ -443,19 +443,6 @@ a {
 /* Mobile-specific fixes (screens < 640px) */
 @media (max-width: 639px) {
 
-  /* Force flex containers to wrap - but respect explicit flex-nowrap */
-  .flex:not(.flex-nowrap):not([class*="flex-nowrap"]) {
-    flex-wrap: wrap;
-  }
-
-  /* Force buttons and inputs to full width when in wrapping containers */
-  .flex:not(.flex-nowrap) button:not(.shrink-0),
-  .flex:not(.flex-nowrap) input[type="submit"],
-  .flex:not(.flex-nowrap) input[type="button"],
-  .flex:not(.flex-nowrap) .btn:not(.shrink-0) {
-    min-width: 100%;
-    flex: 1 1 100%;
-  }
 
   /* Ensure grids stack properly */
   .grid:not(.grid-cols-1):not(.grid-cols-2) {
@@ -570,20 +557,6 @@ a {
    Buttons and inputs must be ≥44px tall
    ========================================== */
 @media (max-width: 639px) {
-  /* All interactive elements need min touch targets */
-  button,
-  [role="button"],
-  input[type="text"],
-  input[type="email"],
-  input[type="tel"],
-  input[type="password"],
-  input[type="number"],
-  input[type="search"],
-  input[type="url"],
-  select,
-  textarea {
-    min-height: 44px;
-  }
 
   /* Checkbox and radio still need proper sizing */
   input[type="checkbox"],
