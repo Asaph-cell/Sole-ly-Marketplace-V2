@@ -54,7 +54,16 @@ const VendorSettings = () => {
         .getPublicUrl(filePath);
 
       setFormData({ ...formData, store_logo_url: publicUrl });
-      toast.success("Logo uploaded successfully. Don't forget to save changes!");
+      
+      // Auto-save the logo directly to the profile so it doesn't disappear on refresh
+      const { error: updateError } = await supabase
+        .from(\"profiles\")
+        .update({ store_logo_url: publicUrl })
+        .eq(\"id\", user?.id);
+
+      if (updateError) throw updateError;
+
+      toast.success("Logo uploaded and saved successfully!");
     } catch (error: any) {
       toast.error(error.message || "Error uploading image");
     } finally {
