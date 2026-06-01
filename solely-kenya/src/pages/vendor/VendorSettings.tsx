@@ -147,7 +147,7 @@ const VendorSettings = () => {
       <VendorNavbar />
       <div className="flex">
         <VendorSidebar />
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto pb-24">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto pb-36">
           <div className="max-w-4xl mx-auto space-y-8">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
@@ -292,7 +292,7 @@ const VendorSettings = () => {
                       />
                     </div>
                     <p className="text-sm text-muted-foreground mt-2 bg-green-50 text-green-700 p-3 rounded-md">
-                      <strong>90% of all your sales</strong> will be automatically disbursed to this number once the buyer confirms delivery.
+                      <strong>94% of all your sales</strong> will be automatically disbursed to this number once the buyer confirms delivery.
                     </p>
                   </div>
                 </CardContent>

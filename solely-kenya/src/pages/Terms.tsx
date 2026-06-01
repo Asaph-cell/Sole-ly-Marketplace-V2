@@ -44,7 +44,7 @@ const Terms = () => {
                                 </h2>
                                 <p className="text-sm text-muted-foreground mb-4">Last Updated: May 2026</p>
                                 <p className="text-muted-foreground leading-relaxed">
-                                    Welcome to Sole-ly, Kenya's trusted online shoe marketplace. These Terms and Conditions constitute a legally binding agreement between you ("the Buyer") and Sole-ly ("the Platform"). By creating an account or purchasing products, you agree to these terms.
+                                    Welcome to Sole-ly, Kenya's trusted online marketplace. These Terms and Conditions constitute a legally binding agreement between you ("the Buyer") and Sole-ly ("the Platform"). By creating an account or purchasing products, you agree to these terms.
                                 </p>
                             </section>
 

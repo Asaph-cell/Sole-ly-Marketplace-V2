@@ -192,7 +192,7 @@ const Vendor = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  All payments go through Sole-ly's escrow system. When a buyer places an order, payment is held securely. After the buyer confirms delivery, your earnings (90% of order value) are added to your balance. You can then withdraw your funds to M-Pesa at any time directly from your dashboard. Standard transaction fees apply.
+                  All payments go through Sole-ly's escrow system. When a buyer places an order, payment is held securely. After the buyer confirms delivery, your earnings (94% of order value) are added to your balance. You can then withdraw your funds to M-Pesa at any time directly from your dashboard. Standard transaction fees apply.
                 </p>
               </CardContent>
             </Card>

@@ -92,7 +92,7 @@ const Blog = () => {
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
                   <h3 className="text-2xl md:text-3xl font-bold mb-4 italic">Turn Your Kicks into Cash</h3>
                   <p className="opacity-90 mb-8 max-w-xl mx-auto text-base">
-                    Have a collection you're ready to move? Join Nairobi's fastest-growing shoe marketplace and start selling with zero upfront fees.
+                    Have a collection you're ready to move? Join Nairobi's fastest-growing marketplace and start selling with zero upfront fees.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Button asChild size="lg" className="bg-primary text-primary-foreground px-10 rounded-full font-bold hover:shadow-xl transition-all h-14 text-lg">

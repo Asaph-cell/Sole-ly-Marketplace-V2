@@ -90,7 +90,7 @@ export const SEO = ({
         "alternateName": "Solely Shoes Kenya",
         "url": SITE_URL,
         "logo": `${SITE_URL}/favicon.ico`,
-        "description": "Kenya's trusted online shoe marketplace. Discover authentic sneakers, formal shoes, and boots from verified vendors with secure escrow protection.",
+        "description": "Kenya's trusted online marketplace. Discover authentic sneakers, formal shoes, and boots from verified vendors with secure escrow protection.",
         "address": {
             "@type": "PostalAddress",
             "addressLocality": "Nairobi",
@@ -102,7 +102,7 @@ export const SEO = ({
         },
         "hasOfferCatalog": {
             "@type": "OfferCatalog",
-            "name": "Shoe Marketplace Catalog",
+            "name": "Marketplace Catalog",
             "itemListElement": [
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Buyer Protection Escrow" } },
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Vendor Sales Platform" } }

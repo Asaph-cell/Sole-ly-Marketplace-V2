@@ -187,7 +187,7 @@ const VendorRegistration = () => {
                   required
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  <strong>Required:</strong> This M-Pesa number will receive your sales payouts (90% of order value). Must be a valid Kenyan M-Pesa number.
+                  <strong>Required:</strong> This M-Pesa number will receive your sales payouts (94% of order value). Must be a valid Kenyan M-Pesa number.
                 </p>
               </div>
 

@@ -87,7 +87,7 @@ export const blogPosts: BlogPost[] = [
     category: "Safety",
     readTime: "6 min read",
     metaDescription: "Stop being a victim of 'character development.' Learn how Solely's escrow system protects your M-Pesa payments while shopping for shoes online.",
-    keywords: ["safe online shopping kenya", "solely escrow", "avoid mpesa scams", "trusted shoe marketplace", "secure shopping nairobi"],
+    keywords: ["safe online shopping kenya", "solely escrow", "avoid mpesa scams", "trusted marketplace", "secure shopping nairobi"],
     comments: [
       {
         id: "c2",
