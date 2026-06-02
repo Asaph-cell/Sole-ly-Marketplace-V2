@@ -103,7 +103,7 @@ const ProductCard = ({
         <Card className="h-full flex flex-col overflow-hidden">
           <CardContent className="p-0 relative -mx-5 -mt-5 mb-4">
             <div
-              className="aspect-[4/5] overflow-hidden bg-white relative rounded-t-md"
+              className="aspect-square overflow-hidden bg-white relative rounded-t-md"
               onClick={handleMobileTap}
             >
               {/* Image (always visible as base layer) - with blur lazy load */}
