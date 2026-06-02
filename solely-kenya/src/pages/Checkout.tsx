@@ -202,8 +202,6 @@ const Checkout = () => {
           quantity: cartItem.quantity,
           unit_price_ksh: unitPrice,
           line_total_ksh: lineTotal,
-          size: cartItem.size || null,
-          color: cartItem.color || null,
         };
       });
 

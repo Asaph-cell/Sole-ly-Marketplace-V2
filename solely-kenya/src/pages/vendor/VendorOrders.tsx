@@ -798,8 +798,8 @@ const VendorOrders = () => {
                           {order.order_items?.map((item) => (
                             <div key={item.id} className="flex justify-between text-sm">
                               <span>{item.quantity} × {item.product_name}
-                                {item.size && <span className="text-muted-foreground ml-1">(Size {item.size})</span>}
-                                {item.color && <span className="text-muted-foreground ml-1">({item.color})</span>}
+                                {(item.size || (item.product_snapshot as any)?.size) && <span className="text-muted-foreground ml-1">(Size {item.size || (item.product_snapshot as any)?.size})</span>}
+                                {(item.color || (item.product_snapshot as any)?.color) && <span className="text-muted-foreground ml-1">({item.color || (item.product_snapshot as any)?.color})</span>}
                               </span>
                               <span className="font-medium">KES {(item.quantity * item.unit_price_ksh).toLocaleString()}</span>
                             </div>
