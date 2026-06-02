@@ -350,26 +350,11 @@ const VendorAddProduct = () => {
                         <SelectValue placeholder="Select condition" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="new">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                            New - Brand new, unused
-                          </div>
-                        </SelectItem>
+                        <SelectItem value="new">New - Brand new, unused</SelectItem>
                         {formData.category === "electronics" ? (
-                          <SelectItem value="refurbished">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                              Refurbished - Restored to working order
-                            </div>
-                          </SelectItem>
+                          <SelectItem value="refurbished">Refurbished - Restored to working order</SelectItem>
                         ) : (
-                          <SelectItem value="thrifted">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                              Thrifted - Pre-owned / Used
-                            </div>
-                          </SelectItem>
+                          <SelectItem value="thrifted">Thrifted - Pre-owned / Used</SelectItem>
                         )}
                       </SelectContent>
                     </Select>

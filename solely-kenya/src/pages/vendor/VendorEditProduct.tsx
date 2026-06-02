@@ -319,26 +319,11 @@ const VendorEditProduct = () => {
                         <SelectValue placeholder="Select condition" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="new">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                            Brand New — sealed / never used
-                          </div>
-                        </SelectItem>
+                        <SelectItem value="new">Brand New — sealed / never used</SelectItem>
                         {formData.category === "electronics" || formData.category === "phones" ? (
-                          <SelectItem value="refurbished">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                              Refurbished — tested &amp; fully working
-                            </div>
-                          </SelectItem>
+                          <SelectItem value="refurbished">Refurbished — tested & fully working</SelectItem>
                         ) : (
-                          <SelectItem value="thrifted">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                              Thrifted — pre-owned, honestly described
-                            </div>
-                          </SelectItem>
+                          <SelectItem value="thrifted">Thrifted — pre-owned, honestly described</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
