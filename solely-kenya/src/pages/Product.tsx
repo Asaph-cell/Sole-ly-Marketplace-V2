@@ -893,6 +893,7 @@ const Product = () => {
                       condition={simProd.condition}
                       videoUrl={simProd.video_url}
                       freeDelivery={simProd.free_delivery}
+                      category={simProd.category}
                     />
                   </SwiperSlide>
                 ))}

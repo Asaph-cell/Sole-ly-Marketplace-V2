@@ -392,6 +392,7 @@ const Home = () => {
                     condition={product.condition || "new"}
                     videoUrl={product.video_url}
                     freeDelivery={product.free_delivery}
+                    category={product.category}
                   />
                 ))}
               </div>
@@ -452,6 +453,7 @@ const Home = () => {
                   condition={product.condition || "new"}
                   videoUrl={product.video_url}
                   freeDelivery={product.free_delivery}
+                  category={product.category}
                 />
               ))}
             </div>
