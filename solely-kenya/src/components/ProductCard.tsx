@@ -103,7 +103,7 @@ const ProductCard = ({
         <Card className="h-full flex flex-col overflow-hidden">
           <CardContent className="p-0 relative -mx-5 -mt-5 mb-4">
             <div
-              className="aspect-square overflow-hidden bg-white relative rounded-t-md"
+              className="w-full overflow-hidden bg-white relative rounded-t-md"
               onClick={handleMobileTap}
             >
               {/* Image (always visible as base layer) - with blur lazy load */}
@@ -111,9 +111,9 @@ const ProductCard = ({
                 src={image}
                 alt={`${brand ? brand + ' ' : ''}${name} for Sale in Kenya`}
                 effect="blur"
-                className={`w-full h-full object-contain transition-opacity duration-300 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"
+                className={`w-full h-auto object-cover transition-opacity duration-300 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"
                   }`}
-                wrapperClassName="w-full h-full"
+                wrapperClassName="w-full h-auto block"
               />
 
               {/* Video (lazy loaded, shown on hover/tap) */}
