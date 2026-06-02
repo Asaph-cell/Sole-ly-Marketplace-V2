@@ -44,7 +44,7 @@ const VendorStorefront = () => {
       // 2. Fetch active products
       const { data: prods } = await supabase
         .from("products")
-        .select("id, name, price_ksh, old_price_ksh, images, brand, is_discounted, category, vendor_id, stock, condition")
+        .select("*")
         .eq("vendor_id", prof.id)
         .eq("status", "active")
         .order("created_at", { ascending: false });
@@ -163,7 +163,18 @@ const VendorStorefront = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} viewType="grid" />
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                price={product.price_ksh}
+                image={product.images?.[0] || "/placeholder.svg"}
+                brand={product.brand}
+                createdAt={product.created_at}
+                condition={product.condition || "new"}
+                videoUrl={product.video_url}
+                freeDelivery={product.free_delivery}
+              />
             ))}
           </div>
         )}
