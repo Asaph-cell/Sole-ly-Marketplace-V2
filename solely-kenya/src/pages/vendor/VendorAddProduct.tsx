@@ -350,11 +350,11 @@ const VendorAddProduct = () => {
                         <SelectValue placeholder="Select condition" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="new">New - Brand new, unused</SelectItem>
+                        <SelectItem value="new">Brand New</SelectItem>
                         {formData.category === "electronics" ? (
-                          <SelectItem value="refurbished">Refurbished - Restored to working order</SelectItem>
+                          <SelectItem value="refurbished">Refurbished</SelectItem>
                         ) : (
-                          <SelectItem value="thrifted">Thrifted - Pre-owned / Used</SelectItem>
+                          <SelectItem value="thrifted">Thrifted</SelectItem>
                         )}
                       </SelectContent>
                     </Select>

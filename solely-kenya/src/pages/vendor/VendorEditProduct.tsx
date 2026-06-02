@@ -319,11 +319,11 @@ const VendorEditProduct = () => {
                         <SelectValue placeholder="Select condition" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="new">Brand New — sealed / never used</SelectItem>
+                        <SelectItem value="new">Brand New</SelectItem>
                         {formData.category === "electronics" || formData.category === "phones" ? (
-                          <SelectItem value="refurbished">Refurbished — tested & fully working</SelectItem>
+                          <SelectItem value="refurbished">Refurbished</SelectItem>
                         ) : (
-                          <SelectItem value="thrifted">Thrifted — pre-owned, honestly described</SelectItem>
+                          <SelectItem value="thrifted">Thrifted</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
