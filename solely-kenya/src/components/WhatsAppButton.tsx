@@ -1,14 +1,22 @@
+import { useLocation } from "react-router-dom";
+
 const WhatsAppButton = () => {
+    const location = useLocation();
     const phoneNumber = "254790793213"; // Format: country code + number without leading 0
     const message = encodeURIComponent("Hi! I have a question about Solely Marketplace.");
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+
+    // On mobile product pages, there is a sticky bottom action bar that covers the bottom ~120px.
+    // Push the WhatsApp button up so it doesn't collide with the "Buy Now" buttons.
+    const isProductPage = location.pathname.startsWith("/product/");
+    const bottomClass = isProductPage ? "bottom-36 md:bottom-6" : "bottom-6";
 
     return (
         <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-[#25D366] rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110"
+            className={`fixed ${bottomClass} right-6 z-50 flex items-center justify-center w-14 h-14 bg-[#25D366] rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110`}
             aria-label="Chat on WhatsApp"
         >
             {/* WhatsApp Icon */}

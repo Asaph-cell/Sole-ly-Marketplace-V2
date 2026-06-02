@@ -347,7 +347,7 @@ const Product = () => {
   }
 
   return (
-    <div className="min-h-screen py-6 sm:py-8 pb-24 md:pb-8 overflow-x-hidden">
+    <div className="min-h-screen py-6 sm:py-8 pb-36 md:pb-8 overflow-x-hidden">
       {product && (
         <SEO
           title={product.name}
