@@ -391,35 +391,57 @@ const VendorAddProduct = () => {
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="sizes">Available Sizes (EU - comma-separated)</Label>
-                    <ShoeSizeChart />
+                    <Label htmlFor="sizes">
+                      {formData.category === "electronics" || formData.category === "phones"
+                        ? "Available Variants (comma-separated)"
+                        : formData.category === "apparel"
+                        ? "Available Sizes (e.g. XS, S, M, L, XL)"
+                        : formData.category === "beauty" || formData.category === "skincare"
+                        ? "Available Sizes / Volumes (comma-separated)"
+                        : "Available Sizes (EU — comma-separated)"}
+                    </Label>
+                    {(formData.category === "shoes" || !formData.category) && <ShoeSizeChart />}
                   </div>
                   <Input
                     id="sizes"
-                    placeholder="36, 37, 38, 39, 40, 41, 42, 43"
+                    placeholder={
+                      formData.category === "electronics" || formData.category === "phones"
+                        ? "64GB, 128GB, 256GB"
+                        : formData.category === "apparel"
+                        ? "XS, S, M, L, XL, XXL"
+                        : formData.category === "beauty" || formData.category === "skincare"
+                        ? "50ml, 100ml, 200g"
+                        : "36, 37, 38, 39, 40, 41, 42, 43"
+                    }
                     value={formData.sizes}
                     onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
                   />
-                  <Alert className="bg-amber-50 border-amber-200">
-                    <AlertTriangle size={16} strokeWidth={1.5} className=" text-amber-600" />
-                    <AlertDescription className="text-amber-800 text-sm">
-                      <strong>Important:</strong> Enter exact EU sizes from the size chart (e.g., 36, 37, 38).
-                      Using correct sizes ensures customers can find their perfect fit.
-                      Click "Size Guide" above to view the conversion chart.
-                    </AlertDescription>
-                  </Alert>
+                  {(formData.category === "shoes" || !formData.category) && (
+                    <Alert className="bg-amber-50 border-amber-200">
+                      <AlertTriangle size={16} strokeWidth={1.5} className=" text-amber-600" />
+                      <AlertDescription className="text-amber-800 text-sm">
+                        <strong>Important:</strong> Enter exact EU sizes from the size chart (e.g., 36, 37, 38).
+                        Using correct sizes ensures customers can find their perfect fit.
+                        Click "Size Guide" above to view the conversion chart.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
 
                 <div className="space-y-3">
                   <Label htmlFor="colors">Available Colors (comma-separated)</Label>
                   <Input
                     id="colors"
-                    placeholder="Black, White, Red, Blue, Brown"
+                    placeholder={
+                      formData.category === "beauty" || formData.category === "skincare"
+                        ? "Nude, Pink, Red (or leave blank if none)"
+                        : "Black, White, Red, Blue, Brown"
+                    }
                     value={formData.colors}
                     onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Enter all available colors for this product. Buyers will select their preferred color when ordering.
+                    Enter all available colors/shades for this product. Buyers will select their preferred color when ordering.
                   </p>
                 </div>
 
@@ -427,7 +449,13 @@ const VendorAddProduct = () => {
                   <Label htmlFor="key_features">Key Features (comma-separated)</Label>
                   <Textarea
                     id="key_features"
-                    placeholder="Breathable mesh, Cushioned sole, Water resistant"
+                    placeholder={
+                      formData.category === "electronics" || formData.category === "phones"
+                        ? "5G, 120Hz display, 5000mAh battery"
+                        : formData.category === "beauty" || formData.category === "skincare"
+                        ? "Hydrating, Contains Vitamin C, SPF 50"
+                        : "Breathable mesh, Cushioned sole, Water resistant"
+                    }
                     value={formData.key_features}
                     onChange={(e) => setFormData({ ...formData, key_features: e.target.value })}
                     rows={3}

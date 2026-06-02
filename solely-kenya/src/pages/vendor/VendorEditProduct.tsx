@@ -365,6 +365,8 @@ const VendorEditProduct = () => {
                         ? "Available Variants (comma-separated)"
                         : formData.category === "apparel"
                         ? "Available Sizes (e.g. XS, S, M, L, XL)"
+                        : formData.category === "beauty" || formData.category === "skincare"
+                        ? "Available Sizes / Volumes (comma-separated)"
                         : "Available Sizes (EU — comma-separated)"}
                     </Label>
                     {(formData.category === "shoes" || !formData.category) && <ShoeSizeChart />}
@@ -376,6 +378,8 @@ const VendorEditProduct = () => {
                         ? "64GB, 128GB, 256GB"
                         : formData.category === "apparel"
                         ? "XS, S, M, L, XL, XXL"
+                        : formData.category === "beauty" || formData.category === "skincare"
+                        ? "50ml, 100ml, 200g"
                         : "36, 37, 38, 39, 40, 41, 42, 43"
                     }
                     value={formData.sizes}
@@ -396,12 +400,16 @@ const VendorEditProduct = () => {
                   <Label htmlFor="colors">Available Colors (comma-separated)</Label>
                   <Input
                     id="colors"
-                    placeholder="Black, White, Red, Blue, Brown"
+                    placeholder={
+                      formData.category === "beauty" || formData.category === "skincare"
+                        ? "Nude, Pink, Red (or leave blank if none)"
+                        : "Black, White, Red, Blue, Brown"
+                    }
                     value={formData.colors}
                     onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Enter all available colors for this product. Buyers will select their preferred color when ordering.
+                    Enter all available colors/shades for this product. Buyers will select their preferred color when ordering.
                   </p>
                 </div>
 
@@ -409,7 +417,13 @@ const VendorEditProduct = () => {
                   <Label htmlFor="key_features">Key Features (comma-separated)</Label>
                   <Textarea
                     id="key_features"
-                    placeholder="Breathable mesh, Cushioned sole, Water resistant"
+                    placeholder={
+                      formData.category === "electronics" || formData.category === "phones"
+                        ? "5G, 120Hz display, 5000mAh battery"
+                        : formData.category === "beauty" || formData.category === "skincare"
+                        ? "Hydrating, Contains Vitamin C, SPF 50"
+                        : "Breathable mesh, Cushioned sole, Water resistant"
+                    }
                     value={formData.key_features}
                     onChange={(e) => setFormData({ ...formData, key_features: e.target.value })}
                     rows={3}

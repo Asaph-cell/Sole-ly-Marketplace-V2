@@ -111,7 +111,7 @@ const ProductCard = ({
                 src={image}
                 alt={`${brand ? brand + ' ' : ''}${name} for Sale in Kenya`}
                 effect="blur"
-                className={`w-full h-full object-cover transition-opacity duration-300 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"
+                className={`w-full h-full object-contain transition-opacity duration-300 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"
                   }`}
                 wrapperClassName="w-full h-full"
               />
@@ -121,7 +121,7 @@ const ProductCard = ({
                 <video
                   ref={videoRef}
                   src={videoUrl}
-                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovering || isPlaying ? "opacity-100" : "opacity-0"
+                  className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${isHovering || isPlaying ? "opacity-100" : "opacity-0"
                     }`}
                   muted
                   loop
