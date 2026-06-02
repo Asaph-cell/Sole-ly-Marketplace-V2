@@ -6,10 +6,7 @@ const WhatsAppButton = () => {
     const message = encodeURIComponent("Hi! I have a question about Solely Marketplace.");
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
 
-    // On mobile product pages, there is a sticky bottom action bar that covers the bottom ~120px.
-    // Push the WhatsApp button up so it doesn't collide with the "Buy Now" buttons.
-    const isProductPage = location.pathname.startsWith("/product/");
-    const bottomClass = isProductPage ? "bottom-36 md:bottom-6" : "bottom-6";
+    const bottomClass = "bottom-6";
 
     return (
         <a

@@ -738,8 +738,8 @@ const Product = () => {
               </div>
             )}
 
-            {/* CTA Buttons - Hidden on mobile (shown in sticky bar) */}
-            <div className="hidden md:block space-y-3 pt-6">
+            {/* CTA Buttons */}
+            <div className="space-y-3 pt-6">
               <Button
                 size="lg"
                 className="w-full min-h-[48px]"
@@ -904,39 +904,7 @@ const Product = () => {
         <VendorRating vendorId={product.vendor_id} productId={product.id} />
       </div>
 
-      {/* Floating Mobile Action Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm rounded-t-3xl shadow-card p-4 z-40 safe-bottom">
-        <div className="flex gap-2 mb-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1 min-h-[40px] tap-active rounded-xl border-primary/40 text-primary text-xs"
-            onClick={() => setShowCompareModal(true)}
-          >
-            <BarChart2 size={14} strokeWidth={1.5} className=" mr-1" />
-            Compare Prices
-          </Button>
-        </div>
-        <div className="flex gap-3">
-          <Button
-            size="lg"
-            variant="outline"
-            className="flex-1 min-h-[48px] tap-active rounded-2xl"
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
-          >
-            Add to Cart
-          </Button>
-          <Button
-            size="lg"
-            className="flex-[1.5] min-h-[48px] tap-active rounded-2xl"
-            onClick={handleBuyNow}
-            disabled={product.stock === 0}
-          >
-            Buy Now
-          </Button>
-        </div>
-      </div>
+
       {/* Price Compare Modal */}
       {product && (
         <PriceCompareModal
