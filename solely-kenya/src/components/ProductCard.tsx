@@ -27,7 +27,7 @@ const conditionLabels: Record<string, { label: string; color: string }> = {
   thrifted:    { label: "Thrifted",    color: "bg-purple-500" },
   refurbished: { label: "Refurbished", color: "bg-blue-500" },
   // Legacy
-  like_new: { label: "Like New", color: "bg-blue-500" },
+  like_new: { label: "Refurbished", color: "bg-blue-500" },
   good:     { label: "Thrifted", color: "bg-purple-500" },
   fair:     { label: "Thrifted", color: "bg-purple-500" },
 };
@@ -140,10 +140,10 @@ const ProductCard = ({
               )}
             </div>
 
-            {/* Condition Badge - Top Left */}
+            {/* Condition Badge - Bottom Left to avoid collision with top right badges */}
             <Badge
               variant="secondary"
-              className="absolute top-3 left-3 shadow-sm"
+              className="absolute bottom-3 left-3 shadow-sm bg-white/90 backdrop-blur-sm dark:bg-black/90"
             >
               {conditionInfo.label}
             </Badge>

@@ -15,7 +15,8 @@ import { toast } from "sonner";
 import { ShoeSizeChart } from "@/components/ShoeSizeChart";
 import { VideoUploader } from "@/components/VideoUploader";
 import { AlertTriangle } from "lucide-react";
-import { CATEGORIES } from "@/lib/categories";
+import { CATEGORIES, ALL_CATEGORIES } from "@/lib/categories";
+import { compressImages } from "@/lib/compressImage";
 
 const VendorEditProduct = () => {
   const { id } = useParams();
@@ -31,6 +32,7 @@ const VendorEditProduct = () => {
     stock: "",
     brand: "",
     category: "",
+    subcategory: "",
     key_features: "",
     sizes: "",
     colors: "",
@@ -75,6 +77,7 @@ const VendorEditProduct = () => {
           stock: data.stock.toString(),
           brand: data.brand || "",
           category: data.category || "",
+          subcategory: data.subcategory || "",
           key_features: data.key_features?.join(", ") || "",
           sizes: data.sizes?.join(", ") || "",
           colors: data.colors?.join(", ") || "",
@@ -127,7 +130,9 @@ const VendorEditProduct = () => {
     const uploadedUrls: string[] = [];
 
     try {
-      for (const file of imageFiles) {
+      const compressedFiles = await compressImages(imageFiles);
+
+      for (const file of compressedFiles) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${user?.id}/${Date.now()}-${Math.random()}.${fileExt}`;
 
@@ -177,6 +182,7 @@ const VendorEditProduct = () => {
           stock: parseInt(formData.stock),
           brand: formData.brand,
           category: formData.category,
+          subcategory: formData.subcategory || null,
           key_features: keyFeaturesArray,
           sizes: sizesArray,
           colors: colorsArray,
@@ -287,23 +293,46 @@ const VendorEditProduct = () => {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value) => setFormData({ ...formData, category: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map((cat) => (
-                        <SelectItem key={cat.key} value={cat.key}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="category">Category</Label>
+                    <Select
+                      value={formData.category}
+                      onValueChange={(value) => setFormData({ ...formData, category: value, subcategory: "" })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map((cat) => (
+                          <SelectItem key={cat.key} value={cat.key}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="subcategory">Subcategory (Optional)</Label>
+                    <Select
+                      value={formData.subcategory}
+                      onValueChange={(value) => setFormData({ ...formData, subcategory: value })}
+                      disabled={!formData.category}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select subcategory" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value=" ">None</SelectItem>
+                        {ALL_CATEGORIES.find(c => c.key === formData.category)?.subcategories.map((sub) => (
+                          <SelectItem key={sub.key} value={sub.key}>
+                            {sub.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Condition Selector — options change based on category */}

@@ -42,6 +42,7 @@ const Shop = () => {
   const [products, setProducts]               = useState<any[]>([]);
   const [filteredProducts, setFiltered]       = useState<any[]>([]);
   const [loading, setLoading]                 = useState(true);
+  const [error, setError]                     = useState<string | null>(null);
   const [priceRange, setPriceRange]           = useState([0, MAX_PRICE_BY_CATEGORY.default]);
   const [selectedBrand, setSelectedBrand]     = useState("all");
   const [selectedCategory, setSelectedCat]   = useState("all");
@@ -87,6 +88,8 @@ const Shop = () => {
 
   const fetchProducts = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const { data: productsData, error } = await supabase
         .from("products")
         .select("*")
@@ -110,8 +113,9 @@ const Shop = () => {
           return { ...p, averageRating: s ? s.sum / s.count : null, reviewCount: s?.count ?? 0 };
         })
       );
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching products:", err);
+      setError(err.message || "Failed to load products. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -214,6 +218,21 @@ const Shop = () => {
   ].filter(Boolean).length;
 
   if (loading) return <SneakerLoader message="Loading products..." />;
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+          <X className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="text-xl font-bold mb-2">Oops! Something went wrong</h2>
+        <p className="text-muted-foreground mb-6 max-w-md">{error}</p>
+        <Button onClick={fetchProducts} size="lg">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   // ─── Shared filter content (used in sidebar + mobile sheet) ───────────────
   const FilterContent = ({ mobile = false }: { mobile?: boolean }) => (

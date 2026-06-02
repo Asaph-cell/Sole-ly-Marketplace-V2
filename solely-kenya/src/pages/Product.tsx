@@ -40,7 +40,7 @@ const conditionLabels: Record<string, { label: string; color: string; footwearDe
   thrifted:    { label: "Thrifted",     color: "bg-purple-500",  footwearDesc: "Pre-owned, honestly described", accessoryDesc: "Pre-owned, good condition" },
   refurbished: { label: "Refurbished",  color: "bg-blue-500",   footwearDesc: "Tested & fully working",        accessoryDesc: "Tested & fully working" },
   // Legacy fallbacks for older listings
-  like_new:    { label: "Like New",     color: "bg-blue-500",   footwearDesc: "Used once or twice, no wear",   accessoryDesc: "Used once, like new" },
+  like_new:    { label: "Refurbished",  color: "bg-blue-500",   footwearDesc: "Used once or twice, no wear",   accessoryDesc: "Tested & fully working" },
   good:        { label: "Thrifted",     color: "bg-purple-500", footwearDesc: "Pre-owned, honestly described", accessoryDesc: "Pre-owned, good condition" },
   fair:        { label: "Thrifted",     color: "bg-purple-500", footwearDesc: "Pre-owned, honestly described", accessoryDesc: "Pre-owned, good condition" },
 };
@@ -678,23 +678,31 @@ const Product = () => {
             {requireSizeSelection && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-semibold">Select Size (EU)</label>
-                  <ShoeSizeChart selectedSize={selectedSize} availableSizes={product.sizes} />
+                  <label className="text-sm font-semibold">
+                    {product.category === "electronics" || product.category === "phones"
+                      ? "Select Storage / Variant"
+                      : product.category === "beauty"
+                      ? "Select Volume"
+                      : product.category === "shoes"
+                      ? "Select Size (EU)"
+                      : "Select Size"}
+                  </label>
+                  {product.category === "shoes" && <ShoeSizeChart selectedSize={selectedSize} availableSizes={product.sizes} />}
                 </div>
                 <Select value={selectedSize} onValueChange={setSelectedSize}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Choose your size" />
+                    <SelectValue placeholder={`Choose your ${product.category === "electronics" || product.category === "phones" ? "variant" : "size"}`} />
                   </SelectTrigger>
                   <SelectContent>
                     {product.sizes.map((size: string) => (
                       <SelectItem key={size} value={size}>
-                        EU {size}
+                        {product.category === "shoes" ? `EU ${size}` : size}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 {!selectedSize && (
-                  <p className="text-xs text-muted-foreground">Please select a size to continue</p>
+                  <p className="text-xs text-muted-foreground">Please make a selection to continue</p>
                 )}
               </div>
             )}

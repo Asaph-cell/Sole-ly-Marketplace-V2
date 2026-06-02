@@ -120,12 +120,14 @@ const Home = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [products, setProducts] = useState<any[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // ── Fetch real products from Supabase ──────────────────────────────────────
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const { data: productsData } = await supabase
+  const fetchProducts = async () => {
+    try {
+      setProductsLoading(true);
+      setError(null);
+      const { data: productsData, error: fetchErr } = await supabase
           .from("products")
           .select("*")
           .eq("status", "active")
@@ -154,12 +156,15 @@ const Home = () => {
         });
 
         setProducts(enriched);
-      } catch (err) {
+      } catch (err: any) {
         console.error("Home: failed to fetch products", err);
+        setError(err.message || "Failed to load products. Please check your connection and try again.");
       } finally {
         setProductsLoading(false);
       }
     };
+
+  useEffect(() => {
     fetchProducts();
   }, []);
 
@@ -410,6 +415,17 @@ const Home = () => {
               {Array.from({ length: 12 }).map((_, i) => (
                 <div key={i} className="aspect-square rounded-2xl bg-muted animate-pulse" />
               ))}
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center min-h-[30vh] text-center px-4 bg-background rounded-2xl border border-border p-8 shadow-sm">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <Shield className="w-8 h-8 text-red-500" />
+              </div>
+              <h2 className="text-xl font-bold mb-2">Oops! Something went wrong</h2>
+              <p className="text-muted-foreground mb-6 max-w-md">{error}</p>
+              <Button onClick={fetchProducts} size="lg">
+                Try Again
+              </Button>
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
