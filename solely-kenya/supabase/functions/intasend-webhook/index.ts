@@ -95,7 +95,7 @@ serve(async (req) => {
         // Logs verification results but doesn't block - prevents breaking payments
         // while still providing an audit trail for suspicious activity
         // ─────────────────────────────────────────────────────────────────────
-        if (invoice_id && state === 'COMPLETE') {
+        if (invoice_id && (state === 'COMPLETE' || state === 'COMPLETED' || state === 'SUCCESSFUL')) {
             const intaSendSecretKey = Deno.env.get('INTASEND_SECRET_KEY');
 
             if (intaSendSecretKey) {
@@ -118,8 +118,9 @@ serve(async (req) => {
                         console.log(`[IntaSend Webhook] Verified invoice response:`, JSON.stringify(verifiedInvoice));
 
                         // Log mismatches but don't block
-                        if (verifiedInvoice.state && verifiedInvoice.state !== 'COMPLETE') {
-                            console.warn(`[IntaSend Webhook] ⚠️ AUDIT: State mismatch - webhook: COMPLETE, API: ${verifiedInvoice.state}`);
+                        const isVerifiedSuccess = verifiedInvoice.state === 'COMPLETE' || verifiedInvoice.state === 'COMPLETED' || verifiedInvoice.state === 'SUCCESSFUL';
+                        if (verifiedInvoice.state && !isVerifiedSuccess) {
+                            console.warn(`[IntaSend Webhook] ⚠️ AUDIT: State mismatch - webhook: ${state}, API: ${verifiedInvoice.state}`);
                         }
 
                         if (verifiedInvoice.api_ref && verifiedInvoice.api_ref !== orderId) {
@@ -152,10 +153,11 @@ serve(async (req) => {
         }
 
         // Update payment record
+        const isSuccess = state === 'COMPLETE' || state === 'COMPLETED' || state === 'SUCCESSFUL';
         const { error: paymentUpdateError } = await supabaseClient
             .from('payments')
             .update({
-                status: state === 'COMPLETE' ? 'captured' : state === 'FAILED' ? 'pending' : 'pending',
+                status: isSuccess ? 'captured' : state === 'FAILED' ? 'pending' : 'pending',
                 transaction_id: invoice_id,
                 updated_at: new Date().toISOString(),
             })
@@ -167,7 +169,7 @@ serve(async (req) => {
         }
 
         // Handle based on payment state
-        if (state === 'COMPLETE') {
+        if (isSuccess) {
             console.log(`[IntaSend Webhook] Payment successful for order ${orderId}`);
 
             // Update order status to confirmed (waiting for vendor to accept)
