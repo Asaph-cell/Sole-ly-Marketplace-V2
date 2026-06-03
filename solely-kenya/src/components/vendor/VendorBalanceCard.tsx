@@ -114,18 +114,15 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
     const pendingBalance = balance?.pending_balance || 0;
     const totalEarned = balance?.total_earned || 0;
     const totalPaidOut = balance?.total_paid_out || 0;
-    const canWithdraw = pendingBalance > 0;
-
+    
     // Dynamic Fee Calculation matching Backend Logic
-    // 0 - 100: KES 10
-    // 101 - 1000: KES 20
-    // 1001+: KES 100
     let estimatedFee = 0;
     if (pendingBalance <= 100) estimatedFee = 10;
     else if (pendingBalance <= 1000) estimatedFee = 20;
     else estimatedFee = 100;
 
     const estimatedReceive = Math.max(0, pendingBalance - estimatedFee);
+    const canWithdraw = estimatedReceive > 0;
 
     return (
         <>
