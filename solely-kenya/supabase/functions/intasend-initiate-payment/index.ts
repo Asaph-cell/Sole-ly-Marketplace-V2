@@ -256,9 +256,10 @@ serve(async (req) => {
         };
 
         // Add phone if valid (at least 9 digits after formatting)
-        if (formattedPhone.length >= 9) {
-            payload.phone_number = formattedPhone;
-        }
+        // Removed to force IntaSend to ask for phone number in UI, preventing auto-STK push freezes
+        // if (formattedPhone.length >= 9) {
+        //     payload.phone_number = formattedPhone;
+        // }
 
         // Log request (hide sensitive data)
         console.log('[IntaSend] Request payload:', JSON.stringify({
