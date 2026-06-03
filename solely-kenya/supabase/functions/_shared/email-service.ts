@@ -299,7 +299,7 @@ export const emailTemplates = {
     <p>If you have any questions or need help setting up, feel free to reply to this email.</p>
 
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${data.dashboardUrl}" class="button">Go to Dashboard</a>
+      <a href="${data.dashboardUrl}" class="cta-button">Go to Dashboard</a>
     </div>
   `),
 
