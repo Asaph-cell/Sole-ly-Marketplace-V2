@@ -11,6 +11,7 @@ import {
   Footprints, Shirt, Baby, Sparkles, ShoppingBag,
   Dumbbell, Smartphone, Home, LucideIcon
 } from "lucide-react";
+import { VideoUploader } from "@/components/VideoUploader";
 
 // ── Category icon + gradient map ─────────────────────────────────────────────
 const CAT_META: Record<string, { icon: LucideIcon; from: string; to: string; text: string }> = {
