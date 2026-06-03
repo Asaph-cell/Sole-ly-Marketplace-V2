@@ -280,6 +280,29 @@ const baseEmailLayout = (title: string, content: string, titleColor: string = '#
 `;
 
 export const emailTemplates = {
+  vendorWelcome: (data: {
+    businessName: string;
+    dashboardUrl: string;
+  }) => baseEmailLayout('Welcome to Sole-ly!', `
+    <p>Hi ${data.businessName},</p>
+    <p>Welcome to <strong>Sole-ly</strong>! We are thrilled to have you join our marketplace.</p>
+    
+    <div style="background-color: #f9fafb; padding: 24px; border-radius: 8px; margin: 24px 0;">
+      <h3 style="margin-top: 0;">Next Steps to Success:</h3>
+      <ol style="margin-bottom: 0; padding-left: 20px;">
+        <li style="margin-bottom: 8px;"><strong>Add your products:</strong> Start listing your inventory so buyers can find them.</li>
+        <li style="margin-bottom: 8px;"><strong>Complete your profile:</strong> Ensure your store information and WhatsApp number are up to date.</li>
+        <li><strong>Share your store link:</strong> Promote your Sole-ly store on your social media to drive traffic directly to your products.</li>
+      </ol>
+    </div>
+
+    <p>If you have any questions or need help setting up, feel free to reply to this email.</p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.dashboardUrl}" class="button">Go to Dashboard</a>
+    </div>
+  `),
+
   vendorNewOrder: (data: {
     businessName: string;
     orderId: string;

@@ -118,6 +118,13 @@ const VendorRegistration = () => {
         console.warn('Wallet creation failed (non-critical):', err);
       });
 
+      // Send welcome email (non-blocking)
+      supabase.functions.invoke('notify-vendor-welcome', {
+        body: { vendorId: user.id }
+      }).catch((err) => {
+        console.warn('Failed to send welcome email:', err);
+      });
+
       toast.success("Vendor registration successful! You can now start selling.");
       navigate("/vendor/dashboard");
     } catch (error: any) {
