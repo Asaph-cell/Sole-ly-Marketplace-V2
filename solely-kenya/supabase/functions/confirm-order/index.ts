@@ -133,19 +133,18 @@ serve(async (req: Request) => {
         }
 
         // F. Transfer funds to vendor's IntaSend wallet (non-blocking)
-        // This moves the vendor's 89% from the settlement wallet to their own wallet
-        console.log(`Initiating fund transfer to vendor wallet for order ${orderId}`);
-        supabase.functions.invoke('transfer-to-vendor-wallet', {
-            body: { order_id: orderId }
-        }).then((result: { data?: { success?: boolean; vendor_share?: number }; error?: Error }) => {
-            if (result.error) {
-                console.error('Fund transfer to vendor wallet failed:', result.error);
-            } else if (result.data?.success) {
-                console.log(`Fund transfer successful: ${result.data.vendor_share} KES transferred to vendor wallet`);
-            }
-        }).catch((err: Error) => {
-            console.error('Fund transfer exception:', err);
-        });
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+        
+        console.log(`[Confirm Order] Triggering transfer-to-vendor-wallet for order ${orderId}...`);
+        fetch(`${supabaseUrl}/functions/v1/transfer-to-vendor-wallet`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${serviceRoleKey}`,
+            },
+            body: JSON.stringify({ order_id: orderId }),
+        }).catch(err => console.error('[Confirm Order] Failed to trigger transfer:', err));
 
         // E. Decrement Stock for each order item
         const { data: orderItems, error: itemsError } = await supabase

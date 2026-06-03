@@ -113,19 +113,19 @@ serve(async (req) => {
         if (commissionError) {
           console.error(`Failed to record commission for order ${order.id}:`, commissionError);
         }
-
-        // Transfer funds to vendor's IntaSend wallet (non-blocking)
-        supabase.functions.invoke('transfer-to-vendor-wallet', {
-          body: { order_id: order.id }
-        }).then((result: { data?: { success?: boolean }; error?: Error }) => {
-          if (result.error) {
-            console.error(`Fund transfer failed for order ${order.id}:`, result.error);
-          } else {
-            console.log(`Fund transfer initiated for order ${order.id}`);
-          }
-        }).catch((err: Error) => {
-          console.error(`Fund transfer exception for order ${order.id}:`, err);
-        });
+        // 5. Transfer funds to vendor's IntaSend wallet using direct fetch
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+        
+        console.log(`[Auto-Release Escrow] Triggering transfer-to-vendor-wallet for order ${order.id}...`);
+        fetch(`${supabaseUrl}/functions/v1/transfer-to-vendor-wallet`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${serviceRoleKey}`,
+            },
+            body: JSON.stringify({ order_id: order.id }),
+        }).catch(err => console.error('[Auto-Release Escrow] Failed to trigger transfer:', err));
 
         releasedOrders.push(order.id);
         console.log(`Auto-released escrow for order ${order.id}`);

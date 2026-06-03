@@ -64,12 +64,27 @@ serve(async (req: Request) => {
         if (balanceError || !vendorBalance?.intasend_wallet_id) {
             console.error('[Transfer to Vendor] Vendor has no wallet, attempting to create one...');
 
-            // Try to create wallet for vendor
-            const { data: createResult, error: createError } = await supabase.functions.invoke('create-vendor-wallet', {
-                body: { vendor_id: order.vendor_id }
+            // Try to create wallet for vendor using direct fetch
+            const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+            const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+            
+            const createResponse = await fetch(`${supabaseUrl}/functions/v1/create-vendor-wallet`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${serviceRoleKey}`,
+                },
+                body: JSON.stringify({ vendor_id: order.vendor_id }),
             });
+            
+            let createResult;
+            try {
+                createResult = await createResponse.json();
+            } catch (e) {
+                console.error('[Transfer to Vendor] Failed to parse create-wallet response:', e);
+            }
 
-            if (createError || !createResult?.wallet_id) {
+            if (!createResponse.ok || !createResult?.wallet_id) {
                 throw new Error(`Vendor has no IntaSend wallet and creation failed`);
             }
 

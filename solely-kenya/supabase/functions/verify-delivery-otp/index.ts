@@ -165,26 +165,28 @@ serve(async (req: Request) => {
         }
 
         // E. Transfer funds to vendor's IntaSend wallet (non-blocking)
-        console.log(`Initiating fund transfer to vendor wallet for order ${orderId}`);
-        supabase.functions.invoke('transfer-to-vendor-wallet', {
-            body: { order_id: orderId }
-        }).then((result: { data?: { success?: boolean; vendor_share?: number }; error?: Error }) => {
-            if (result.error) {
-                console.error('Fund transfer to vendor wallet failed:', result.error);
-            } else if (result.data?.success) {
-                console.log(`Fund transfer successful: ${result.data.vendor_share} KES`);
-            }
-        }).catch((err: Error) => {
-            console.error('Fund transfer exception:', err);
-        });
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+        
+        console.log(`[Verify OTP] Triggering transfer-to-vendor-wallet for order ${orderId}...`);
+        fetch(`${supabaseUrl}/functions/v1/transfer-to-vendor-wallet`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${serviceRoleKey}`,
+            },
+            body: JSON.stringify({ order_id: orderId }),
+        }).catch(err => console.error('[Verify OTP] Failed to trigger transfer:', err));
 
         // E2. Send completion email notifications (non-blocking)
-        console.log(`Initiating completion notifications for order ${orderId}`);
-        supabase.functions.invoke('notify-order-completed', {
-            body: { orderId: orderId }
-        }).catch((err: Error) => {
-            console.error('Failed to trigger notify-order-completed:', err);
-        });
+        console.log(`[Verify OTP] Triggering notify-order-completed for order ${orderId}...`);
+        fetch(`${supabaseUrl}/functions/v1/notify-order-completed`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${serviceRoleKey}`,
+            },
+            body: JSON.stringify({ orderId: orderId }),
+        }).catch(err => console.error('[Verify OTP] Failed to trigger notifications:', err));
 
         // F. Decrement Stock for each order item
         const { data: orderItems, error: itemsError } = await supabase
