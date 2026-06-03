@@ -61,7 +61,9 @@ serve(async (req: Request) => {
             .eq('id', vendor_id)
             .single();
 
-        const walletLabel = `solely-${profile?.store_name?.toLowerCase().replace(/\s+/g, '-') || vendor_id.slice(0, 8)}`;
+        // Sanitize store name: only allow lowercase letters, numbers, hyphens, and underscores. No spaces, quotes, etc.
+        const safeStoreName = profile?.store_name?.toLowerCase().replace(/[^a-z0-9_-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 30);
+        const walletLabel = `solely-${safeStoreName || vendor_id.slice(0, 8)}`;
 
         // Create IntaSend wallet
         const response = await fetch('https://api.intasend.com/api/v1/wallets/', {
