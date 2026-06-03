@@ -117,7 +117,7 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
     
     // Dynamic Fee Calculation matching Backend Logic
     let estimatedFee = 0;
-    if (pendingBalance <= 100) estimatedFee = 0;
+    if (pendingBalance <= 100) estimatedFee = 10;
     else if (pendingBalance <= 1000) estimatedFee = 20;
     else estimatedFee = 100;
 

@@ -91,12 +91,12 @@ serve(async (req: Request) => {
         }
 
         // IntaSend Fees Logic (Disbursement to M-Pesa)
-        // 0 - 100: KES 0
+        // 0 - 100: KES 10
         // 101 - 1000: KES 20
         // 1001 - 150000: KES 100 (Maximum)
 
         let transactionFee = 0;
-        if (totalBalance <= 100) transactionFee = 0;
+        if (totalBalance <= 100) transactionFee = 10;
         else if (totalBalance <= 1000) transactionFee = 20;
         else transactionFee = 100;
 
