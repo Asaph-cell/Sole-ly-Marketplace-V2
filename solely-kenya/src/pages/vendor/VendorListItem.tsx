@@ -294,12 +294,12 @@ const VendorListItem = () => {
   const canNext = () => {
     if (step === 1) return !!category;
     if (step === 2) return true;
-    if (step === 3) return !!name && !!price && parseInt(price) > 0 && parseInt(price) <= 150000 && !!stock;
+    if (step === 3) return !!name && !!price && parseInt(price) > 0 && parseInt(price) <= 300000 && !!stock;
     return true;
   };
 
   const handleSubmit = async () => {
-    if (parseInt(price) > 150000) { toast.error("Price cannot exceed KES 150,000."); return; }
+    if (parseInt(price) > 300000) { toast.error("Price cannot exceed KES 300,000."); return; }
     if (imageFiles.length === 0) { toast.error("Please add at least one image"); return; }
     setSubmitting(true);
     try {
@@ -517,8 +517,8 @@ const VendorListItem = () => {
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Price (KES) *">
                   <TextInput value={price} onChange={setPrice} placeholder="e.g. 3500" />
-                  {parseInt(price) > 150000 && (
-                    <p className="text-xs text-red-500 font-medium mt-1">Maximum allowed price is 150,000.</p>
+                  {parseInt(price) > 300000 && (
+                    <p className="text-xs text-red-500 font-medium mt-1">Maximum allowed price is 300,000.</p>
                   )}
                 </Field>
                 <Field label="Stock *">

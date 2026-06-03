@@ -159,8 +159,8 @@ const VendorEditProduct = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (parseInt(formData.price_ksh) > 150000) {
-      toast.error("Price cannot exceed KES 150,000.");
+    if (parseInt(formData.price_ksh) > 300000) {
+      toast.error("Price cannot exceed KES 300,000.");
       return;
     }
     setSubmitting(true);
@@ -258,8 +258,8 @@ const VendorEditProduct = () => {
                       onChange={(e) => setFormData({ ...formData, price_ksh: e.target.value })}
                       required
                     />
-                    {parseInt(formData.price_ksh) > 150000 && (
-                      <p className="text-xs text-red-500 font-medium mt-1">Maximum allowed price is 150,000.</p>
+                    {parseInt(formData.price_ksh) > 300000 && (
+                      <p className="text-xs text-red-500 font-medium mt-1">Maximum allowed price is 300,000.</p>
                     )}
                   </div>
 
