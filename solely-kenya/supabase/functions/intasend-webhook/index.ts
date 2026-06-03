@@ -216,19 +216,47 @@ serve(async (req) => {
                     }
                 }
 
-                // Notify vendor and buyer concurrently but await completion before returning
-                // (Deno terminates background promises when the main response is sent)
+                // Notify vendor and buyer concurrently using direct fetch
+                // (supabaseClient.functions.invoke() silently fails from within Edge Functions)
                 console.log(`[IntaSend Webhook] Triggering notifications for order ${orderId}...`);
-                await Promise.allSettled([
-                    supabaseClient.functions.invoke('notify-vendor-new-order', {
-                        body: { orderId: orderId },
-                    }).catch(err => console.log('[IntaSend Webhook] Vendor notification failed:', err)),
+                const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+                const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+                
+                const notifyResults = await Promise.allSettled([
+                    fetch(`${supabaseUrl}/functions/v1/notify-vendor-new-order`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${serviceRoleKey}`,
+                        },
+                        body: JSON.stringify({ orderId: orderId }),
+                    }).then(async (res) => {
+                        const text = await res.text();
+                        console.log(`[IntaSend Webhook] Vendor notification response (${res.status}):`, text);
+                        return { status: res.status, body: text };
+                    }).catch(err => {
+                        console.error('[IntaSend Webhook] Vendor notification fetch failed:', err);
+                        throw err;
+                    }),
                     
-                    supabaseClient.functions.invoke('notify-buyer-order-placed', {
-                        body: { orderId: orderId },
-                    }).catch(err => console.log('[IntaSend Webhook] Buyer notification failed:', err))
+                    fetch(`${supabaseUrl}/functions/v1/notify-buyer-order-placed`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${serviceRoleKey}`,
+                        },
+                        body: JSON.stringify({ orderId: orderId }),
+                    }).then(async (res) => {
+                        const text = await res.text();
+                        console.log(`[IntaSend Webhook] Buyer notification response (${res.status}):`, text);
+                        return { status: res.status, body: text };
+                    }).catch(err => {
+                        console.error('[IntaSend Webhook] Buyer notification fetch failed:', err);
+                        throw err;
+                    }),
                 ]);
-                console.log(`[IntaSend Webhook] Notifications triggered successfully.`);
+                
+                console.log(`[IntaSend Webhook] Notification results:`, JSON.stringify(notifyResults.map(r => r.status)));
             }
 
         } else if (state === 'FAILED') {
