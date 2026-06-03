@@ -294,11 +294,12 @@ const VendorListItem = () => {
   const canNext = () => {
     if (step === 1) return !!category;
     if (step === 2) return true;
-    if (step === 3) return !!name && !!price && parseInt(price) > 0 && !!stock;
+    if (step === 3) return !!name && !!price && parseInt(price) > 0 && parseInt(price) <= 49999 && !!stock;
     return true;
   };
 
   const handleSubmit = async () => {
+    if (parseInt(price) > 49999) { toast.error("Price cannot exceed KES 49,999 due to temporary gateway limits."); return; }
     if (imageFiles.length === 0) { toast.error("Please add at least one image"); return; }
     setSubmitting(true);
     try {
@@ -516,6 +517,9 @@ const VendorListItem = () => {
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Price (KES) *">
                   <TextInput value={price} onChange={setPrice} placeholder="e.g. 3500" />
+                  {parseInt(price) > 49999 && (
+                    <p className="text-xs text-red-500 font-medium mt-1">Maximum allowed price is 49,999.</p>
+                  )}
                 </Field>
                 <Field label="Stock *">
                   <TextInput value={stock} onChange={setStock} placeholder="1" />

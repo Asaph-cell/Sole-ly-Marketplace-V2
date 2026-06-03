@@ -159,6 +159,10 @@ const VendorEditProduct = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (parseInt(formData.price_ksh) > 49999) {
+      toast.error("Price cannot exceed KES 49,999 due to temporary gateway limits.");
+      return;
+    }
     setSubmitting(true);
 
     try {
@@ -254,6 +258,9 @@ const VendorEditProduct = () => {
                       onChange={(e) => setFormData({ ...formData, price_ksh: e.target.value })}
                       required
                     />
+                    {parseInt(formData.price_ksh) > 49999 && (
+                      <p className="text-xs text-red-500 font-medium mt-1">Maximum allowed price is 49,999.</p>
+                    )}
                   </div>
 
                   <div className="flex flex-col justify-center space-y-2 border rounded-md p-3">
