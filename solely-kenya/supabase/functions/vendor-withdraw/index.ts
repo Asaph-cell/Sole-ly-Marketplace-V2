@@ -135,7 +135,7 @@ serve(async (req: Request) => {
                 transactions: [{
                     name: profile.full_name || 'Vendor',
                     account: normalizedPhone,
-                    amount: amountToSend.toFixed(2),
+                    amount: Math.floor(amountToSend).toString(), // M-Pesa requires whole numbers
                     narrative: 'Solely Kenya withdrawal',
                 }],
             }),
@@ -169,14 +169,11 @@ serve(async (req: Request) => {
         const currentPaidOut = currentBalance?.total_paid_out || 0;
         const currentPending = currentBalance?.pending_balance || 0;
 
-        // Determine new Balance.
-        // We deducted (amountToSend + transactionFee) which should equal totalBalance.
-        // So new balance should be 0. 
-        // But to be safe against race conditions, we deduct from 'currentPending'.
-
-        const totalDeducted = amountToSend + transactionFee;
+        // Determine new Balance based on floored integer amount
+        const actualSent = Math.floor(amountToSend);
+        const totalDeducted = actualSent + transactionFee;
         const newBalance = Math.max(0, currentPending - totalDeducted);
-        const newTotalPaidOut = currentPaidOut + amountToSend;
+        const newTotalPaidOut = currentPaidOut + actualSent;
 
         // Update vendor balance
         const { error: updateError } = await supabase
@@ -196,7 +193,7 @@ serve(async (req: Request) => {
         // Record the payout
         await supabase.from('payouts').insert({
             vendor_id: vendor_id,
-            amount_ksh: amountToSend,
+            amount_ksh: actualSent,
             commission_amount: 0,
             method: 'mpesa',
             reference: result.tracking_id || result.id || `withdraw-${Date.now()}`,
@@ -222,7 +219,7 @@ serve(async (req: Request) => {
             JSON.stringify({
                 error: error instanceof Error ? error.message : 'Withdrawal failed'
             }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
     }
 });
