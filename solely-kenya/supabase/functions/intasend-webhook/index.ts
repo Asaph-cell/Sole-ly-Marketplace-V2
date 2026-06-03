@@ -159,7 +159,7 @@ serve(async (req) => {
             .update({
                 status: isSuccess ? 'captured' : state === 'FAILED' ? 'pending' : 'pending',
                 transaction_id: invoice_id,
-                updated_at: new Date().toISOString(),
+                captured_at: isSuccess ? new Date().toISOString() : undefined,
             })
             .eq('order_id', orderId)
             .eq('gateway', 'intasend');
