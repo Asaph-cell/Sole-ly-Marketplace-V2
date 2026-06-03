@@ -34,6 +34,22 @@ serve(async (req: Request) => {
             throw new Error('vendor_id is required');
         }
 
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader) {
+            throw new Error('Missing Authorization header');
+        }
+
+        const supabaseAuth = createClient(
+            Deno.env.get('SUPABASE_URL')!,
+            Deno.env.get('SUPABASE_ANON_KEY')!,
+            { global: { headers: { Authorization: authHeader } } }
+        );
+
+        const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+        if (authError || !user || user.id !== vendor_id) {
+            throw new Error('Unauthorized');
+        }
+
         console.log(`[Vendor Withdraw] Processing withdrawal for vendor: ${vendor_id}`);
 
         // Get vendor profile for M-Pesa number
@@ -74,13 +90,13 @@ serve(async (req: Request) => {
             throw new Error('No balance available for withdrawal');
         }
 
-        // IntaSend Fees Logic (Disbursement)
-        // 0 - 100: KES 10
+        // IntaSend Fees Logic (Disbursement to M-Pesa)
+        // 0 - 100: KES 0
         // 101 - 1000: KES 20
-        // 1001 - 150000: KES 100
+        // 1001 - 150000: KES 100 (Maximum)
 
         let transactionFee = 0;
-        if (totalBalance <= 100) transactionFee = 10;
+        if (totalBalance <= 100) transactionFee = 0;
         else if (totalBalance <= 1000) transactionFee = 20;
         else transactionFee = 100;
 
@@ -184,7 +200,7 @@ serve(async (req: Request) => {
             commission_amount: 0,
             method: 'mpesa',
             reference: result.tracking_id || result.id || `withdraw-${Date.now()}`,
-            status: 'paid',
+            status: 'processing',
             trigger_type: 'manual',
         });
 

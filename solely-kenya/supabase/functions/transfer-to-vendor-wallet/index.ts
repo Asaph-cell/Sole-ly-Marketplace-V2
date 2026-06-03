@@ -130,26 +130,10 @@ serve(async (req: Request) => {
 
         console.log(`[Transfer to Vendor] Successfully transferred ${vendorShare} to vendor wallet ${vendorWalletId}`);
 
-        // Update vendor_balances to reflect the transfer
-        // Note: Supabase JS doesn't support raw SQL or simple increments without an RPC.
-        // We will read the current balance, increment it, and save it back.
-        const { data: currentBalance } = await supabase
-            .from('vendor_balances')
-            .select('pending_balance, total_earned')
-            .eq('vendor_id', order.vendor_id)
-            .single();
-            
-        const newPending = (currentBalance?.pending_balance || 0) + vendorShare;
-        const newEarned = (currentBalance?.total_earned || 0) + vendorShare;
-        
-        await supabase
-            .from('vendor_balances')
-            .update({
-                pending_balance: newPending,
-                total_earned: newEarned,
-                updated_at: new Date().toISOString(),
-            })
-            .eq('vendor_id', order.vendor_id);
+        // IMPORTANT: We do NOT manually increment pending_balance here anymore.
+        // The PostgreSQL trigger 'order_completed_balance_trigger' automatically increments
+        // the vendor_balances table when the order status changes to 'completed'.
+        // Doing it here caused the balance to double-count.
 
         return new Response(
             JSON.stringify({

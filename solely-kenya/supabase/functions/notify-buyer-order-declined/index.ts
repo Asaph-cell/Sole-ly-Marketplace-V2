@@ -128,8 +128,8 @@ Deno.serve(async (req: Request) => {
                 type: "order_declined",
                 title: isAutoDeclined ? "Order Automatically Cancelled" : "Order Declined",
                 message: `Your order #${orderId.slice(0, 8)} has been cancelled. A refund of KES ${order.total_ksh.toLocaleString()} will be processed.`,
-                data: { orderId, totalKsh: order.total_ksh, isAutoDeclined },
-                read: false,
+                related_id: orderId,
+                is_read: false,
             });
         } catch (notifError) {
             console.log("Could not store notification (table may not exist)");

@@ -268,8 +268,8 @@ Deno.serve(async (req: Request) => {
                 type: "new_order",
                 title: "New Order Received",
                 message: `New order #${orderId.slice(0, 8)}: ${itemsList} - KES ${order.total_ksh.toLocaleString()}. Reply within 48hrs.`,
-                data: { orderId, totalKsh: order.total_ksh },
-                read: false,
+                related_id: orderId,
+                is_read: false,
             });
             inAppSent = true;
 

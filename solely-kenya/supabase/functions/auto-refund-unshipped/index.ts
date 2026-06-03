@@ -13,7 +13,7 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { emailTemplates } from "../_shared/email-service.ts";
+import { sendEmail, emailTemplates } from "../_shared/email-service.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -114,20 +114,13 @@ Deno.serve(async (req: Request) => {
 
                 // 3. Notify customer about the dispute
                 if (shippingDetails?.email) {
-                    fetch(`${supabaseUrl}/functions/v1/send-email`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${supabaseServiceKey}`,
-                        },
-                        body: JSON.stringify({
-                            to: shippingDetails.email,
-                            subject: `Order #${order.id.slice(0, 8)} - Delivery Delay Investigation`,
-                            html: emailTemplates.buyerAutoDisputeDelay({
-                                customerName: shippingDetails.recipient_name || 'Customer',
-                                orderId: order.id,
-                                totalAmount: order.total_ksh,
-                            }),
+                    sendEmail({
+                        to: shippingDetails.email,
+                        subject: `Order #${order.id.slice(0, 8)} - Delivery Delay Investigation`,
+                        html: emailTemplates.buyerAutoDisputeDelay({
+                            customerName: shippingDetails.recipient_name || 'Customer',
+                            orderId: order.id,
+                            totalAmount: order.total_ksh,
                         }),
                     }).catch(err => console.log(`Email notification failed for ${order.id}:`, err));
                 }

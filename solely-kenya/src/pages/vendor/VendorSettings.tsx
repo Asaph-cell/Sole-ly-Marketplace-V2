@@ -301,7 +301,7 @@ const VendorSettings = () => {
                       />
                     </div>
                     <p className="text-sm text-muted-foreground mt-2 bg-green-50 text-green-700 p-3 rounded-md">
-                      <strong>94% of all your sales</strong> will be automatically disbursed to this number once the buyer confirms delivery.
+                      <strong>94% of all your sales</strong> will be credited to your wallet once the buyer confirms delivery. You can withdraw to this M-Pesa number at any time from your dashboard.
                     </p>
                   </div>
                 </CardContent>

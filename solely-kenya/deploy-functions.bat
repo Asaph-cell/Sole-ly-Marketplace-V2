@@ -12,32 +12,22 @@ echo SOLELY KENYA - Edge Functions Deployment
 echo ================================================================
 echo.
 
-REM Check if Supabase CLI is installed
-where supabase >nul 2>nul
+REM Check if npx is installed
+where npx >nul 2>nul
 if %errorlevel% neq 0 (
-    echo [ERROR] Supabase CLI not found!
+    echo [ERROR] npx not found!
     echo.
-    echo Please install it first:
-    echo   npm install -g supabase
-    echo.
-    echo Then login:
-    echo   supabase login
+    echo Please install Node.js first.
     echo.
     pause
     exit /b 1
 )
 
-echo [INFO] Supabase CLI found
+echo [INFO] npx found
 echo.
 
-REM Confirm deployment
-set /p confirm="Deploy all Edge Functions? (y/n): "
-if /i not "%confirm%"=="y" (
-    echo Deployment cancelled.
-    pause
-    exit /b 0
-)
-
+REM Confirmation bypassed for automated deployment
+echo Proceeding with deployment...
 echo.
 echo ================================================================
 echo DEPLOYING EMAIL NOTIFICATION FUNCTIONS (10/20)
@@ -45,43 +35,51 @@ echo ================================================================
 echo.
 
 echo [1/8] Deploying notify-buyer-order-placed...
-supabase functions deploy notify-buyer-order-placed
+call npx supabase functions deploy notify-buyer-order-placed
 if %errorlevel% neq 0 goto :error
 
 echo [2/8] Deploying notify-buyer-order-accepted...
-supabase functions deploy notify-buyer-order-accepted
+call npx supabase functions deploy notify-buyer-order-accepted
 if %errorlevel% neq 0 goto :error
 
 echo [3/8] Deploying notify-buyer-order-shipped...
-supabase functions deploy notify-buyer-order-shipped
+call npx supabase functions deploy notify-buyer-order-shipped
 if %errorlevel% neq 0 goto :error
 
 echo [4/8] Deploying notify-buyer-order-declined...
-supabase functions deploy notify-buyer-order-declined
+call npx supabase functions deploy notify-buyer-order-declined
 if %errorlevel% neq 0 goto :error
 
 echo [5/8] Deploying notify-vendor-new-order...
-supabase functions deploy notify-vendor-new-order
+call npx supabase functions deploy notify-vendor-new-order
 if %errorlevel% neq 0 goto :error
 
 echo [6/8] Deploying notify-buyer-order-arrived...
-supabase functions deploy notify-buyer-order-arrived
+call npx supabase functions deploy notify-buyer-order-arrived
 if %errorlevel% neq 0 goto :error
 
 echo [7/8] Deploying notify-buyer-order-completed...
-supabase functions deploy notify-buyer-order-completed
+call npx supabase functions deploy notify-buyer-order-completed
 if %errorlevel% neq 0 goto :error
 
 echo [8/9] Deploying notify-buyer-pickup-ready...
-supabase functions deploy notify-buyer-pickup-ready
+call npx supabase functions deploy notify-buyer-pickup-ready
 if %errorlevel% neq 0 goto :error
 
-echo [9/10] Deploying notify-dispute-update...
-supabase functions deploy notify-dispute-update
+echo [9/12] Deploying notify-dispute-update...
+call npx supabase functions deploy notify-dispute-update
 if %errorlevel% neq 0 goto :error
 
-echo [10/10] Deploying notify-dispute-filed...
-supabase functions deploy notify-dispute-filed
+echo [10/12] Deploying notify-dispute-filed...
+call npx supabase functions deploy notify-dispute-filed
+if %errorlevel% neq 0 goto :error
+
+echo [11/12] Deploying notify-vendor-welcome...
+call npx supabase functions deploy notify-vendor-welcome
+if %errorlevel% neq 0 goto :error
+
+echo [12/12] Deploying notify-order-completed...
+call npx supabase functions deploy notify-order-completed
 if %errorlevel% neq 0 goto :error
 
 echo.
@@ -90,16 +88,28 @@ echo DEPLOYING AUTO-MANAGEMENT FUNCTIONS (8/15)
 echo ================================================================
 echo.
 
-echo [6/8] Deploying auto-cancel-stale-orders...
-supabase functions deploy auto-cancel-stale-orders
+echo [1/6] Deploying auto-cancel-stale-orders...
+call npx supabase functions deploy auto-cancel-stale-orders
 if %errorlevel% neq 0 goto :error
 
-echo [7/8] Deploying auto-release-escrow...
-supabase functions deploy auto-release-escrow
+echo [2/6] Deploying auto-release-escrow...
+call npx supabase functions deploy auto-release-escrow
 if %errorlevel% neq 0 goto :error
 
-echo [8/8] Deploying auto-refund-unshipped...
-supabase functions deploy auto-refund-unshipped
+echo [3/6] Deploying auto-refund-unshipped...
+call npx supabase functions deploy auto-refund-unshipped
+if %errorlevel% neq 0 goto :error
+
+echo [4/6] Deploying generate-delivery-otp...
+call npx supabase functions deploy generate-delivery-otp
+if %errorlevel% neq 0 goto :error
+
+echo [5/6] Deploying verify-delivery-otp...
+call npx supabase functions deploy verify-delivery-otp
+if %errorlevel% neq 0 goto :error
+
+echo [6/6] Deploying send-announcement...
+call npx supabase functions deploy send-announcement
 if %errorlevel% neq 0 goto :error
 
 echo.
@@ -108,26 +118,24 @@ echo DEPLOYING PAYMENT FUNCTIONS (15/15)
 echo ================================================================
 echo.
 
-echo [9/15] Deploying paystack-initiate-payment...
-supabase functions deploy paystack-initiate-payment
+echo [1/5] Deploying intasend-webhook...
+call npx supabase functions deploy intasend-webhook --no-verify-jwt
 if %errorlevel% neq 0 goto :error
 
-echo [10/15] Deploying paystack-webhook...
-supabase functions deploy paystack-webhook --no-verify-jwt
+echo [2/5] Deploying vendor-withdraw...
+call npx supabase functions deploy vendor-withdraw
 if %errorlevel% neq 0 goto :error
 
-echo [11/15] Skipping legacy Pesapal functions...
-
-echo [13/15] Deploying process-delivery-fee-payment...
-supabase functions deploy process-delivery-fee-payment
+echo [3/5] Deploying create-vendor-wallet...
+call npx supabase functions deploy create-vendor-wallet
 if %errorlevel% neq 0 goto :error
 
-echo [14/15] Deploying process-payouts...
-supabase functions deploy process-payouts
+echo [4/5] Deploying transfer-to-vendor-wallet...
+call npx supabase functions deploy transfer-to-vendor-wallet
 if %errorlevel% neq 0 goto :error
 
-echo [15/15] Deploying create-order...
-supabase functions deploy create-order
+echo [5/5] Deploying create-order...
+call npx supabase functions deploy create-order
 if %errorlevel% neq 0 goto :error
 
 echo.
