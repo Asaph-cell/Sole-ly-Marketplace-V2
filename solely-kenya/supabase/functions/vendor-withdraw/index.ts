@@ -240,7 +240,7 @@ serve(async (req: Request) => {
             commission_amount: 0,
             method: 'mpesa',
             reference: result.tracking_id || result.id || `withdraw-${Date.now()}`,
-            status: 'processing',
+            status: 'paid',
             trigger_type: 'manual',
         });
 
