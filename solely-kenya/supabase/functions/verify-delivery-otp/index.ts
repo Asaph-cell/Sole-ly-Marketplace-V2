@@ -164,18 +164,50 @@ serve(async (req: Request) => {
             console.error("Failed to record commission:", commissionError);
         }
 
-        // E. Transfer funds to vendor's IntaSend wallet (non-blocking)
+        // E. Transfer funds to vendor's IntaSend wallet (AWAITED to prevent balance desync)
         const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
         
         console.log(`[Verify OTP] Triggering transfer-to-vendor-wallet for order ${orderId}...`);
-        fetch(`${supabaseUrl}/functions/v1/transfer-to-vendor-wallet`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${serviceRoleKey}`,
-            },
-            body: JSON.stringify({ order_id: orderId }),
-        }).catch(err => console.error('[Verify OTP] Failed to trigger transfer:', err));
+        try {
+            const transferResponse = await fetch(`${supabaseUrl}/functions/v1/transfer-to-vendor-wallet`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${serviceRoleKey}`,
+                },
+                body: JSON.stringify({ order_id: orderId }),
+            });
+            
+            const transferResult = await transferResponse.json().catch(() => null);
+            
+            if (!transferResponse.ok || transferResult?.error) {
+                console.error(`[Verify OTP] IntaSend wallet transfer FAILED for order ${orderId}:`, transferResult);
+                // Roll back the DB balance since the real money didn't move
+                const { data: currentBal } = await supabase
+                    .from('vendor_balances')
+                    .select('pending_balance, total_earned')
+                    .eq('vendor_id', order.vendor_id)
+                    .single();
+                
+                if (currentBal) {
+                    const correctedBalance = Math.max(0, (currentBal.pending_balance || 0) - payoutAmount);
+                    const correctedEarned = Math.max(0, (currentBal.total_earned || 0) - payoutAmount);
+                    await supabase
+                        .from('vendor_balances')
+                        .update({
+                            pending_balance: correctedBalance,
+                            total_earned: correctedEarned,
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq('vendor_id', order.vendor_id);
+                    console.warn(`[Verify OTP] Rolled back DB balance by ${payoutAmount} for vendor ${order.vendor_id} (${currentBal.pending_balance} -> ${correctedBalance})`);
+                }
+            } else {
+                console.log(`[Verify OTP] Transfer successful for order ${orderId}`);
+            }
+        } catch (err) {
+            console.error('[Verify OTP] Failed to trigger transfer:', err);
+        }
 
         // E2. Send completion email notifications (non-blocking)
         console.log(`[Verify OTP] Triggering notify-order-completed for order ${orderId}...`);

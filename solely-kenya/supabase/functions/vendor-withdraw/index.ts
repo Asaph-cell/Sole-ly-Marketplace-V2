@@ -71,7 +71,7 @@ serve(async (req: Request) => {
             throw new Error('No IntaSend wallet found. Please contact support.');
         }
 
-        // Get vendor balance
+        // Get vendor balance from DB
         const { data: balance, error: balanceError } = await supabase
             .from('vendor_balances')
             .select('pending_balance, intasend_wallet_id')
@@ -82,12 +82,55 @@ serve(async (req: Request) => {
             throw new Error('Could not fetch balance');
         }
 
+        // ── CRITICAL: Verify actual IntaSend wallet balance ──
+        // The DB pending_balance can drift from the real wallet if intra_transfers
+        // failed silently. Always use the real wallet balance as source of truth.
+        let realWalletBalance = balance.pending_balance; // fallback to DB value
+        try {
+            const walletResponse = await fetch(
+                `https://api.intasend.com/api/v1/wallets/${profile.intasend_wallet_id}/`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${INTASEND_SECRET_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            if (walletResponse.ok) {
+                const walletData = await walletResponse.json();
+                const actualBalance = parseFloat(walletData.current_balance ?? walletData.available_balance ?? walletData.balance ?? '0');
+                console.log(`[Vendor Withdraw] DB balance: KES ${balance.pending_balance}, IntaSend wallet balance: KES ${actualBalance}`);
+
+                if (Math.abs(actualBalance - balance.pending_balance) > 0.01) {
+                    console.warn(`[Vendor Withdraw] BALANCE DESYNC DETECTED! DB: ${balance.pending_balance}, IntaSend: ${actualBalance}. Using IntaSend balance.`);
+
+                    // Sync DB to match reality
+                    await supabase
+                        .from('vendor_balances')
+                        .update({
+                            pending_balance: actualBalance,
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq('vendor_id', vendor_id);
+                }
+
+                realWalletBalance = actualBalance;
+            } else {
+                console.warn(`[Vendor Withdraw] Could not verify IntaSend wallet balance (HTTP ${walletResponse.status}). Proceeding with DB balance.`);
+            }
+        } catch (walletCheckError) {
+            console.warn('[Vendor Withdraw] Failed to check IntaSend wallet balance:', walletCheckError);
+            // Continue with DB balance as fallback
+        }
+
         // STRICT WITHDRAW ALL MODE
         // Users must withdraw their ENTIRE balance.
-        const totalBalance = balance.pending_balance;
+        const totalBalance = realWalletBalance;
 
         if (totalBalance <= 0) {
-            throw new Error('No balance available for withdrawal');
+            throw new Error('No balance available for withdrawal. Your wallet is empty.');
         }
 
         // IntaSend Fees Logic (Disbursement to M-Pesa)
@@ -105,7 +148,7 @@ serve(async (req: Request) => {
 
         // Safety Check
         if (amountToSend <= 0) {
-            throw new Error(`Insufficient balance to cover the KES ${transactionFee} transaction fee.`);
+            throw new Error(`Insufficient balance to cover the KES ${transactionFee} transaction fee. Your actual wallet balance is KES ${totalBalance.toFixed(2)}.`);
         }
 
         // Normalize phone number for IntaSend

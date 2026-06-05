@@ -113,19 +113,52 @@ serve(async (req) => {
         if (commissionError) {
           console.error(`Failed to record commission for order ${order.id}:`, commissionError);
         }
-        // 5. Transfer funds to vendor's IntaSend wallet using direct fetch
+        // 5. Transfer funds to vendor's IntaSend wallet (AWAITED to prevent balance desync)
         const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
         const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
         
         console.log(`[Auto-Release Escrow] Triggering transfer-to-vendor-wallet for order ${order.id}...`);
-        fetch(`${supabaseUrl}/functions/v1/transfer-to-vendor-wallet`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${serviceRoleKey}`,
-            },
-            body: JSON.stringify({ order_id: order.id }),
-        }).catch(err => console.error('[Auto-Release Escrow] Failed to trigger transfer:', err));
+        try {
+            const transferResponse = await fetch(`${supabaseUrl}/functions/v1/transfer-to-vendor-wallet`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${serviceRoleKey}`,
+                },
+                body: JSON.stringify({ order_id: order.id }),
+            });
+            
+            const transferResult = await transferResponse.json().catch(() => null);
+            
+            if (!transferResponse.ok || transferResult?.error) {
+                console.error(`[Auto-Release Escrow] IntaSend wallet transfer FAILED for order ${order.id}:`, transferResult);
+                // Roll back the DB balance since the real money didn't move
+                const releaseAmount = escrow.release_amount || 0;
+                const { data: currentBal } = await supabase
+                    .from('vendor_balances')
+                    .select('pending_balance, total_earned')
+                    .eq('vendor_id', order.vendor_id)
+                    .single();
+                
+                if (currentBal) {
+                    const correctedBalance = Math.max(0, (currentBal.pending_balance || 0) - releaseAmount);
+                    const correctedEarned = Math.max(0, (currentBal.total_earned || 0) - releaseAmount);
+                    await supabase
+                        .from('vendor_balances')
+                        .update({
+                            pending_balance: correctedBalance,
+                            total_earned: correctedEarned,
+                            updated_at: now,
+                        })
+                        .eq('vendor_id', order.vendor_id);
+                    console.warn(`[Auto-Release Escrow] Rolled back DB balance by ${releaseAmount} for vendor ${order.vendor_id}`);
+                }
+            } else {
+                console.log(`[Auto-Release Escrow] Transfer successful for order ${order.id}`);
+            }
+        } catch (err) {
+            console.error('[Auto-Release Escrow] Failed to trigger transfer:', err);
+        }
 
         releasedOrders.push(order.id);
         console.log(`Auto-released escrow for order ${order.id}`);

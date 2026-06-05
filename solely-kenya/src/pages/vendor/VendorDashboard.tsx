@@ -112,7 +112,7 @@ const VendorDashboard = () => {
     const { data: payouts } = await supabase
       .from("payouts").select("amount_ksh, status").eq("vendor_id", user?.id);
     const paidOut = (payouts || [])
-      .filter((p: any) => p.status === "paid")
+      .filter((p: any) => p.status === "paid" || p.status === "processing")
       .reduce((s: number, p: any) => s + (p.amount_ksh || 0), 0);
 
     const { data: balanceData } = await supabase
