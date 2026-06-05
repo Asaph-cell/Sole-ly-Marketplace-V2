@@ -253,8 +253,9 @@ const Product = () => {
   }, [user, id]);
 
 
-  // Only require size if it's NOT an accessory and sizes exist
-  const requireSizeSelection = product?.category !== 'accessories' && product?.sizes && product.sizes.length > 0 && product.sizes[0] !== "";
+  // Only require size if it's NOT an accessory/electronics and sizes exist
+  const isNonSizedCategory = ['accessories', 'electronics', 'phones'].includes(product?.category);
+  const requireSizeSelection = !isNonSizedCategory && product?.sizes && product.sizes.length > 0 && product.sizes[0] !== "";
 
   // Only require color if colors exist
   const requireColorSelection = product?.colors && product.colors.length > 0 && product.colors[0] !== "";

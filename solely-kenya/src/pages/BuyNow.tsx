@@ -76,7 +76,8 @@ const BuyNow = () => {
   const handleBuy = () => {
     if (!product) return;
 
-    const needsSize = product.sizes?.length > 0 && product.sizes[0] !== "";
+    const isNonSizedCategory = ['accessories', 'electronics', 'phones'].includes(product.category);
+    const needsSize = !isNonSizedCategory && product.sizes?.length > 0 && product.sizes[0] !== "";
     const needsColor = product.colors?.length > 0 && product.colors[0] !== "";
 
     if (needsSize && !selectedSize) { toast.error("Please select a size"); return; }
@@ -142,7 +143,8 @@ const BuyNow = () => {
     );
   }
 
-  const needsSize = product.sizes?.length > 0 && product.sizes[0] !== "";
+  const isNonSizedCategoryDisplay = ['accessories', 'electronics', 'phones'].includes(product.category);
+  const needsSize = !isNonSizedCategoryDisplay && product.sizes?.length > 0 && product.sizes[0] !== "";
   const needsColor = product.colors?.length > 0 && product.colors[0] !== "";
   const images: string[] = product.images ?? [];
 

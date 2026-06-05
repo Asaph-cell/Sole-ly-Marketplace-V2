@@ -227,15 +227,17 @@ const NotFound = () => {
         <div className="text-center max-w-md pointer-events-auto">
           <div className="bg-white/60 backdrop-blur-lg border border-primary/10 rounded-3xl p-6 sm:p-8 shadow-lg">
             <div className="animate-bounce mb-4">
-              <svg className="w-14 h-14 mx-auto text-primary" viewBox="0 0 64 64" fill="currentColor">
-                <path d="M60 38c0 0-4-2-8-2s-8 2-12 2-8-2-12-2-8 2-12 2-8-2-8-2c-2 0-4 2-4 4v4c0 2 2 4 4 4h48c2 0 4-2 4-4v-4c0-2-2-4-4-4zM12 44c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm10 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm10 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM56 32l-8-16c-1-2-3-4-6-4H22c-3 0-5 2-6 4L8 32h48z" />
+              <svg className="w-14 h-14 mx-auto text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 01-8 0" />
               </svg>
             </div>
 
             <p className="text-sm text-muted-foreground mb-1">Oops!</p>
             <h1 className="text-4xl sm:text-5xl font-black text-primary mb-2">404</h1>
-            <h2 className="text-lg font-bold mb-1">This shoe walked away</h2>
-            <p className="text-muted-foreground text-sm mb-4">Let's get you back on track</p>
+            <h2 className="text-lg font-bold mb-1">Page not found</h2>
+            <p className="text-muted-foreground text-sm mb-4">This page doesn't exist or has been moved</p>
 
             <div className="bg-primary/5 rounded-xl p-3 mb-6 border border-primary/10">
               <p className="text-xs text-muted-foreground">Move to attract • Click to pop!</p>
