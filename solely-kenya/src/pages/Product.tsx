@@ -253,12 +253,18 @@ const Product = () => {
   }, [user, id]);
 
 
-  // Only require size if it's NOT an accessory/electronics and sizes exist
-  const isNonSizedCategory = ['accessories', 'electronics', 'phones'].includes(product?.category);
-  const requireSizeSelection = !isNonSizedCategory && product?.sizes && product.sizes.length > 0 && product.sizes[0] !== "";
+  // Require size/variant if sizes exist
+  const requireSizeSelection = product?.category !== 'accessories' && product?.sizes && product.sizes.length > 0 && product.sizes[0] !== "";
 
   // Only require color if colors exist
   const requireColorSelection = product?.colors && product.colors.length > 0 && product.colors[0] !== "";
+
+  // Category-aware label for the size/variant field
+  const sizeLabel = product?.category === "electronics" || product?.category === "phones"
+    ? "variant"
+    : product?.category === "beauty"
+    ? "volume"
+    : "size";
 
   const ensureColorSelected = () => {
     if (requireColorSelection && !selectedColor) {
@@ -270,7 +276,7 @@ const Product = () => {
 
   const ensureSizeSelected = () => {
     if (requireSizeSelection && !selectedSize) {
-      toast.error("Please select a size first");
+      toast.error(`Please select a ${sizeLabel} first`);
       return false;
     }
     return true;

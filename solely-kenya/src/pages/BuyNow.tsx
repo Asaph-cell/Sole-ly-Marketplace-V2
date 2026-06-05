@@ -76,11 +76,11 @@ const BuyNow = () => {
   const handleBuy = () => {
     if (!product) return;
 
-    const isNonSizedCategory = ['accessories', 'electronics', 'phones'].includes(product.category);
-    const needsSize = !isNonSizedCategory && product.sizes?.length > 0 && product.sizes[0] !== "";
+    const needsSize = product.category !== 'accessories' && product.sizes?.length > 0 && product.sizes[0] !== "";
     const needsColor = product.colors?.length > 0 && product.colors[0] !== "";
+    const variantLabel = product.category === "electronics" || product.category === "phones" ? "variant" : product.category === "beauty" ? "volume" : "size";
 
-    if (needsSize && !selectedSize) { toast.error("Please select a size"); return; }
+    if (needsSize && !selectedSize) { toast.error(`Please select a ${variantLabel}`); return; }
     if (needsColor && !selectedColor) { toast.error("Please select a colour"); return; }
     if (product.stock === 0) { toast.error("This item is out of stock"); return; }
 
@@ -143,9 +143,9 @@ const BuyNow = () => {
     );
   }
 
-  const isNonSizedCategoryDisplay = ['accessories', 'electronics', 'phones'].includes(product.category);
-  const needsSize = !isNonSizedCategoryDisplay && product.sizes?.length > 0 && product.sizes[0] !== "";
+  const needsSize = product.category !== 'accessories' && product.sizes?.length > 0 && product.sizes[0] !== "";
   const needsColor = product.colors?.length > 0 && product.colors[0] !== "";
+  const variantLabel = product.category === "electronics" || product.category === "phones" ? "Variant" : product.category === "beauty" ? "Volume" : "Size";
   const images: string[] = product.images ?? [];
 
   const conditionMap: Record<string, string> = {
@@ -335,14 +335,14 @@ const BuyNow = () => {
           {/* ── Size selector ── */}
           {needsSize && (
             <div className="space-y-2">
-              <label className="text-sm font-semibold">Select Size</label>
+              <label className="text-sm font-semibold">Select {variantLabel}</label>
               <Select value={selectedSize} onValueChange={setSelectedSize}>
                 <SelectTrigger className="rounded-xl">
-                  <SelectValue placeholder="Choose your size" />
+                  <SelectValue placeholder={`Choose your ${variantLabel.toLowerCase()}`} />
                 </SelectTrigger>
                 <SelectContent>
                   {product.sizes.map((s: string) => (
-                    <SelectItem key={s} value={s}>EU {s}</SelectItem>
+                    <SelectItem key={s} value={s}>{product.category === "shoes" ? `EU ${s}` : s}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
