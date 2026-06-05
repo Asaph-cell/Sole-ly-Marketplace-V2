@@ -16,7 +16,7 @@ import {
   CheckCircle, Zap, Share2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { playNotificationSound } from "@/lib/audio";
+
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 // ── Status badge colour map ───────────────────────────────────────────────────
@@ -193,17 +193,7 @@ const VendorDashboard = () => {
               >
                 <Share2 size={14} strokeWidth={1.5} /> Copy Store Link
               </Button>
-              <button
-                title="Preview notification sound"
-                onClick={() => {
-                  try {
-                    playNotificationSound();
-                  } catch {}
-                }}
-                className="h-8 w-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center text-base transition-colors"
-              >
-                🔔
-              </button>
+
               <Button size="sm" onClick={() => navigate("/vendor/list-item")} className="gap-1.5 text-xs sm:text-sm">
                 <Package size={14} strokeWidth={1.5}  /> List Item
               </Button>

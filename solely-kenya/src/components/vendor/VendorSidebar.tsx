@@ -14,7 +14,7 @@ import {
   Link2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { playNotificationSound } from "@/lib/audio";
+
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -167,10 +167,6 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
       setAppBadge(totalAlerts);
     };
 
-    // Play a pleasant chime when a new order arrives
-    const playNewOrderSound = () => {
-      playNotificationSound();
-    };
 
     // Show a browser notification if permission already granted
     const showOrderNotification = () => {
@@ -198,12 +194,10 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
         },
         (payload) => {
           fetchAlertCounts();
-          // Play sound + notify only on brand-new pending orders
           if (
             payload.eventType === "INSERT" &&
             payload.new?.status === "pending_vendor_confirmation"
           ) {
-            playNewOrderSound();
             showOrderNotification();
           }
         }
