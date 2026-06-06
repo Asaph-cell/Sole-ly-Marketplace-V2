@@ -109,6 +109,9 @@ export const SEO = ({
             ]
         },
         "sameAs": [
+            "https://instagram.com/solely.kenya",
+            "https://www.tiktok.com/@solely.kenya",
+            "https://facebook.com/solely.kenya",
             "https://twitter.com/solely_kenya"
         ]
     };

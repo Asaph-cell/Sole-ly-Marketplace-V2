@@ -1,39 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage -->
   <url>
     <loc>https://solelymarketplace.com/</loc>
-    <lastmod>2026-03-25</lastmod>
+    <lastmod>2026-06-06</lastmod>
     <priority>1.0</priority>
     <changefreq>daily</changefreq>
   </url>
+
+  <!-- Core Shopping -->
   <url>
     <loc>https://solelymarketplace.com/shop</loc>
-    <lastmod>2026-03-25</lastmod>
+    <lastmod>2026-06-06</lastmod>
     <priority>0.9</priority>
     <changefreq>daily</changefreq>
   </url>
+
+  <!-- Vendor Directory (public listing of all vendors) -->
+  <url>
+    <loc>https://solelymarketplace.com/vendors</loc>
+    <lastmod>2026-06-06</lastmod>
+    <priority>0.8</priority>
+    <changefreq>daily</changefreq>
+  </url>
+
+  <!-- Blog -->
+  <url>
+    <loc>https://solelymarketplace.com/blog</loc>
+    <lastmod>2026-06-06</lastmod>
+    <priority>0.7</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <!-- Informational Pages -->
+  <url>
+    <loc>https://solelymarketplace.com/about</loc>
+    <lastmod>2026-06-06</lastmod>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://solelymarketplace.com/how-it-works</loc>
+    <lastmod>2026-06-06</lastmod>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://solelymarketplace.com/contact</loc>
+    <lastmod>2026-06-06</lastmod>
+    <priority>0.6</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <!-- Vendor Landing / Become a Seller -->
   <url>
     <loc>https://solelymarketplace.com/vendor</loc>
-    <lastmod>2026-03-25</lastmod>
+    <lastmod>2026-06-06</lastmod>
     <priority>0.8</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
+    <loc>https://solelymarketplace.com/vendor/register</loc>
+    <lastmod>2026-06-06</lastmod>
+    <priority>0.6</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <!-- Auth -->
+  <url>
     <loc>https://solelymarketplace.com/auth</loc>
-    <lastmod>2026-03-25</lastmod>
+    <lastmod>2026-06-06</lastmod>
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>
   </url>
-  <url>
-    <loc>https://solelymarketplace.com/privacy-policy</loc>
-    <lastmod>2026-03-25</lastmod>
-    <priority>0.3</priority>
-    <changefreq>monthly</changefreq>
-  </url>
+
+  <!-- Legal -->
   <url>
     <loc>https://solelymarketplace.com/terms</loc>
-    <lastmod>2026-03-25</lastmod>
+    <lastmod>2026-06-06</lastmod>
     <priority>0.3</priority>
-    <changefreq>monthly</changefreq>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://solelymarketplace.com/privacy-policy</loc>
+    <lastmod>2026-06-06</lastmod>
+    <priority>0.3</priority>
+    <changefreq>yearly</changefreq>
   </url>
 </urlset>

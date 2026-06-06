@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Instagram, Facebook, ChevronDown } from "lucide-react";
 import logo from "@/assets/solely-logo.svg";
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 
 // TikTok icon component (not in lucide-react)
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -41,8 +42,27 @@ const faqs = [
 const Footer = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
+  // Build FAQPage JSON-LD for Google rich results
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  };
+
   return (
     <footer className="bg-muted border-t border-border mt-20 text-muted-foreground">
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify(faqSchema)}
+        </script>
+      </Helmet>
       <div className="container mx-auto px-4 py-12">
         {/* FAQ Section */}
         <div className="mb-12">

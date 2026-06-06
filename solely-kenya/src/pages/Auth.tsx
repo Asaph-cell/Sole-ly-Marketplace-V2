@@ -37,6 +37,12 @@ const Auth = () => {
   redirectTo = redirectTo.replace(/(?<!:)\/+/g, '/');
 
   const handleGoogleSignIn = async () => {
+    // Check connectivity before attempting OAuth redirect
+    if (!navigator.onLine) {
+      toast.error("No internet connection. Please check your WiFi or mobile data and try again.");
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -46,7 +52,11 @@ const Auth = () => {
       });
       if (error) throw error;
     } catch (error: any) {
-      toast.error(error.message);
+      if (error.message?.includes('fetch') || error.message?.includes('network')) {
+        toast.error("No internet connection. Please check your WiFi or mobile data and try again.");
+      } else {
+        toast.error(error.message);
+      }
     }
   };
 
@@ -55,17 +65,35 @@ const Auth = () => {
       // Small delay to ensure signOut has completed if coming from logout
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Use getUser() to ensure the token is actually valid on the server,
-      // preventing infinite loops if localStorage has an invalid old token.
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (user && !error) {
-        navigate(redirectTo);
-      } else {
-        // If there's a session in storage but getUser fails, sign out to clear it
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          await supabase.auth.signOut();
+      try {
+        // Use getUser() to ensure the token is actually valid on the server,
+        // preventing infinite loops if localStorage has an invalid old token.
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (user && !error) {
+          navigate(redirectTo);
+        } else if (error) {
+          // Only clear session if it's a real auth error (e.g. expired token),
+          // NOT a network error. Network errors should be left alone so the
+          // user can retry when connection is restored.
+          const isNetworkError =
+            error.message?.includes('fetch') ||
+            error.message?.includes('network') ||
+            error.message?.includes('Failed to fetch') ||
+            error.message?.includes('NetworkError') ||
+            error.status === 0;
+
+          if (!isNetworkError) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              await supabase.auth.signOut();
+            }
+          }
+          // If it IS a network error, do nothing — user stays on auth page
+          // and the OfflineBanner will show them why
         }
+      } catch (err) {
+        // Total network failure (fetch itself threw) — don't touch session
+        console.warn('Auth check failed (likely offline):', err);
       }
     };
     checkUser();
@@ -76,6 +104,12 @@ const Auth = () => {
 
     if (!termsAccepted) {
       toast.error("You must accept the Terms & Conditions to create an account");
+      return;
+    }
+
+    // Pre-check: catch offline before even hitting Supabase
+    if (!navigator.onLine) {
+      toast.error("No internet connection. Please check your WiFi or mobile data and try again.");
       return;
     }
 
@@ -105,7 +139,17 @@ const Auth = () => {
         setShowEmailSent(true);
       }
     } catch (error: any) {
-      toast.error(error.message);
+      const msg = error.message || '';
+      if (
+        msg.includes('fetch') ||
+        msg.includes('network') ||
+        msg.includes('Failed to fetch') ||
+        msg.includes('NetworkError')
+      ) {
+        toast.error("No internet connection. Please check your WiFi or mobile data and try again.");
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -113,6 +157,13 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Pre-check: catch offline before even hitting Supabase
+    if (!navigator.onLine) {
+      toast.error("No internet connection. Please check your WiFi or mobile data and try again.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -126,7 +177,19 @@ const Auth = () => {
       toast.success("Welcome back!");
       navigate(redirectTo);
     } catch (error: any) {
-      toast.error(error.message);
+      // Detect network errors and show a clear message
+      const msg = error.message || '';
+      if (
+        msg.includes('fetch') ||
+        msg.includes('network') ||
+        msg.includes('Failed to fetch') ||
+        msg.includes('NetworkError') ||
+        msg.includes('ECONNREFUSED')
+      ) {
+        toast.error("No internet connection. Please check your WiFi or mobile data and try again.");
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
