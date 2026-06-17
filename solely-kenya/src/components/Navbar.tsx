@@ -7,7 +7,7 @@ import { NavLinks } from "./navbar/NavLinks";
 import { AuthButtons } from "./navbar/AuthButtons";
 import { MobileNav } from "./navbar/MobileNav";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Search } from "lucide-react";
+import { ShoppingCart, Search, Heart } from "lucide-react";
 import logo from "@/assets/solely-logo.svg";
 import { saveSearch } from "@/lib/searchHistory";
 
@@ -78,6 +78,11 @@ const Navbar = () => {
 
           {/* Right side - Cart & Auth (desktop) */}
           <div className="hidden md:flex items-center gap-4 flex-shrink-0">
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/wishlist" className="relative" aria-label="Wishlist">
+                <Heart size={20} strokeWidth={1.5} />
+              </Link>
+            </Button>
             <Button variant="ghost" size="icon" asChild>
               <Link to="/cart" className="relative">
                 <ShoppingCart size={20} strokeWidth={1.5}  />

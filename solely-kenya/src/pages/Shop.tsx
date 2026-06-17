@@ -508,6 +508,7 @@ const Shop = () => {
                     price={product.price_ksh}
                     image={product.images?.[0] || "/placeholder.svg"}
                     brand={product.brand}
+                    description={product.description}
                     averageRating={product.averageRating}
                     reviewCount={product.reviewCount}
                     createdAt={product.created_at}
@@ -515,6 +516,7 @@ const Shop = () => {
                     videoUrl={product.video_url}
                     freeDelivery={product.free_delivery}
                     category={product.category}
+                    vendorId={product.vendor_id}
                   />
                 ))}
               </div>

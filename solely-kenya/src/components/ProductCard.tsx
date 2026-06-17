@@ -1,16 +1,21 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { ShoppingCart, Truck, RefreshCcw, Recycle, Play } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Heart, Truck, RefreshCcw, Recycle, Play, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
+import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface ProductCardProps {
-  id: number;
+  id: number | string;
   name: string;
   price: number;
   image: string;
   brand?: string;
+  description?: string;
   averageRating?: number | null;
   reviewCount?: number;
   createdAt: string;
@@ -18,7 +23,38 @@ interface ProductCardProps {
   videoUrl?: string | null;
   freeDelivery?: boolean | null;
   category?: string;
+  vendorId?: string;
 }
+
+// Inline star display (read-only)
+const StarDisplay = ({ value, count }: { value?: number | null; count?: number }) => {
+  if (!value || value === 0) return null;
+  const rounded = Math.round(value * 2) / 2; // round to nearest 0.5
+  return (
+    <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            size={11}
+            strokeWidth={1.5}
+            className={
+              star <= Math.floor(rounded)
+                ? "fill-amber-400 text-amber-400"
+                : star - 0.5 === rounded
+                ? "fill-amber-200 text-amber-400"
+                : "text-gray-300"
+            }
+          />
+        ))}
+      </div>
+      <span className="text-[10px] text-gray-500 font-medium">
+        {value.toFixed(1)}
+        {count ? ` (${count})` : ""}
+      </span>
+    </div>
+  );
+};
 
 const ProductCard = ({
   id,
@@ -26,16 +62,25 @@ const ProductCard = ({
   price,
   image,
   brand,
+  description,
+  averageRating,
+  reviewCount,
   createdAt,
   condition = "new",
   videoUrl,
   freeDelivery,
   category,
+  vendorId,
 }: ProductCardProps) => {
   const [isHovering, setIsHovering] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { addItem } = useCart();
+  const { isWished, toggle } = useWishlist();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const wished = isWished(String(id));
 
   // Detect mobile
   useEffect(() => {
@@ -62,7 +107,6 @@ const ProductCard = ({
     if (isMobile && videoUrl) {
       e.preventDefault();
       e.stopPropagation();
-
       if (videoRef.current) {
         if (isPlaying) {
           videoRef.current.pause();
@@ -75,27 +119,54 @@ const ProductCard = ({
     }
   };
 
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast.error("Please sign in to add items to your cart");
+      navigate(`/auth?redirect=/product/${id}`);
+      return;
+    }
+    addItem({
+      productId: String(id),
+      vendorId: vendorId ?? "unknown",
+      name,
+      priceKsh: price,
+      imageUrl: image,
+    });
+    toast.success("Added to cart", { description: name, duration: 2000 });
+  };
+
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast.error("Please sign in to save items to your wishlist");
+      navigate(`/auth?redirect=/wishlist`);
+      return;
+    }
+    toggle(String(id));
+  };
+
   // Calculate if product is new (within last 30 days)
   const isNew = (Date.now() - new Date(createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000;
 
-  // Format price (e.g. 65000 -> 65K, 10000 -> 10K, else 10 -> 10)
+  // Format price (e.g. 65000 -> 65K, 10000 -> 10K)
   const formatPrice = (p: number) => {
-    if (p >= 1000 && p % 1000 === 0) {
-      return `${p / 1000}K`;
-    }
+    if (p >= 1000 && p % 1000 === 0) return `${p / 1000}K`;
     return p.toLocaleString();
   };
 
   // Determine background color based on category
   const getBgColor = (cat?: string) => {
-    if (!cat) return "bg-[#e2e8f0]"; // default slate
+    if (!cat) return "bg-[#e2e8f0]";
     const c = cat.toLowerCase();
-    if (c === "womens-fashion" || c === "beauty") return "bg-[#fce7f3]"; // soft pink
-    if (c === "electronics" || c === "phones" || c === "laptops") return "bg-[#e2e8f0]"; // soft blue/slate
-    if (c === "shoes") return "bg-[#fef3c7]"; // soft amber/beige
-    if (c === "bags") return "bg-[#ffedd5]"; // soft orange/beige
-    if (c === "sports") return "bg-[#dcfce7]"; // soft green
-    return "bg-[#f1f5f9]"; // default slate
+    if (c === "womens-fashion" || c === "beauty") return "bg-[#fce7f3]";
+    if (c === "electronics" || c === "phones" || c === "laptops") return "bg-[#e2e8f0]";
+    if (c === "shoes") return "bg-[#fef3c7]";
+    if (c === "bags") return "bg-[#ffedd5]";
+    if (c === "sports") return "bg-[#dcfce7]";
+    return "bg-[#f1f5f9]";
   };
 
   return (
@@ -106,13 +177,16 @@ const ProductCard = ({
       onMouseLeave={() => !isMobile && setIsHovering(false)}
       className="h-full"
     >
-      <Link to={`/product/${id}`} className="block h-full group bg-white border border-gray-100 rounded-[20px] overflow-hidden hover:shadow-xl hover:border-gray-200 transition-all duration-300 flex flex-col relative">
-        {/* Top Image Container */}
-        <div 
-          className={`relative w-full aspect-square p-5 flex items-center justify-center ${getBgColor(category)} overflow-hidden`}
+      <Link
+        to={`/product/${id}`}
+        className="card block h-full group bg-white border border-gray-100 rounded-[20px] overflow-hidden hover:shadow-xl hover:border-gray-200 transition-all duration-300 flex flex-col relative"
+      >
+        {/* ── img-wrap ── */}
+        <div
+          className={`img-wrap relative w-full aspect-square overflow-hidden`}
           onClick={handleMobileTap}
         >
-          {/* Top Left Badges */}
+          {/* Condition badges — top left */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 items-start">
             {freeDelivery && (
               <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#1a5138] text-white text-[10px] font-extrabold rounded-full tracking-wide shadow-sm">
@@ -131,8 +205,13 @@ const ProductCard = ({
             )}
           </div>
 
-          {/* Top Right Badges */}
-          <div className="absolute top-3 right-3 flex flex-col gap-1 z-10">
+          {/* "New" badge — top right area, alongside video indicator */}
+          <div className="absolute top-3 right-3 flex flex-col gap-1.5 z-10 items-end">
+            {isNew && (
+              <span className="badge px-2 py-0.5 bg-[#c2841d] text-white text-[10px] font-bold rounded-full shadow-sm">
+                New
+              </span>
+            )}
             {videoUrl && (
               <span className="flex items-center justify-center w-7 h-7 bg-white/80 backdrop-blur text-gray-900 rounded-full shadow-sm">
                 <Play size={12} strokeWidth={2.5} className="ml-0.5" />
@@ -140,12 +219,21 @@ const ProductCard = ({
             )}
           </div>
 
+          {/* Wishlist button */}
+          <button
+            className={`wishlist absolute bottom-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur shadow-sm transition-all duration-200 hover:scale-110 hover:bg-white ${wished ? "text-rose-500" : "text-gray-400 hover:text-rose-400"}`}
+            onClick={handleWishlist}
+            aria-label="Add to wishlist"
+          >
+            <Heart size={15} strokeWidth={2} className={wished ? "fill-rose-500" : ""} />
+          </button>
+
           <LazyLoadImage
             src={image}
             alt={name}
             effect="blur"
-            className={`w-full h-full object-contain drop-shadow-md mix-blend-multiply transition-all duration-500 group-hover:scale-105 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"}`}
-            wrapperClassName="w-full h-full flex items-center justify-center"
+            className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"}`}
+            wrapperClassName="w-full h-full"
           />
 
           {videoUrl && (
@@ -169,45 +257,38 @@ const ProductCard = ({
           )}
         </div>
 
-        {/* Bottom Content Container */}
-        <div className="p-4 flex flex-col flex-grow">
+        {/* ── body ── */}
+        <div className="body p-3.5 flex flex-col flex-grow gap-1">
           {/* Brand */}
-          <div className="mb-0.5">
-            <span className="text-[10px] font-extrabold text-gray-700 uppercase tracking-widest block truncate">
-              {brand || "\u00A0"}
-            </span>
-          </div>
+          <span className="brand text-[10px] font-extrabold text-gray-500 uppercase tracking-widest block truncate">
+            {brand || "\u00A0"}
+          </span>
 
           {/* Product Name */}
-          <h3 className="text-[15px] sm:text-[16px] font-bold text-gray-900 leading-tight line-clamp-1 mb-2">
+          <p className="name text-[14px] sm:text-[15px] font-bold text-gray-900 leading-tight line-clamp-1">
             {name}
-          </h3>
+          </p>
 
-          {/* New Listing Badge */}
-          <div className="mb-3">
-            {isNew ? (
-              <span className="inline-flex items-center px-2 py-0.5 bg-[#fef3c7] text-[#b45309] text-[10px] font-bold rounded">
-                New
-              </span>
-            ) : (
-              <span className="inline-block opacity-0 text-[10px] py-0.5">Placeholder</span>
-            )}
-          </div>
+          {/* Description */}
+          {description && (
+            <p className="desc text-[11px] text-gray-400 leading-snug line-clamp-2">
+              {description}
+            </p>
+          )}
 
-          {/* Price & Add Button */}
-          <div className="mt-auto flex items-end justify-between">
-            <div className="text-lg sm:text-[22px] font-extrabold text-[#c2841d]">
+          {/* Star Rating */}
+          <StarDisplay value={averageRating} count={reviewCount} />
+
+          {/* Footer: price + add button */}
+          <div className="footer mt-auto pt-2 flex items-center justify-between gap-2">
+            <span className="price text-base sm:text-[18px] font-extrabold text-[#c2841d] leading-none">
               KES {formatPrice(price)}
-            </div>
-            
-            <button 
-              onClick={(e) => {
-                // Allows the Link to still trigger, or we can e.preventDefault() to handle cart.
-                // For now we just let it act as part of the card (or visually an add button).
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm text-gray-900 font-bold text-xs sm:text-sm"
+            </span>
+            <button
+              onClick={handleAddToCart}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-700 active:scale-95 transition-all text-xs font-bold shadow-sm"
             >
-              <ShoppingCart size={14} strokeWidth={2.5} /> Add
+              Add
             </button>
           </div>
         </div>

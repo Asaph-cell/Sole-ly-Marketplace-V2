@@ -894,6 +894,7 @@ const Product = () => {
                       price={simProd.price_ksh}
                       image={simProd.images?.[0] || "/placeholder.svg"}
                       brand={simProd.brand}
+                      description={simProd.description}
                       averageRating={simProd.averageRating}
                       reviewCount={simProd.reviewCount}
                       createdAt={simProd.created_at}
@@ -901,6 +902,7 @@ const Product = () => {
                       videoUrl={simProd.video_url}
                       freeDelivery={simProd.free_delivery}
                       category={simProd.category}
+                      vendorId={simProd.vendor_id}
                     />
                   </SwiperSlide>
                 ))}

@@ -170,11 +170,13 @@ const VendorStorefront = () => {
                 price={product.price_ksh}
                 image={product.images?.[0] || "/placeholder.svg"}
                 brand={product.brand}
+                description={product.description}
                 createdAt={product.created_at}
                 condition={product.condition || "new"}
                 videoUrl={product.video_url}
                 freeDelivery={product.free_delivery}
                 category={product.category}
+                vendorId={product.vendor_id}
               />
             ))}
           </div>

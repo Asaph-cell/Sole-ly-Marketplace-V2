@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   Mail, LogOut, LayoutDashboard, Menu, ShoppingBag,
-  ShoppingCart, Download, Home, Info, HelpCircle, Tag, ChevronRight,
+  ShoppingCart, Download, Home, Info, HelpCircle, Tag, ChevronRight, Heart,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -129,6 +129,19 @@ export const MobileNav = ({
               ) : (
                 <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
               )}
+            </Link>
+          </div>
+
+          {/* Wishlist */}
+          <div className="px-2">
+            <Link
+              to="/wishlist"
+              onClick={close}
+              className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              <Heart size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
+              Wishlist
+              <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
             </Link>
           </div>
 

@@ -386,6 +386,7 @@ const Home = () => {
                     price={product.price}
                     image={product.image}
                     brand={product.brand}
+                    description={product.description}
                     averageRating={product.averageRating}
                     reviewCount={product.reviewCount}
                     createdAt={product.created_at}
@@ -393,6 +394,7 @@ const Home = () => {
                     videoUrl={product.video_url}
                     freeDelivery={product.free_delivery}
                     category={product.category}
+                    vendorId={product.vendor_id}
                   />
                 ))}
               </div>
@@ -447,6 +449,7 @@ const Home = () => {
                   price={product.price}
                   image={product.image}
                   brand={product.brand}
+                  description={product.description}
                   averageRating={product.averageRating}
                   reviewCount={product.reviewCount}
                   createdAt={product.created_at}
@@ -454,6 +457,7 @@ const Home = () => {
                   videoUrl={product.video_url}
                   freeDelivery={product.free_delivery}
                   category={product.category}
+                  vendorId={product.vendor_id}
                 />
               ))}
             </div>

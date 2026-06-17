@@ -76,6 +76,7 @@ const HowItWorks = lazyRetry(() => import("./pages/HowItWorks"), "HowItWorks");
 const BuyNow = lazyRetry(() => import("./pages/BuyNow"), "BuyNow");
 const NotFound = lazyRetry(() => import("./pages/NotFound"), "NotFound");
 const WhatsAppButton = lazyRetry(() => import("./components/WhatsAppButton"), "WhatsAppButton");
+const Wishlist = lazyRetry(() => import("./pages/Wishlist"), "Wishlist");
 
 // Secure Links Feature
 const SecureInvoice = lazyRetry(() => import("./pages/checkout/SecureInvoice"), "SecureInvoice");
@@ -131,6 +132,7 @@ const AnimatedRoutes = () => {
       <Route path="/blog" element={<PageWrapper><MainLayout><Blog /></MainLayout></PageWrapper>} />
       <Route path="/blog/:id" element={<PageWrapper><MainLayout><BlogPost /></MainLayout></PageWrapper>} />
       <Route path="/how-it-works" element={<PageWrapper><MainLayout><HowItWorks /></MainLayout></PageWrapper>} />
+      <Route path="/wishlist" element={<PageWrapper><MainLayout><Wishlist /></MainLayout></PageWrapper>} />
 
       {/* Routes WITHOUT Navbar and Footer (Vendor & Admin Dashboards) */}
       <Route path="/vendor/dashboard" element={<PageWrapper><VendorDashboard /></PageWrapper>} />
