@@ -32,13 +32,51 @@ serve(async (req: Request) => {
     try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
         const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
         const intaSendSecretKey = Deno.env.get("INTASEND_SECRET_KEY");
 
         if (!intaSendSecretKey) {
             throw new Error("INTASEND_SECRET_KEY not configured");
         }
 
+        // ── SECURITY: Verify caller is an authenticated admin ──────────────────
+        const authHeader = req.headers.get("Authorization");
+        if (!authHeader) {
+            return new Response(
+                JSON.stringify({ success: false, error: "Unauthorized" }),
+                { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
+        // Verify the JWT belongs to a real user
+        const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+            global: { headers: { Authorization: authHeader } },
+        });
+        const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+        if (authError || !user) {
+            return new Response(
+                JSON.stringify({ success: false, error: "Unauthorized" }),
+                { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
+        // Verify the user holds the admin role
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const { data: adminRole } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id)
+            .eq("role", "admin")
+            .single();
+
+        if (!adminRole) {
+            console.warn(`[Refund] Non-admin user ${user.id} attempted to call process-refund`);
+            return new Response(
+                JSON.stringify({ success: false, error: "Forbidden: admin access required" }),
+                { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+        // ── END SECURITY ───────────────────────────────────────────────────────
 
         const { orderId, disputeId, reason, refundAmount } = await req.json();
 
@@ -46,7 +84,9 @@ serve(async (req: Request) => {
             throw new Error("orderId is required");
         }
 
-        console.log(`[Refund] Processing refund for order: ${orderId}`);
+        console.log(`[Refund] Admin ${user.id} processing refund for order: ${orderId}`);
+
+
 
         // 1. Fetch payment record to get transaction_id
         const { data: payment, error: paymentError } = await supabase

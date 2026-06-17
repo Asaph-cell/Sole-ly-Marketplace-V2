@@ -91,9 +91,10 @@ serve(async (req) => {
         console.log(`[IntaSend Webhook] Processing payment for order: ${orderId}, state: ${state}`);
 
         // ─────────────────────────────────────────────────────────────────────
-        // SECURITY: Cross-verify with IntaSend API (LOG-ONLY MODE)
-        // Logs verification results but doesn't block - prevents breaking payments
-        // while still providing an audit trail for suspicious activity
+        // SECURITY: Cross-verify with IntaSend API (ENFORCED)
+        // If IntaSend's own API disagrees with the webhook state, we reject the
+        // payload entirely. Returning 200 so IntaSend doesn't retry, but we do
+        // NOT update the order — blocking spoofed "COMPLETE" webhook attacks.
         // ─────────────────────────────────────────────────────────────────────
         if (invoice_id && (state === 'COMPLETE' || state === 'COMPLETED' || state === 'SUCCESSFUL')) {
             const intaSendSecretKey = Deno.env.get('INTASEND_SECRET_KEY');
@@ -111,31 +112,55 @@ serve(async (req) => {
                     });
 
                     if (!verifyResponse.ok) {
-                        // LOG ONLY - don't block the webhook
-                        console.warn(`[IntaSend Webhook] ⚠️ AUDIT: Invoice verification returned ${verifyResponse.status} - proceeding anyway`);
-                    } else {
-                        const verifiedInvoice = await verifyResponse.json();
-                        console.log(`[IntaSend Webhook] Verified invoice response:`, JSON.stringify(verifiedInvoice));
-
-                        // Log mismatches but don't block
-                        const isVerifiedSuccess = verifiedInvoice.state === 'COMPLETE' || verifiedInvoice.state === 'COMPLETED' || verifiedInvoice.state === 'SUCCESSFUL';
-                        if (verifiedInvoice.state && !isVerifiedSuccess) {
-                            console.warn(`[IntaSend Webhook] ⚠️ AUDIT: State mismatch - webhook: ${state}, API: ${verifiedInvoice.state}`);
-                        }
-
-                        if (verifiedInvoice.api_ref && verifiedInvoice.api_ref !== orderId) {
-                            console.warn(`[IntaSend Webhook] ⚠️ AUDIT: Order ID mismatch - webhook: ${orderId}, API: ${verifiedInvoice.api_ref}`);
-                        }
-
-                        console.log(`[IntaSend Webhook] ✓ Invoice ${invoice_id} verification complete`);
+                        // Cannot reach IntaSend API — reject to be safe
+                        console.error(`[IntaSend Webhook] ❌ REJECTED: Could not verify invoice ${invoice_id} (HTTP ${verifyResponse.status}). Aborting.`);
+                        return new Response(
+                            JSON.stringify({ success: false, message: 'Webhook rejected: could not verify invoice with IntaSend' }),
+                            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                        );
                     }
+
+                    const verifiedInvoice = await verifyResponse.json();
+                    const isVerifiedSuccess = verifiedInvoice.state === 'COMPLETE' || verifiedInvoice.state === 'COMPLETED' || verifiedInvoice.state === 'SUCCESSFUL';
+
+                    if (!isVerifiedSuccess) {
+                        // IntaSend says it's NOT paid — this is a spoofed or replayed webhook
+                        console.error(`[IntaSend Webhook] ❌ REJECTED: State mismatch — webhook claimed: ${state}, IntaSend API says: ${verifiedInvoice.state}. Possible spoofed webhook. Order ${orderId} NOT updated.`);
+                        return new Response(
+                            JSON.stringify({ success: false, message: 'Webhook rejected: payment state mismatch' }),
+                            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                        );
+                    }
+
+                    if (verifiedInvoice.api_ref && verifiedInvoice.api_ref !== orderId) {
+                        // The invoice belongs to a different order — replay attack
+                        console.error(`[IntaSend Webhook] ❌ REJECTED: Order ID mismatch — webhook: ${orderId}, IntaSend API: ${verifiedInvoice.api_ref}. Possible replay attack.`);
+                        return new Response(
+                            JSON.stringify({ success: false, message: 'Webhook rejected: order ID mismatch' }),
+                            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                        );
+                    }
+
+                    console.log(`[IntaSend Webhook] ✅ Invoice ${invoice_id} verified successfully. Proceeding.`);
+
                 } catch (verifyError) {
-                    console.warn('[IntaSend Webhook] Verification API error (proceeding anyway):', verifyError);
+                    // Network error reaching IntaSend — fail safe, reject
+                    console.error('[IntaSend Webhook] ❌ REJECTED: Verification network error:', verifyError);
+                    return new Response(
+                        JSON.stringify({ success: false, message: 'Webhook rejected: verification error' }),
+                        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                    );
                 }
             } else {
-                console.warn('[IntaSend Webhook] INTASEND_SECRET_KEY not set - skipping invoice verification');
+                // No secret key configured — cannot verify, must reject
+                console.error('[IntaSend Webhook] ❌ REJECTED: INTASEND_SECRET_KEY not set — cannot verify webhook. Configure the key to process payments.');
+                return new Response(
+                    JSON.stringify({ success: false, message: 'Webhook rejected: verification not configured' }),
+                    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
             }
         }
+
 
         // Fetch the order
         const { data: order, error: orderError } = await supabaseClient
