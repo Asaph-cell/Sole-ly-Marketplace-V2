@@ -20,9 +20,9 @@ const VendorDirectory = () => {
     const { data, error } = await supabase
       .from("profiles")
       .select(`
-        id, store_name, full_name, is_verified, vendor_city, vendor_county, store_link
+        id, store_name, full_name, kyc_status, vendor_city, vendor_county, store_link
       `)
-      .order("is_verified", { ascending: false });
+      .order("store_name", { ascending: true });
 
     if (!error && data) {
       // Filter out users who haven't set up a store name or aren't vendors
@@ -93,7 +93,7 @@ const VendorDirectory = () => {
                   <div className="w-full">
                     <h3 className="font-bold text-lg flex items-center justify-center gap-1.5 truncate">
                       {name}
-                      {vendor.is_verified && <ShieldCheck size={18} className="text-primary shrink-0" fill="currentColor" stroke="white" />}
+                      {vendor.kyc_status === 'approved' && <ShieldCheck size={18} className="text-primary shrink-0" fill="currentColor" stroke="white" />}
                     </h3>
                     
                     {location && (

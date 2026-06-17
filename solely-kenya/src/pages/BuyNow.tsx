@@ -291,7 +291,7 @@ const BuyNow = () => {
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate flex items-center gap-1">
                 {vendor?.full_name ?? "Solely Vendor"}
-                {vendor?.is_verified && <CheckCircle size={14} strokeWidth={1.5} className=" text-primary shrink-0" />}
+                {vendor?.kyc_status === 'approved' && <CheckCircle size={14} strokeWidth={1.5} className=" text-primary shrink-0" />}
               </p>
               <div className="flex items-center gap-3 mt-0.5">
                 {vendorStats.rating > 0 && (
