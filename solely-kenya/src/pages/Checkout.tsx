@@ -163,8 +163,20 @@ const Checkout = () => {
         .select("id, vendor_id, name, price_ksh, stock, images, brand")
         .in("id", productIds);
 
-      if (productsError || !products || products.length !== productIds.length) {
+      if (productsError) {
+        console.error("Products query error:", productsError);
         throw new Error("Failed to load products. Please refresh and try again.");
+      }
+
+      if (!products || products.length === 0) {
+        throw new Error("The products in your cart are no longer available. Please clear your cart and try again.");
+      }
+
+      if (products.length !== productIds.length) {
+        const foundIds = new Set(products.map((p) => p.id));
+        const missingItems = items.filter((item) => !foundIds.has(item.productId));
+        const missingNames = missingItems.map((item) => item.name).join(", ");
+        throw new Error(`Some items are no longer available: ${missingNames}. Please remove them from your cart.`);
       }
 
       const vendorIds = new Set(products.map((p) => p.vendor_id));
@@ -172,6 +184,18 @@ const Checkout = () => {
         throw new Error("You can only checkout items from one vendor at a time.");
       }
       const vendorId = products[0].vendor_id;
+
+      // Verify vendor profile exists (prevents FK constraint errors)
+      const { data: vendorProfileCheck, error: vendorCheckError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", vendorId)
+        .single();
+
+      if (vendorCheckError || !vendorProfileCheck) {
+        console.error("Vendor profile not found:", vendorId, vendorCheckError);
+        throw new Error("This vendor's account is currently unavailable. Please contact support.");
+      }
 
       const commissionRate = 6;
       let calculatedSubtotal = 0;
