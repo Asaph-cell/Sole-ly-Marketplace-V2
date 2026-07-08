@@ -7,7 +7,7 @@ import { NavLinks } from "./navbar/NavLinks";
 import { AuthButtons } from "./navbar/AuthButtons";
 import { MobileNav } from "./navbar/MobileNav";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Search, Heart } from "lucide-react";
+import { ShoppingCart, Search, Heart, MessageCircle } from "lucide-react";
 import logo from "@/assets/solely-logo.svg";
 import { saveSearch } from "@/lib/searchHistory";
 
@@ -81,6 +81,11 @@ const Navbar = () => {
             <Button variant="ghost" size="icon" asChild>
               <Link to="/wishlist" className="relative" aria-label="Wishlist">
                 <Heart size={20} strokeWidth={1.5} />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/messages" className="relative" aria-label="Messages">
+                <MessageCircle size={20} strokeWidth={1.5} />
               </Link>
             </Button>
             <Button variant="ghost" size="icon" asChild>

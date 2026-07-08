@@ -97,7 +97,7 @@ const BuyNow = () => {
       availableColors: product.colors ?? [],
     }, 1);
 
-    navigate("/checkout");
+    navigate(`/delivery-details?vendorId=${product.vendor_id}`);
   };
 
   const handleCopyLink = () => {

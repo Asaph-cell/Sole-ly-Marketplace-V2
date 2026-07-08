@@ -152,17 +152,7 @@ const VendorOrders = () => {
     }
   };
 
-  // Helper function to check if delivery fee payment is pending
-  // With zone-based pricing, delivery is pre-paid, so this checks if order total is paid
-  const hasPendingDeliveryFee = (order: OrderRecord): boolean => {
-    if (!order.payments || order.payments.length === 0) return false;
-    const isPickup = order.order_shipping_details?.delivery_type === "pickup";
-    if (isPickup) return false;
 
-    // Check if total has been paid
-    const totalPaid = getTotalPaid(order);
-    return totalPaid < order.total_ksh;
-  };
 
   // Helper function to calculate total paid
   const getTotalPaid = (order: OrderRecord): number => {
@@ -843,7 +833,11 @@ const VendorOrders = () => {
                                       />
                                     </div>
                                   )}
-                                  <p className="text-muted-foreground mt-1">💰 Coordinate delivery directly with the buyer. No delivery fees were collected by the platform.</p>
+                                  {order.shipping_fee_ksh > 0 ? (
+                                    <p className="text-muted-foreground mt-1">💰 The delivery fee (KES {order.shipping_fee_ksh.toLocaleString()}) was paid by the buyer and will be included in your payout.</p>
+                                  ) : (
+                                    <p className="text-muted-foreground mt-1">🆓 Free delivery was offered for this order.</p>
+                                  )}
                                 </>
                               )}
                             </>
@@ -891,11 +885,7 @@ const VendorOrders = () => {
                         {/* ACCEPTED: Ship form */}
                         {order.status === "accepted" && (
                           <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-4" ref={expandedOrderId === order.id ? shippingFormRef : null}>
-                            {hasPendingDeliveryFee(order) && (
-                              <p className="text-xs text-yellow-800 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg p-2 border border-yellow-200 dark:border-yellow-800">
-                                ⚠️ Delivery fee pending — paid KES {getTotalPaid(order).toLocaleString()} / KES {order.total_ksh.toLocaleString()}
-                              </p>
-                            )}
+
                             <p className="text-sm font-semibold">{isPickup ? "Mark Ready for Pickup" : "Ship the Order"}</p>
                             {!isPickup && (
                               <>

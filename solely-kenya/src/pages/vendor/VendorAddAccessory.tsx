@@ -234,6 +234,11 @@ const VendorAddAccessory = () => {
                                     <p className="text-xs text-muted-foreground ml-6">
                                         Check this if you are covering the delivery cost for the buyer.
                                     </p>
+                                    {formData.free_delivery && (
+                                        <p className="text-xs text-amber-600 dark:text-amber-400 ml-6 mt-1">
+                                            ⚠️ By marking free delivery, you commit to delivering this product at no extra cost. You cannot charge a delivery fee after a buyer purchases this item.
+                                        </p>
+                                    )}
                                 </div>
 
                                 {/* Brand */}

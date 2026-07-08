@@ -485,7 +485,17 @@ const Orders = () => {
                         </div>
                       ))}
                     </div>
-                    <div className="flex justify-between text-sm text-muted-foreground border-t pt-2">
+                    <div className="flex justify-between text-sm text-muted-foreground border-t pt-2 mt-2">
+                      <span>Subtotal</span>
+                      <span className="font-medium">KES {order.subtotal_ksh.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Delivery Fee</span>
+                      <span className="font-medium">
+                        {order.shipping_fee_ksh > 0 ? `KES ${order.shipping_fee_ksh.toLocaleString()}` : "FREE"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm text-muted-foreground border-t pt-2 mt-2">
                       <span>Total Order Value</span>
                       <span className="font-semibold text-foreground">KES {order.total_ksh.toLocaleString()}</span>
                     </div>

@@ -280,6 +280,25 @@ const baseEmailLayout = (title: string, content: string, titleColor: string = '#
 `;
 
 export const emailTemplates = {
+  vendorDeliveryInquiry: (data: {
+    buyerName: string;
+    productNames: string;
+    city: string;
+    negotiationUrl: string;
+  }) => baseEmailLayout('New Delivery Inquiry', `
+    <p>Hi,</p>
+    <p><strong>${data.buyerName}</strong> is interested in buying <strong>${data.productNames}</strong>.</p>
+    
+    <div class="info-box">
+      <p>They need delivery to <strong>${data.city}</strong> and want to discuss the delivery fee with you.</p>
+    </div>
+
+    <div class="cta-container">
+      <a href="${data.negotiationUrl}" class="cta-button">Open Chat & Propose Fee</a>
+    </div>
+
+    <p>Please reply as soon as possible to secure the sale.</p>
+  `),
   vendorWelcome: (data: {
     businessName: string;
     dashboardUrl: string;
@@ -307,6 +326,8 @@ export const emailTemplates = {
     businessName: string;
     orderId: string;
     items: string;
+    subtotal: number;
+    deliveryFee: number;
     total: number;
     deliveryLocation: string;
     customerName: string;
@@ -319,6 +340,8 @@ export const emailTemplates = {
     <div class="order-details">
       <p><strong>Order ID:</strong> #${data.orderId}</p>
       <p><strong>Items:</strong> ${data.items}</p>
+      <p><strong>Subtotal:</strong> KES ${data.subtotal.toLocaleString()}</p>
+      <p><strong>Delivery Fee:</strong> KES ${data.deliveryFee.toLocaleString()}</p>
       <p><strong>Total:</strong> KES ${data.total.toLocaleString()}</p>
       <p><strong>Delivery:</strong> ${data.deliveryLocation}</p>
       <p><strong>Customer:</strong> ${data.customerName}</p>

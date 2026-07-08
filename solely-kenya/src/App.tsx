@@ -77,6 +77,10 @@ const BuyNow = lazyRetry(() => import("./pages/BuyNow"), "BuyNow");
 const NotFound = lazyRetry(() => import("./pages/NotFound"), "NotFound");
 const WhatsAppButton = lazyRetry(() => import("./components/WhatsAppButton"), "WhatsAppButton");
 const Wishlist = lazyRetry(() => import("./pages/Wishlist"), "Wishlist");
+const Messages = lazyRetry(() => import("./pages/Messages"), "Messages");
+const VendorMessages = lazyRetry(() => import("./pages/vendor/VendorMessages"), "VendorMessages");
+const DeliveryDetails = lazyRetry(() => import("./pages/DeliveryDetails"), "DeliveryDetails");
+const DeliveryNegotiation = lazyRetry(() => import("./pages/DeliveryNegotiation"), "DeliveryNegotiation");
 
 // Secure Links Feature
 const SecureInvoice = lazyRetry(() => import("./pages/checkout/SecureInvoice"), "SecureInvoice");
@@ -133,6 +137,9 @@ const AnimatedRoutes = () => {
       <Route path="/blog/:id" element={<PageWrapper><MainLayout><BlogPost /></MainLayout></PageWrapper>} />
       <Route path="/how-it-works" element={<PageWrapper><MainLayout><HowItWorks /></MainLayout></PageWrapper>} />
       <Route path="/wishlist" element={<PageWrapper><MainLayout><Wishlist /></MainLayout></PageWrapper>} />
+      <Route path="/messages" element={<PageWrapper><MainLayout><Messages /></MainLayout></PageWrapper>} />
+      <Route path="/delivery-details" element={<PageWrapper><MainLayout><DeliveryDetails /></MainLayout></PageWrapper>} />
+      <Route path="/delivery-negotiation" element={<PageWrapper><MainLayout><DeliveryNegotiation /></MainLayout></PageWrapper>} />
 
       {/* Routes WITHOUT Navbar and Footer (Vendor & Admin Dashboards) */}
       <Route path="/vendor/dashboard" element={<PageWrapper><VendorDashboard /></PageWrapper>} />
@@ -147,6 +154,7 @@ const AnimatedRoutes = () => {
       <Route path="/vendor/disputes" element={<PageWrapper><VendorDisputes /></PageWrapper>} />
       <Route path="/vendor/payment-links" element={<PageWrapper><VendorPaymentLinks /></PageWrapper>} />
       <Route path="/vendor/settings" element={<PageWrapper><VendorSettings /></PageWrapper>} />
+      <Route path="/vendor/messages" element={<PageWrapper><VendorMessages /></PageWrapper>} />
       <Route path="/admin" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
       <Route path="/admin/dashboard" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
       <Route path="/admin/disputes" element={<PageWrapper><AdminDisputes /></PageWrapper>} />

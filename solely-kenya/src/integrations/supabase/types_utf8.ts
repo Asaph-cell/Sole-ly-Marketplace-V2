@@ -1,4 +1,4 @@
-﻿      register_as_vendor: {\r\n        Args: Record<string, never>\r\n        Returns: undefined\r\n      }\r\n﻿export type Json =
+      register_as_vendor: {\r\n        Args: Record<string, never>\r\n        Returns: undefined\r\n      }\r\n﻿export type Json =
   | string
   | number
   | boolean
@@ -63,21 +63,27 @@ export type Database = {
         Row: {
           buyer_id: string | null
           created_at: string | null
+          delivery_agreement_id: string | null
           id: string
+          product_ids: string[] | null
           updated_at: string | null
           vendor_id: string
         }
         Insert: {
           buyer_id?: string | null
           created_at?: string | null
+          delivery_agreement_id?: string | null
           id?: string
+          product_ids?: string[] | null
           updated_at?: string | null
           vendor_id: string
         }
         Update: {
           buyer_id?: string | null
           created_at?: string | null
+          delivery_agreement_id?: string | null
           id?: string
+          product_ids?: string[] | null
           updated_at?: string | null
           vendor_id?: string
         }

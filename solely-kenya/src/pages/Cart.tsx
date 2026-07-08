@@ -86,11 +86,11 @@ const Cart = () => {
 
     if (!authLoading && !user) {
       toast.info("Please sign in to proceed to checkout");
-      navigate(`/auth?redirect=/checkout?vendorId=${vendorId}`);
+      navigate(`/auth?redirect=/delivery-details?vendorId=${vendorId}`);
       return;
     }
 
-    navigate(`/checkout?vendorId=${vendorId}`);
+    navigate(`/delivery-details?vendorId=${vendorId}`);
   };
 
   const cartProductIds = useMemo(() => [...new Set(items.map(i => i.productId))], [items]);

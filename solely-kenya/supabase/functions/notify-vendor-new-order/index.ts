@@ -225,6 +225,8 @@ Deno.serve(async (req: Request) => {
                     businessName: businessName,
                     orderId: orderId.slice(0, 8),
                     items: itemsList,
+                    subtotal: order.subtotal_ksh || 0,
+                    deliveryFee: order.shipping_fee_ksh || 0,
                     total: order.total_ksh,
                     deliveryLocation: deliveryType,
                     customerName: customerName,

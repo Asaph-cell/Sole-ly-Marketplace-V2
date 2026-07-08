@@ -12,6 +12,7 @@ import {
   LogOut,
   Download,
   Link2,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ import { setAppBadge } from "@/lib/badge";
 interface AlertCounts {
   pendingOrders: number;
   openDisputes: number;
+  unreadMessages: number;
 }
 
 const menuItems = [
@@ -34,6 +36,7 @@ const menuItems = [
   { icon: PlusCircle, label: "List Item", path: "/vendor/list-item", alertKey: null, action: null },
   { icon: ShoppingBag, label: "Orders", path: "/vendor/orders", alertKey: "pendingOrders" as const, action: null },
   { icon: Link2, label: "Payment Links", path: "/vendor/payment-links", alertKey: null, action: null },
+  { icon: MessageCircle, label: "Messages", path: "/vendor/messages", alertKey: "unreadMessages" as const, action: null },
   { icon: Star, label: "Ratings", path: "/vendor/ratings", alertKey: null, action: null },
   { icon: AlertTriangle, label: "Disputes", path: "/vendor/disputes", alertKey: "openDisputes" as const, action: null },
   { icon: Settings, label: "Account Settings", path: "/vendor/settings", alertKey: null, action: null },
@@ -135,6 +138,7 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
   const [alertCounts, setAlertCounts] = useState<AlertCounts>({
     pendingOrders: 0,
     openDisputes: 0,
+    unreadMessages: 0,
   });
 
   useEffect(() => {
@@ -157,13 +161,33 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
         .eq("vendor_id", user.id)
         .in("status", ["open", "under_review"]);
 
+      // Fetch unread messages count — messages sent to conversations where this vendor is a participant
+      // that the vendor hasn't read yet (sender_id != vendor = sent by buyer, is_read = false)
+      const { data: vendorConvs } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("vendor_id", user.id);
+
+      let unreadMessagesCount = 0;
+      if (vendorConvs && vendorConvs.length > 0) {
+        const convIds = vendorConvs.map((c: { id: string }) => c.id);
+        const { count } = await supabase
+          .from("messages")
+          .select("*", { count: "exact", head: true })
+          .in("conversation_id", convIds)
+          .eq("is_read", false)
+          .neq("sender_id", user.id);
+        unreadMessagesCount = count || 0;
+      }
+
       setAlertCounts({
         pendingOrders: pendingOrdersCount || 0,
         openDisputes: openDisputesCount || 0,
+        unreadMessages: unreadMessagesCount,
       });
 
       // Update PWA app badge with total alerts
-      const totalAlerts = (pendingOrdersCount || 0) + (openDisputesCount || 0);
+      const totalAlerts = (pendingOrdersCount || 0) + (openDisputesCount || 0) + unreadMessagesCount;
       setAppBadge(totalAlerts);
     };
 
@@ -219,9 +243,29 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
       )
       .subscribe();
 
+    // Subscribe to real-time new messages in vendor's conversations
+    const messagesChannel = supabase
+      .channel("vendor-messages-alerts")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+        },
+        (payload) => {
+          // Only re-fetch if the new message wasn't sent by this vendor
+          if (payload.new?.sender_id !== user.id) {
+            fetchAlertCounts();
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(ordersChannel);
       supabase.removeChannel(disputesChannel);
+      supabase.removeChannel(messagesChannel);
     };
   }, [user]);
 
@@ -244,7 +288,7 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
               className="lg:hidden h-9 w-9 sm:h-10 sm:w-10 shrink-0 border-primary/20 relative"
             >
               <Menu size={20} strokeWidth={1.5} className=" text-primary" />
-              {(alertCounts.pendingOrders > 0 || alertCounts.openDisputes > 0) && (
+              {(alertCounts.pendingOrders > 0 || alertCounts.openDisputes > 0 || alertCounts.unreadMessages > 0) && (
                 <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
               )}
             </Button>

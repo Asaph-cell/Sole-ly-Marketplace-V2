@@ -329,11 +329,11 @@ const Product = () => {
     const existingItem = items.find(item => item.productId === product.id);
 
     if (existingItem) {
-      navigate("/checkout");
+      navigate(`/delivery-details?vendorId=${product.vendor_id}`);
     } else {
       const added = addProductToCart(false);
       if (added) {
-        navigate("/checkout");
+        navigate(`/delivery-details?vendorId=${product.vendor_id}`);
       }
     }
   };

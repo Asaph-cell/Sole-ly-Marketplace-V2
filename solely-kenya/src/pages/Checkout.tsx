@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { MapPin, Store } from "lucide-react";
+import { MapPin, Store, Truck } from "lucide-react";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { LocationPinMap } from "@/components/LocationPinMap";
+import { Badge } from "@/components/ui/badge";
 
 const paymentOptions = [
   { value: "intasend", label: "Pay with M-Pesa / Card (Online)", icon: "💳", description: "Secure payment via IntaSend" },
@@ -21,6 +22,7 @@ const Checkout = () => {
   const { items: allCartItems, removeItemsByVendor } = useCart();
   const [searchParams] = useSearchParams();
   const vendorIdParam = searchParams.get("vendorId");
+  const agreementIdParam = searchParams.get("agreementId");
   
   const items = useMemo(() => {
     if (!vendorIdParam) return allCartItems;
@@ -52,7 +54,11 @@ const Checkout = () => {
     google_maps_link: null as string | null,
   });
 
-  const shippingFee = 0; // Delivery is facilitated by the vendor directly
+  const [deliveryAgreement, setDeliveryAgreement] = useState<any>(null);
+  const [agreementLoading, setAgreementLoading] = useState(!!agreementIdParam);
+
+  // Determine shipping fee from delivery agreement (or 0 for free delivery)
+  const shippingFee = deliveryAgreement?.delivery_fee_ksh ?? 0;
   const total = subtotal + shippingFee;
 
   useEffect(() => {
@@ -85,6 +91,55 @@ const Checkout = () => {
 
     fetchVendorProfile();
   }, [items]);
+
+  // Fetch delivery agreement if agreementId is provided
+  useEffect(() => {
+    if (!agreementIdParam) {
+      setAgreementLoading(false);
+      return;
+    }
+
+    const fetchAgreement = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("delivery_agreements")
+          .select("*")
+          .eq("id", agreementIdParam)
+          .single();
+
+        if (error) throw error;
+
+        if (data.status !== "agreed") {
+          toast.error("Delivery fee has not been agreed yet. Please complete the negotiation first.");
+          navigate(`/delivery-negotiation?agreementId=${agreementIdParam}`);
+          return;
+        }
+
+        setDeliveryAgreement(data);
+
+        // Pre-fill shipping from agreement
+        setShipping(prev => ({
+          ...prev,
+          recipientName: data.buyer_name || prev.recipientName,
+          phone: data.buyer_phone || prev.phone,
+          email: data.buyer_email || prev.email,
+          addressLine1: data.buyer_address || prev.addressLine1,
+          city: data.buyer_city || prev.city,
+          county: data.buyer_county || prev.county,
+          gps_latitude: data.buyer_gps_lat || prev.gps_latitude,
+          gps_longitude: data.buyer_gps_lng || prev.gps_longitude,
+          deliveryNotes: data.buyer_delivery_notes || prev.deliveryNotes,
+        }));
+      } catch (err) {
+        console.error("Error fetching delivery agreement:", err);
+        toast.error("Failed to load delivery agreement");
+      } finally {
+        setAgreementLoading(false);
+      }
+    };
+
+    fetchAgreement();
+  }, [agreementIdParam, navigate]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -230,7 +285,9 @@ const Checkout = () => {
       });
 
       const subtotalRounded = Number(calculatedSubtotal.toFixed(2));
-      const finalTotal = Number((subtotalRounded + shippingFee).toFixed(2));
+      const actualShippingFee = deliveryAgreement?.delivery_fee_ksh ?? 0;
+      const finalTotal = Number((subtotalRounded + actualShippingFee).toFixed(2));
+      // Commission on product subtotal ONLY — vendor gets full delivery fee
       const commissionAmount = Number((subtotalRounded * (commissionRate / 100)).toFixed(2));
       const payoutAmount = Number((finalTotal - commissionAmount).toFixed(2));
 
@@ -240,7 +297,7 @@ const Checkout = () => {
           customer_id: user.id,
           vendor_id: vendorId,
           subtotal_ksh: subtotalRounded,
-          shipping_fee_ksh: shippingFee,
+          shipping_fee_ksh: actualShippingFee,
           total_ksh: finalTotal,
           commission_rate: commissionRate,
           commission_amount: commissionAmount,
@@ -305,6 +362,14 @@ const Checkout = () => {
         await supabase.from("order_items").delete().eq("order_id", order.id);
         await supabase.from("orders").delete().eq("id", order.id);
         throw new Error(paymentError?.message || "Failed to create payment record");
+      }
+
+      // Mark delivery agreement as used (if applicable)
+      if (deliveryAgreement?.id) {
+        await supabase
+          .from("delivery_agreements")
+          .update({ status: "used", updated_at: new Date().toISOString() })
+          .eq("id", deliveryAgreement.id);
       }
 
       if (paymentGateway === "mpesa") {
@@ -405,11 +470,28 @@ const Checkout = () => {
               <CardTitle>Delivery Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-800">
-                <p className="text-sm text-blue-900 dark:text-blue-100">
-                  ℹ️ <strong>Delivery is facilitated by the vendor.</strong> You will not be charged a delivery fee during checkout. Any delivery arrangements or fees will be settled directly between you and the vendor after checkout.
-                </p>
-              </div>
+              {deliveryAgreement ? (
+                <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded border border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Truck size={16} strokeWidth={1.5} className="text-green-600" />
+                    <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                      Delivery Fee Agreed: KES {deliveryAgreement.delivery_fee_ksh.toLocaleString()}
+                    </p>
+                  </div>
+                  {deliveryAgreement.delivery_method && (
+                    <p className="text-xs text-muted-foreground ml-6">via {deliveryAgreement.delivery_method}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1 ml-6">
+                    Delivery details have been pre-filled from your negotiation.
+                  </p>
+                </div>
+              ) : (
+                <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-900 dark:text-blue-100">
+                    ℹ️ <strong>Free delivery!</strong> This order qualifies for free delivery by the vendor.
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div className="space-y-2">
@@ -517,8 +599,12 @@ const Checkout = () => {
               <span>KES {subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-muted-foreground">
-              <span>Platform Delivery Fee</span>
-              <span>KES 0</span>
+              <span>Delivery Fee</span>
+              {shippingFee > 0 ? (
+                <span className="font-medium text-foreground">KES {shippingFee.toLocaleString()}</span>
+              ) : (
+                <Badge variant="secondary" className="text-green-600 text-xs">FREE</Badge>
+              )}
             </div>
             <div className="flex justify-between font-semibold text-base pt-2 border-t">
               <span>Total due today</span>
