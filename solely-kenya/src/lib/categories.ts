@@ -141,6 +141,19 @@ export const ALL_CATEGORIES: Category[] = [
       { name: "Cleaning", key: "cleaning" },
     ],
   },
+  {
+    name: "Health & Wellness",
+    key: "health",
+    icon: "⚕️",
+    coverGradient: "from-teal-400 to-emerald-500",
+    subcategories: [
+      { name: "Vitamins & Supplements", key: "supplements" },
+      { name: "Medical Supplies", key: "medical-supplies" },
+      { name: "Wellness & Relaxation", key: "wellness" },
+      { name: "Personal Care", key: "personal-care" },
+      { name: "Diet & Nutrition", key: "diet" },
+    ],
+  },
 ];
 
 // ─── Legacy-compat exports (used by existing Shop/Home code) ─────────────────

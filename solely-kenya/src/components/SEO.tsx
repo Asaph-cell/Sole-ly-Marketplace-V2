@@ -63,7 +63,7 @@ export const SEO = ({
     // Build title with buyer-intent keywords for product pages
     let fullTitle: string;
     if (isHomepage) {
-        fullTitle = `Buy & Sell Shoes Online Kenya | ${SITE_NAME}`;
+        fullTitle = title;
     } else if (type === "product" && price) {
         // Rotate through buyer-intent title patterns based on product name hash
         const hash = title.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);

@@ -14,13 +14,9 @@ export const AuthButtons = ({ user, isVendor, isVendorPage, onLogout }: AuthButt
   const location = useLocation();
   return (
     <>
-      <Button variant="outline" size="sm" asChild>
-        <a
-          href={`mailto:${supportEmail}`}
-          className="flex items-center gap-2"
-        >
+      <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" asChild title="Email Support">
+        <a href={`mailto:${supportEmail}`}>
           <Mail size={16} strokeWidth={1.5}  />
-          Email Support
         </a>
       </Button>
 
@@ -42,9 +38,8 @@ export const AuthButtons = ({ user, isVendor, isVendorPage, onLogout }: AuthButt
                 My Purchases
               </Link>
             </Button>
-            <Button variant="outline" size="sm" onClick={onLogout}>
-              <LogOut size={16} strokeWidth={1.5} className=" mr-2" />
-              Logout
+            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={onLogout} title="Logout">
+              <LogOut size={16} strokeWidth={1.5} />
             </Button>
           </>
         ) : (
@@ -67,9 +62,8 @@ export const AuthButtons = ({ user, isVendor, isVendorPage, onLogout }: AuthButt
                 My Purchases
               </Link>
             </Button>
-            <Button variant="outline" size="sm" onClick={onLogout}>
-              <LogOut size={16} strokeWidth={1.5} className=" mr-2" />
-              Logout
+            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={onLogout} title="Logout">
+              <LogOut size={16} strokeWidth={1.5} />
             </Button>
           </>
         )
@@ -84,9 +78,8 @@ export const AuthButtons = ({ user, isVendor, isVendorPage, onLogout }: AuthButt
           <Button size="sm" variant="ghost" asChild>
             <Link to="/vendor/register">Become a Vendor</Link>
           </Button>
-          <Button variant="outline" size="sm" onClick={onLogout}>
-            <LogOut size={16} strokeWidth={1.5} className=" mr-2" />
-            Logout
+          <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={onLogout} title="Logout">
+            <LogOut size={16} strokeWidth={1.5} />
           </Button>
         </>
       )}

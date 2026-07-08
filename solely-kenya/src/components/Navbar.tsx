@@ -55,7 +55,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background/95 shadow-sm">
       {/* ── Row 1: Logo + Desktop Nav + Cart + Auth ── */}
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between flex-nowrap py-3 sm:py-4">
@@ -77,7 +77,7 @@ const Navbar = () => {
           </div>
 
           {/* Right side - Cart & Auth (desktop) */}
-          <div className="hidden md:flex items-center gap-4 flex-shrink-0">
+          <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-shrink-0">
             <Button variant="ghost" size="icon" asChild>
               <Link to="/wishlist" className="relative" aria-label="Wishlist">
                 <Heart size={20} strokeWidth={1.5} />
