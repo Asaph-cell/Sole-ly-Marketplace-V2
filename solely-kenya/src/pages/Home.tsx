@@ -93,24 +93,28 @@ const HOW_IT_WORKS = [
     icon: ShoppingBag,
     title: "Order Securely",
     desc: "Checkout and pay securely via M-Pesa. Your money goes into our safe escrow, not directly to the seller.",
+    image: "/images/how-it-works/1-order.jpg"
   },
   {
     step: "02",
     icon: Lock,
     title: "Money is Locked",
     desc: "The vendor ships your order. We keep your funds locked and fully protected during transit.",
+    image: "/images/how-it-works/2-locked.png"
   },
   {
     step: "03",
     icon: Package,
     title: "Inspect Your Item",
     desc: "Receive your package and inspect it to ensure it matches exactly what you ordered.",
+    image: "/images/how-it-works/3-inspect.jpg"
   },
   {
     step: "04",
     icon: Zap,
     title: "Release Payment",
     desc: "Happy with it? Give the vendor your unique 6-digit release code to instantly unlock their funds.",
+    image: "/images/how-it-works/4-release.png"
   },
 ];
 
@@ -118,6 +122,7 @@ const HOW_IT_WORKS = [
 const Home = () => {
   const { isVendor } = useAuth();
   const navigate = useNavigate();
+  const [activeStep, setActiveStep] = useState<number>(0);
   const [activeTab, setActiveTab] = useState("all");
   const [products, setProducts] = useState<any[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
@@ -214,7 +219,12 @@ const Home = () => {
     : null;
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background">
+    <motion.div 
+      initial={{ opacity: 0, filter: "brightness(0.3)" }}
+      animate={{ opacity: 1, filter: "brightness(1)" }}
+      transition={{ duration: 1.2, ease: "easeOut" }}
+      className="min-h-screen overflow-x-clip bg-background"
+    >
       <style>{`
         @keyframes sweep {
           0% { transform: translateX(-100%); }
@@ -244,7 +254,7 @@ const Home = () => {
       <PendingOrdersBanner />
 
       {/* ─── NEW HERO BANNER ─── */}
-      <section className="relative overflow-hidden flex flex-col justify-center">
+      <section className="relative overflow-hidden flex flex-col justify-center h-[100svh] sticky top-0 z-0">
         {/* Background image (Maintained) */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -379,6 +389,8 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Content wrapper for sections that scroll over the sticky hero */}
+      <div className="relative z-10 bg-background shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
       {/* ─── TRUSTED BY BANNER ─── */}
       <section className="border-b border-border/40 bg-slate-100 dark:bg-black/60 overflow-hidden py-5 sm:py-6 relative z-10">
         <div className="flex flex-col items-center">
@@ -435,9 +447,54 @@ const Home = () => {
             </p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* ── Mobile View: Swipeable Carousel ── */}
+          <div className="lg:hidden flex flex-col items-center w-full">
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={activeStep}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-border/50 flex flex-col"
+              >
+                <h3 className="text-2xl font-bold mb-3 shrink-0">{HOW_IT_WORKS[activeStep].title}</h3>
+                <div className="flex-grow mb-6">
+                  <p className="text-muted-foreground text-[15px] leading-relaxed">
+                    {HOW_IT_WORKS[activeStep].desc}
+                  </p>
+                </div>
+                <div className="relative w-full h-[220px] rounded-2xl overflow-hidden shrink-0 mt-auto">
+                  <img 
+                    src={HOW_IT_WORKS[activeStep].image} 
+                    alt={HOW_IT_WORKS[activeStep].title} 
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Dark gradient at bottom to make number pop */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
+                  <span className="absolute bottom-1 right-4 font-black text-7xl text-white tracking-tighter z-20">
+                    .{HOW_IT_WORKS[activeStep].step}
+                  </span>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+            {/* Pagination Dots */}
+            <div className="flex gap-2 mt-8">
+              {HOW_IT_WORKS.map((_, idx) => (
+                <button 
+                  key={idx}
+                  onClick={() => setActiveStep(idx)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${activeStep === idx ? 'bg-slate-800 dark:bg-slate-200 w-6' : 'bg-slate-300 dark:bg-slate-700'}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* ── Desktop View: Interactive Accordion ── */}
+          <div className="hidden lg:flex flex-row gap-4 w-full h-[400px]">
             {HOW_IT_WORKS.map((step, idx) => {
               const Icon = step.icon;
+              const isActive = activeStep === idx;
               return (
                 <motion.div 
                   key={step.step}
@@ -445,13 +502,47 @@ const Home = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.5, delay: idx * 0.15 }}
-                  className="flex flex-col items-center text-center p-6 bg-background rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-shadow"
+                  onMouseEnter={() => setActiveStep(idx)}
+                  className={`group relative overflow-hidden rounded-[2rem] flex flex-col justify-between p-6 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer ${
+                    isActive 
+                      ? 'flex-[2.5] bg-white dark:bg-slate-900 shadow-xl border border-border/50' 
+                      : 'flex-[1] bg-slate-200 dark:bg-slate-800/70 hover:bg-slate-300 dark:hover:bg-slate-700 border border-transparent'
+                  }`}
                 >
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 text-primary">
-                    <Icon size={32} strokeWidth={1.5} />
+                  <div className="flex flex-col h-full z-20">
+                    <div className="flex items-center justify-between shrink-0">
+                      <h3 className={`font-bold transition-all duration-300 ${isActive ? 'text-2xl' : 'text-lg whitespace-nowrap'}`}>
+                        {isActive ? step.title : step.title.split(' ')[0]}
+                      </h3>
+                      {!isActive && (
+                        <div className="flex w-8 h-8 rounded-full bg-background/50 items-center justify-center shrink-0 shadow-sm">
+                          <Icon size={16} className="text-primary" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className={`transition-all duration-500 overflow-hidden ${isActive ? 'max-h-40 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'}`}>
+                      <p className="text-muted-foreground text-base leading-relaxed max-w-[280px]">{step.desc}</p>
+                    </div>
+
+                    <div className="mt-auto">
+                      {/* Active Image */}
+                      <div className={`relative w-full rounded-2xl overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] origin-bottom ${isActive ? 'h-[200px] opacity-100 scale-100' : 'h-0 opacity-0 scale-90'}`}>
+                        <img src={step.image} alt={step.title} className="w-full h-[200px] object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10"></div>
+                        <span className="absolute bottom-1 right-4 font-black text-7xl text-white tracking-tighter z-20">
+                          .{step.step}
+                        </span>
+                      </div>
+                      
+                      {/* Inactive Big Number */}
+                      <div className={`transition-all duration-500 ${isActive ? 'h-0 opacity-0 overflow-hidden' : 'opacity-100 block'}`}>
+                        <span className="font-black text-5xl tracking-tighter text-slate-300 dark:text-slate-600">
+                          .{step.step}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-bold mb-3">{step.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{step.desc}</p>
                 </motion.div>
               );
             })}
@@ -554,7 +645,7 @@ const Home = () => {
       <div id="shop-section" className="scroll-mt-20" />
 
       {/* ─── PILL CATEGORY NAV ─── */}
-      <div className="bg-background border-b border-border sticky top-[56px] lg:top-[64px] z-30 shadow-sm">
+      <div className="bg-background border-b border-border relative z-20 shadow-sm">
         <div className="px-3 sm:container sm:mx-auto sm:px-4">
           <div className="flex flex-nowrap gap-2 overflow-x-auto scrollbar-hide py-2.5">
             {PILL_CATEGORIES.map((cat) => (
@@ -849,7 +940,8 @@ const Home = () => {
         </div>
       </section>
 
-    </div>
+      </div>
+    </motion.div>
   );
 };
 
