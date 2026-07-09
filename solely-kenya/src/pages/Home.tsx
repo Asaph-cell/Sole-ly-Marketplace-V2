@@ -281,19 +281,19 @@ const Home = () => {
           </div>
         </motion.div>
 
-        {/* Right Floating Card - Delivery */}
+        {/* Right Floating Card - Moneyback Guarantee */}
         <motion.div
           initial={{ opacity: 0, x: 40, y: -10 }}
           animate={{ opacity: 1, x: 0, y: [0, 10, 0] }}
           transition={{ opacity: { duration: 0.8, delay: 1.2 }, y: { repeat: Infinity, duration: 5, ease: "easeInOut" } }}
           className="hidden xl:flex absolute bottom-[30%] right-[5%] 2xl:right-[10%] bg-white/10 backdrop-blur-md border border-white/20 p-3.5 pr-6 rounded-2xl shadow-2xl items-center gap-4 z-20 pointer-events-none"
         >
-          <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
-            <CheckCircle className="text-green-400 w-5 h-5" />
+          <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+            <Shield className="text-emerald-400 w-5 h-5" />
           </div>
           <div className="flex flex-col text-left">
-            <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">Order Delivered</span>
-            <span className="text-sm text-white font-bold">Funds Released ✅</span>
+            <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">100% Moneyback</span>
+            <span className="text-sm text-white font-bold">If not delivered 🛡️</span>
           </div>
         </motion.div>
 
@@ -374,7 +374,7 @@ const Home = () => {
           >
             <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> Funds held in Escrow</span>
             <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> Release on Delivery</span>
-            <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> Dispute Protection</span>
+            <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> 100% Moneyback Guarantee</span>
           </motion.div>
         </div>
       </section>
