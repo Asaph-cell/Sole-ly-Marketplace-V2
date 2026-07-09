@@ -553,8 +553,7 @@ const Home = () => {
       {/* Removed anchor to place it lower */}
 
       {/* ─── SELL ON SOCIALS BANNER ─── */}
-      {!isVendor && (
-        <section className="py-20 bg-gradient-to-br from-primary/30 via-primary/10 to-primary/5 border-y border-primary/30 relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-primary/30 via-primary/10 to-primary/5 border-y border-primary/30 relative overflow-hidden">
           {/* Abstract background pattern (Fun & Random Memphis SVG) */}
           <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.06] pointer-events-none" 
                style={{ 
@@ -617,7 +616,6 @@ const Home = () => {
             </div>
           </div>
         </section>
-      )}
 
       {/* ─── VENDOR TICKER ─── */}
       {!isVendor && (
