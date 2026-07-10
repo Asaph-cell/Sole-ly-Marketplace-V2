@@ -126,8 +126,8 @@ const Terms = () => {
                                     <ol className="list-decimal pl-6 space-y-2 text-sm text-muted-foreground">
                                         <li>When the vendor ships your order, you receive a <strong>6-digit OTP code</strong> via email</li>
                                         <li>You can also view your OTP code in your <strong>Orders</strong> page on Sole-ly</li>
-                                        <li><strong>Keep this code private</strong> until you have inspected the shoes and are satisfied</li>
-                                        <li>Upon delivery, share the OTP code with the vendor/courier <strong>only after you have verified</strong> the shoes are correct</li>
+                                        <li><strong>Keep this code private</strong> until you have inspected the item and are satisfied</li>
+                                        <li>Upon delivery, share the OTP code with the vendor/courier <strong>only after you have verified</strong> the item is correct</li>
                                         <li>The vendor enters the code to confirm delivery — this <strong>immediately releases the escrowed funds</strong> to them</li>
                                     </ol>
                                 </div>
@@ -136,7 +136,7 @@ const Terms = () => {
                                     When your order arrives, it is your responsibility to:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li><strong>Inspect:</strong> Check the shoes immediately for quality, size, and accuracy</li>
+                                    <li><strong>Inspect:</strong> Check the item immediately for quality, size, and accuracy</li>
                                     <li><strong>Verify:</strong> Only share your OTP code with the vendor/courier <strong>after</strong> you are satisfied with the product</li>
                                     <li><strong>Report Issues:</strong> If there is a problem, <strong>do NOT share your OTP</strong> — file a dispute instead</li>
                                 </ul>
@@ -144,9 +144,9 @@ const Terms = () => {
                                 <div className="mt-4 bg-red-50 border border-red-200 p-4 rounded-lg">
                                     <h4 className="font-semibold text-red-800 mb-2">🔒 OTP = Your Final Confirmation</h4>
                                     <ul className="list-disc pl-6 space-y-1 text-sm text-muted-foreground">
-                                        <li><strong>Inspect First, Share Second:</strong> Before handing over your OTP, physically inspect the shoes. Check the size, condition, and that they match your order</li>
+                                        <li><strong>Inspect First, Share Second:</strong> Before handing over your OTP, physically inspect the item. Check the size, condition, and that it matches your order</li>
                                         <li><strong>Sharing = Satisfied:</strong> By giving your OTP to the vendor, you confirm you have received the correct item in acceptable condition. <strong>This cannot be undone</strong></li>
-                                        <li><strong>Problem? Don't share the OTP:</strong> If something is wrong, withhold the OTP and contact support to file a dispute. The vendor will take the shoes back and you will receive a full refund</li>
+                                        <li><strong>Problem? Don't share the OTP:</strong> If something is wrong, withhold the OTP and contact support to file a dispute. The vendor will take the item back and you will receive a full refund</li>
                                         <li><strong>Lost your OTP?</strong> You can always view it in your <strong>Orders page</strong> on Sole-ly</li>
                                     </ul>
                                 </div>
@@ -354,7 +354,7 @@ const Terms = () => {
                                 <p className="text-muted-foreground mb-3">Vendors must not:</p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li>Sell counterfeit, fake, or replica branded products</li>
-                                    <li>Misrepresent product condition (e.g., selling "used" shoes as "new")</li>
+                                    <li>Misrepresent product condition (e.g., selling "used" items as "new")</li>
                                     <li>Conduct or attempt to conduct transactions outside the Sole-ly platform (e.g., asking buyers to "pay via M-Pesa directly")</li>
                                     <li>Inflate prices to cover commission fees dishonestly</li>
                                     <li>Harass buyers or respond aggressively to reviews</li>

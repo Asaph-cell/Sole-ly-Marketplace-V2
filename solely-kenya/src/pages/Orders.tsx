@@ -427,12 +427,12 @@ const Orders = () => {
                         }
                       </span>
                       <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
-                        {isPickup ? "I Have Collected My Shoes" : "I Have Received My Delivery"}
+                        {isPickup ? "I Have Collected My Order" : "I Have Received My Delivery"}
                       </Button>
                     </div>
                     {isPickup && (
                       <p className="text-xs text-muted-foreground bg-yellow-50 dark:bg-yellow-950/20 p-2 rounded border border-yellow-200 dark:border-yellow-800">
-                        👟 <strong>Important:</strong> Please go to the vendor's shop and collect your shoes first, then click "Confirm Pickup" once you have them in hand.
+                        📦 <strong>Important:</strong> Please go to the vendor's shop and collect your order first, then click "Confirm Pickup" once you have it in hand.
                       </p>
                     )}
                   </div>
@@ -617,7 +617,7 @@ const Orders = () => {
                         </div>
                         <p className="text-sm text-blue-700 dark:text-blue-300 mt-3">
                           <strong>Important:</strong> Share this code with the vendor when they deliver your order.
-                          This confirms you received your shoes and releases payment to the vendor.
+                          This confirms you received your order and releases payment to the vendor.
                         </p>
                         {isPickup && (
                           <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
@@ -632,13 +632,13 @@ const Orders = () => {
                         // For pickup, ensure vendor has actually confirmed (marked as ready)
                         (!isPickup || order.vendor_confirmed) && (
                           <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
-                            {isPickup ? "I Have Collected My Shoes" : "I Have Received My Delivery"}
+                            {isPickup ? "I Have Collected My Order" : "I Have Received My Delivery"}
                           </Button>
                         )
                       )}
                       {order.status === "delivered" && !order.buyer_confirmed && (
                         <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
-                          {isPickup ? "I Have Collected My Shoes" : "I Have Received My Delivery"}
+                          {isPickup ? "I Have Collected My Order" : "I Have Received My Delivery"}
                         </Button>
                       )}
                       {order.status === "completed" && (

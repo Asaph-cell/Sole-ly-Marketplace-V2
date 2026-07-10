@@ -10,7 +10,7 @@ const Vendor = () => {
     <div className="min-h-screen py-12">
       <SEO 
         title="Sell Online in Kenya | Become a Vendor on Solely"
-        description="Join Kenya's secure social commerce marketplace. Sell shoes, electronics, fashion, beauty & more with zero upfront fees. Reach thousands of buyers across Kenya with escrow protection."
+        description="Join Kenya's secure social commerce marketplace. Sell electronics, fashion, beauty, shoes & more with zero upfront fees. Reach thousands of buyers across Kenya with escrow protection."
         canonical="https://solelymarketplace.com/vendor"
       />
       <div className="container mx-auto px-4">
@@ -53,7 +53,7 @@ const Vendor = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Connect with shoe buyers from Nairobi to Mombasa and everywhere in between. Our platform helps you reach customers you'd never find on your own.
+                  Connect with buyers from Nairobi to Mombasa and everywhere in between. Our platform helps you reach customers you'd never find on your own.
                 </p>
               </CardContent>
             </Card>
@@ -67,7 +67,7 @@ const Vendor = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  No complicated setup or technical skills needed. Just share your shoe details with us and we'll help you get started in minutes.
+                  No complicated setup or technical skills needed. Just list your products and we'll help you get started in minutes.
                 </p>
               </CardContent>
             </Card>
@@ -140,13 +140,13 @@ const Vendor = () => {
                 <li className="flex items-start gap-3">
                   <span className="text-primary text-xl shrink-0">✓</span>
                   <span className="text-[clamp(0.85rem,2.5vw,1rem)] leading-snug">
-                    <strong>Quality shoes to sell</strong> – Whether new or gently used, make sure they're in good condition
+                    <strong>Quality products to sell</strong> – Whether new or gently used, make sure they're in good condition
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary text-xl shrink-0">✓</span>
                   <span className="text-[clamp(0.85rem,2.5vw,1rem)] leading-snug">
-                    <strong>Clear photos</strong> – Good pictures help sell shoes faster
+                    <strong>Clear photos</strong> – Good pictures help sell products faster
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -212,7 +212,7 @@ const Vendor = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Yes! As long as they're in good condition and you're honest about their condition, used shoes are welcome on our platform.
+                  Yes! As long as they're in good condition and you're honest about their condition, used items are welcome on our platform.
                 </p>
               </CardContent>
             </Card>

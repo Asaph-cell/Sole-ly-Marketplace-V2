@@ -203,7 +203,7 @@ const VendorRegistration = () => {
                 <Input
                   id="storeName"
                   type="text"
-                  placeholder="e.g., My Shoe Store"
+                  placeholder="e.g., My Store"
                   value={formData.storeName}
                   onChange={handleInputChange("storeName")}
                   required

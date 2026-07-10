@@ -11,8 +11,8 @@ const Blog = () => {
     return (
         <div className="min-h-screen py-12 bg-background">
             <SEO 
-                title="Solely Blog | The Nairobi Footwear Guide"
-                description="Expert tips on sneaker care, escrow security, and scaling your shoe business in Kenya. Relatable stories for Nairobi's footwear culture."
+                title="Solely Blog | Kenya's Marketplace Guide"
+                description="Expert tips on escrow security, selling online, and growing your business in Kenya. Relatable stories for Kenya's ecommerce community."
                 canonical="https://solelymarketplace.com/blog"
             />
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
