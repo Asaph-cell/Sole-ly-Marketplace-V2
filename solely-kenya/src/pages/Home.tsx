@@ -447,43 +447,62 @@ const Home = () => {
             </p>
           </motion.div>
 
-          {/* ── Mobile View: Swipeable Carousel ── */}
-          <div className="lg:hidden flex flex-col items-center w-full">
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={activeStep}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-border/50 flex flex-col"
-              >
-                <h3 className="text-2xl font-bold mb-3 shrink-0">{HOW_IT_WORKS[activeStep].title}</h3>
-                <div className="flex-grow mb-6">
-                  <p className="text-muted-foreground text-[15px] leading-relaxed">
-                    {HOW_IT_WORKS[activeStep].desc}
-                  </p>
+          {/* ── Mobile View: Native Scroll Snap Carousel ── */}
+          <div className="lg:hidden w-full flex flex-col items-center">
+            <div 
+              id="mobile-carousel-container"
+              className="w-full flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              onScroll={(e) => {
+                const container = e.currentTarget;
+                const scrollPosition = container.scrollLeft;
+                const itemWidth = container.offsetWidth;
+                const newIndex = Math.round(scrollPosition / itemWidth);
+                if (newIndex !== activeStep && newIndex >= 0 && newIndex < HOW_IT_WORKS.length) {
+                  setActiveStep(newIndex);
+                }
+              }}
+            >
+              {HOW_IT_WORKS.map((step, idx) => (
+                <div 
+                  key={step.step}
+                  className="w-full flex-shrink-0 snap-center bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-border/50 flex flex-col"
+                >
+                  <h3 className="text-2xl font-bold mb-3 shrink-0">{step.title}</h3>
+                  <div className="flex-grow mb-6">
+                    <p className="text-muted-foreground text-[15px] leading-relaxed">
+                      {step.desc}
+                    </p>
+                  </div>
+                  <div className="relative w-full h-[220px] rounded-2xl overflow-hidden shrink-0 mt-auto">
+                    <img 
+                      src={step.image} 
+                      alt={step.title} 
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
+                    <span className="absolute bottom-1 right-4 font-black text-7xl text-white tracking-tighter z-20">
+                      .{step.step}
+                    </span>
+                  </div>
                 </div>
-                <div className="relative w-full h-[220px] rounded-2xl overflow-hidden shrink-0 mt-auto">
-                  <img 
-                    src={HOW_IT_WORKS[activeStep].image} 
-                    alt={HOW_IT_WORKS[activeStep].title} 
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Dark gradient at bottom to make number pop */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
-                  <span className="absolute bottom-1 right-4 font-black text-7xl text-white tracking-tighter z-20">
-                    .{HOW_IT_WORKS[activeStep].step}
-                  </span>
-                </div>
-              </motion.div>
-            </AnimatePresence>
+              ))}
+            </div>
             {/* Pagination Dots */}
-            <div className="flex gap-2 mt-8">
+            <div className="flex gap-2 mt-4">
               {HOW_IT_WORKS.map((_, idx) => (
                 <button 
                   key={idx}
-                  onClick={() => setActiveStep(idx)}
+                  onClick={() => {
+                    setActiveStep(idx);
+                    const container = document.getElementById('mobile-carousel-container');
+                    if (container) {
+                      container.scrollTo({
+                        left: idx * container.offsetWidth,
+                        behavior: 'smooth'
+                      });
+                    }
+                  }}
                   className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${activeStep === idx ? 'bg-slate-800 dark:bg-slate-200 w-6' : 'bg-slate-300 dark:bg-slate-700'}`}
                 />
               ))}
