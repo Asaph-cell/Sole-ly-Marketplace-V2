@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Search, Heart, MessageCircle } from "lucide-react";
 import logo from "@/assets/solely-logo.svg";
 import { saveSearch } from "@/lib/searchHistory";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 const Navbar = () => {
   const { user, isVendor } = useAuth();
@@ -18,6 +19,7 @@ const Navbar = () => {
   const isVendorPage = location.pathname.startsWith('/vendor');
   const { totalQuantity } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
+  const unreadMessages = useUnreadMessages();
 
   const handleLogout = async () => {
     try {
@@ -86,6 +88,9 @@ const Navbar = () => {
             <Button variant="ghost" size="icon" asChild>
               <Link to="/messages" className="relative" aria-label="Messages">
                 <MessageCircle size={20} strokeWidth={1.5} />
+                {unreadMessages > 0 && (
+                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse ring-2 ring-background" />
+                )}
               </Link>
             </Button>
             <Button variant="ghost" size="icon" asChild>
@@ -128,7 +133,7 @@ const Navbar = () => {
               <Search size={16} strokeWidth={1.5} className=" text-muted-foreground shrink-0" />
               <input
                 type="text"
-                placeholder="Search shoes, phones, fashion..."
+                placeholder="Search products, fashion, electronics..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground"

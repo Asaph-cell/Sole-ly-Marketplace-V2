@@ -71,6 +71,18 @@ export const ConversationList = ({
           loadConversations();
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages'
+        },
+        () => {
+          // Re-fetch when is_read status changes so badges update
+          loadConversations();
+        }
+      )
       .subscribe();
 
     return () => {

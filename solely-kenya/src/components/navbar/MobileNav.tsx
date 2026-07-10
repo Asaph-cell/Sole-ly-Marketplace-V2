@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 interface NavLink {
   name: string;
@@ -38,6 +39,7 @@ export const MobileNav = ({
   const supportEmail = "contact@solelymarketplace.com";
   const { canInstall, promptInstall } = usePWAInstall();
   const location = useLocation();
+  const unreadMessages = useUnreadMessages();
 
   const close = () => setIsOpen(false);
 
@@ -154,7 +156,13 @@ export const MobileNav = ({
             >
               <MessageCircle size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
               Messages
-              <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
+              {unreadMessages > 0 ? (
+                <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full px-2 py-0.5">
+                  {unreadMessages}
+                </span>
+              ) : (
+                <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
+              )}
             </Link>
           </div>
 
