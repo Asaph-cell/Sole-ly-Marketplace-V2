@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SearchBar, ActionButton, StatusPill, EmptyState } from "@/components/admin/AdminShared";
-import { Package, Image as ImageIcon } from "lucide-react";
+import { Package, Image as ImageIcon, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import {
@@ -17,12 +17,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 interface Product {
   id: string;
   name: string;
   status: string;
   images: string[] | null;
+  price_ksh?: number;
   vendor_id?: string;
   vendor?: { full_name: string; store_name: string } | null;
   created_at: string;
@@ -61,14 +63,14 @@ const AdminProducts = () => {
     try {
       const { data: productsData, error } = await supabase
         .from("products")
-        .select(`id, name, status, images, created_at, vendor_id`)
+        .select(`id, name, status, images, price_ksh, created_at, vendor_id`)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
       const vendorIds = [...new Set((productsData || []).map(p => p.vendor_id).filter(Boolean))];
       
-      let profilesMap: Record<string, any> = {};
+      const profilesMap: Record<string, any> = {};
       
       if (vendorIds.length > 0) {
         const { data: profiles, error: profilesError } = await supabase
@@ -97,36 +99,44 @@ const AdminProducts = () => {
     }
   };
 
-  const toggleProductStatus = async (productId: string, currentStatus: string) => {
-    const newStatus = currentStatus === "active" ? "paused" : "active";
+  /** Call the admin-action Edge Function (bypasses RLS via service role) */
+  const adminAction = async (action: string, targetId: string): Promise<boolean> => {
     try {
-      const { error } = await supabase
-        .from("products")
-        .update({ status: newStatus })
-        .eq("id", productId);
+      const { data, error } = await supabase.functions.invoke("admin-action", {
+        body: { action, targetId },
+      });
 
-      if (error) throw error;
+      if (error) {
+        // Try to extract a readable message from the edge function error
+        let msg = error.message;
+        if (error.context && typeof error.context.json === "function") {
+          try {
+            const errJson = await error.context.json();
+            if (errJson?.error) msg = errJson.error;
+          } catch (_) { /* ignore */ }
+        }
+        throw new Error(msg);
+      }
 
-      toast({ title: "Success", description: `Product ${newStatus === "active" ? "activated" : "paused"}` });
-      loadProducts();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Success", description: data?.message || "Action completed" });
+      return true;
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+      return false;
     }
+  };
+
+  const toggleProductStatus = async (productId: string, currentStatus: string) => {
+    const action = currentStatus === "active" ? "pause_product" : "restore_product";
+    const ok = await adminAction(action, productId);
+    if (ok) loadProducts();
   };
 
   const deleteProduct = async () => {
     if (!productToDelete) return;
-    
-    try {
-      const { error } = await supabase.from("products").delete().eq("id", productToDelete.id);
-      if (error) throw error;
-      toast({ title: "Deleted", description: "Product removed permanently" });
-      loadProducts();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } finally {
-      setProductToDelete(null);
-    }
+    const ok = await adminAction("delete_product", productToDelete.id);
+    if (ok) loadProducts();
+    setProductToDelete(null);
   };
 
   const filteredProducts = products
@@ -173,9 +183,21 @@ const AdminProducts = () => {
                 <p className="text-xs font-medium text-foreground truncate">
                   {product.name}
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                  {product.vendor?.store_name || product.vendor?.full_name || "Unknown Vendor"} · {formatCurrency(1500 /* Mock price as it is not selected from table */)}
-                </p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {product.vendor?.store_name || product.vendor?.full_name || "Unknown Vendor"} · {formatCurrency(product.price_ksh || 0)}
+                  </p>
+                  {product.vendor_id && (
+                    <Link
+                      to={`/vendor-store/${product.vendor_id}`}
+                      className="text-[10px] text-primary hover:underline flex items-center gap-0.5 ml-1 shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink size={9} />
+                      Store
+                    </Link>
+                  )}
+                </div>
                 <div className="mt-1">
                   <StatusPill status={product.status === 'draft' ? 'paused' : product.status} />
                 </div>

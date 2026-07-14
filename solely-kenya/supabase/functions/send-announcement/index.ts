@@ -9,7 +9,8 @@ const corsHeaders = {
 interface AnnouncementRequest {
     subject: string;
     htmlContent: string;
-    targetAudience: "all" | "vendors" | "customers";
+    targetAudience: "all" | "vendors" | "customers" | "custom";
+    customEmails?: string[];
 }
 
 serve(async (req) => {
@@ -68,7 +69,9 @@ serve(async (req) => {
         // Fetch email addresses based on target audience
         let emails: string[] = [];
 
-        if (targetAudience === "vendors") {
+        if (targetAudience === "custom" && customEmails && customEmails.length > 0) {
+            emails = customEmails;
+        } else if (targetAudience === "vendors") {
             // Get all vendor emails
             const { data: vendorRoles } = await supabase
                 .from("user_roles")
@@ -104,7 +107,7 @@ serve(async (req) => {
                 .filter(p => !vendorIds.includes(p.id))
                 .map(p => p.email)
                 .filter(Boolean);
-        } else {
+        } else if (targetAudience === "all") {
             // All users
             const { data: profiles } = await supabase
                 .from("profiles")
@@ -112,6 +115,8 @@ serve(async (req) => {
                 .not("email", "is", null);
 
             emails = (profiles || []).map(p => p.email).filter(Boolean);
+        } else {
+            throw new Error(`Invalid targetAudience: ${targetAudience}`);
         }
 
         // Remove duplicates

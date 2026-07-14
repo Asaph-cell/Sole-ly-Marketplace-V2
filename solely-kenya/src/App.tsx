@@ -70,6 +70,7 @@ const AdminDisputes = lazyRetry(() => import("./pages/admin/AdminDisputes"), "Ad
 const AdminVendors = lazyRetry(() => import("./pages/admin/AdminVendors"), "AdminVendors");
 const AdminProducts = lazyRetry(() => import("./pages/admin/AdminProducts"), "AdminProducts");
 const AdminComms = lazyRetry(() => import("./pages/admin/AdminComms"), "AdminComms");
+const AdminMailingList = lazyRetry(() => import("./pages/admin/AdminMailingList"), "AdminMailingList");
 const Blog = lazyRetry(() => import("./pages/Blog"), "Blog");
 const BlogPost = lazyRetry(() => import("./pages/BlogPost"), "BlogPost");
 const HowItWorks = lazyRetry(() => import("./pages/HowItWorks"), "HowItWorks");
@@ -161,6 +162,7 @@ const AnimatedRoutes = () => {
       <Route path="/admin/vendors" element={<PageWrapper><AdminVendors /></PageWrapper>} />
       <Route path="/admin/products" element={<PageWrapper><AdminProducts /></PageWrapper>} />
       <Route path="/admin/comms" element={<PageWrapper><AdminComms /></PageWrapper>} />
+      <Route path="/admin/mailing-list" element={<PageWrapper><AdminMailingList /></PageWrapper>} />
 
       {/* Standalone routes */}
       <Route path="/buy/:productId" element={<PageWrapper><BuyNow /></PageWrapper>} />

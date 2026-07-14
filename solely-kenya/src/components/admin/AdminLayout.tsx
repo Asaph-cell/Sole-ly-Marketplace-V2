@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Store, Scale, Package, Megaphone, Bell } from "lucide-react";
+import { LayoutDashboard, Store, Scale, Package, Megaphone, Bell, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -34,6 +34,7 @@ export function AdminLayout({ children, pageTitle }: { children: React.ReactNode
     { label: "Vendors", icon: Store, href: "/admin/vendors", badge: 0 },
     { label: "Products", icon: Package, href: "/admin/products", badge: 0 },
     { label: "Comms", icon: Megaphone, href: "/admin/comms", badge: 0 },
+    { label: "Mailing List", icon: Mail, href: "/admin/mailing-list", badge: 0 },
   ];
 
   return (

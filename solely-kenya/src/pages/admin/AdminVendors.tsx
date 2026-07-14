@@ -4,8 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SearchBar, ActionButton, StatusPill, EmptyState } from "@/components/admin/AdminShared";
 import { useToast } from "@/hooks/use-toast";
-import { Store, Star } from "lucide-react";
+import { Store, Star, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,11 +50,7 @@ const AdminVendors = () => {
       if (rolesError) throw rolesError;
       
       const vendorRoles = roles?.filter(r => r.role === "vendor") || [];
-      const revokedRoles = roles?.filter(r => r.role === "revoked_vendor") || [];
-      
-      const activeVendorIds = vendorRoles.map(r => r.user_id);
-      const revokedVendorIds = revokedRoles.map(r => r.user_id);
-      const allVendorIds = [...activeVendorIds, ...revokedVendorIds];
+      const allVendorIds = vendorRoles.map(r => r.user_id);
 
       if (allVendorIds.length === 0) {
         setVendors([]);
@@ -85,13 +82,11 @@ const AdminVendors = () => {
             .eq("vendor_id", profile.id)
             .eq("status", "completed");
 
-          const isRevoked = revokedVendorIds.includes(profile.id);
-
           return {
             ...profile,
             rating: avgRating,
             total_sales: salesCount || 0,
-            status: isRevoked ? "revoked" : "active"
+            status: "active"
           };
         })
       );
@@ -111,49 +106,49 @@ const AdminVendors = () => {
     }
   }, [user]);
 
+  /** Call the admin-action Edge Function (bypasses RLS via service role) */
+  const adminAction = async (action: string, targetId: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-action", {
+        body: { action, targetId },
+      });
+
+      if (error) {
+        let msg = error.message;
+        if (error.context && typeof error.context.json === "function") {
+          try {
+            const errJson = await error.context.json();
+            if (errJson?.error) msg = errJson.error;
+          } catch (_) { /* ignore */ }
+        }
+        throw new Error(msg);
+      }
+
+      toast({ title: "Success", description: data?.message || "Action completed" });
+      return true;
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+      return false;
+    }
+  };
+
   const handleAction = async () => {
     const { type, vendor } = confirmState;
     if (!type || !vendor) return;
 
-    try {
-      if (type === "penalize") {
-        const { error } = await supabase.from("vendor_ratings").insert({
-          vendor_id: vendor.id,
-          buyer_id: user?.id,
-          rating: 1,
-          review_text: "System Penalty: Violation of marketplace rules or vendor misconduct.",
-        });
-        if (error) throw error;
-        toast({ title: "Success", description: `${vendor.full_name} has been penalized.` });
-      } 
-      else if (type === "revoke") {
-        const { error } = await supabase
-          .from("user_roles")
-          .update({ role: "revoked_vendor" })
-          .eq("user_id", vendor.id)
-          .eq("role", "vendor");
-        
-        // If update fails (e.g. role doesn't exist), we might need to upsert
-        if (error) {
-          await supabase.from("user_roles").delete().eq("user_id", vendor.id);
-          await supabase.from("user_roles").insert({ user_id: vendor.id, role: "revoked_vendor" });
-        }
-        
-        toast({ title: "Success", description: `Vendor status revoked for ${vendor.full_name}.` });
-      }
-      else if (type === "restore") {
-        await supabase.from("user_roles").delete().eq("user_id", vendor.id);
-        await supabase.from("user_roles").insert({ user_id: vendor.id, role: "vendor" });
-        toast({ title: "Success", description: `Vendor status restored for ${vendor.full_name}.` });
-      }
-      
-      loadVendors();
-    } catch (error) {
-      console.error("Error performing action:", error);
-      toast({ title: "Error", description: "Failed to perform action", variant: "destructive" });
-    } finally {
-      setConfirmState({ type: null, vendor: null });
+    const actionMap: Record<string, string> = {
+      "penalize": "penalize_vendor",
+      "revoke": "revoke_vendor",
+      "restore": "restore_vendor",
+    };
+
+    const action = actionMap[type];
+    if (action) {
+      const ok = await adminAction(action, vendor.id);
+      if (ok) loadVendors();
     }
+    
+    setConfirmState({ type: null, vendor: null });
   };
 
   const filteredVendors = vendors.filter(v => {
@@ -203,6 +198,13 @@ const AdminVendors = () => {
                   <span className="text-[11px] text-muted-foreground">
                     {v.rating?.toFixed(1) || "5.0"}
                   </span>
+                  <Link
+                    to={`/vendor-store/${v.id}`}
+                    className="text-[10px] text-primary hover:underline flex items-center gap-0.5 ml-1 shrink-0"
+                  >
+                    <ExternalLink size={9} />
+                    Store
+                  </Link>
                 </div>
               </div>
 
