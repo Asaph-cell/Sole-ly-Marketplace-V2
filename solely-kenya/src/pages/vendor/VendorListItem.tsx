@@ -6,6 +6,7 @@ import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import { compressImages } from "@/lib/compressImage";
 import { ALL_CATEGORIES } from "@/lib/categories";
 import { toast } from "sonner";
+import { PricingCalculator } from "@/components/vendor/PricingCalculator";
 import {
   ChevronLeft, ChevronRight, Upload, X, ImagePlus,
   Footprints, Shirt, Baby, Sparkles, ShoppingBag,
@@ -526,6 +527,8 @@ const VendorListItem = () => {
                   <TextInput value={stock} onChange={setStock} placeholder="1" />
                 </Field>
               </div>
+              
+              <PricingCalculator price={parseFloat(price)} />
 
               {showBrandField && (
                 <Field label="Brand (optional)">

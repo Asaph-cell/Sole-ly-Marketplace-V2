@@ -33,12 +33,20 @@ const SecureInvoice = () => {
     const fetchLink = async () => {
       if (!id) return;
       try {
-        const { data: link, error } = await supabase
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        
+        let query = supabase
           .from("payment_links")
           .select(`*, product:product_id(*)`)
-          .eq("id", id)
-          .eq("is_active", true)
-          .single();
+          .eq("is_active", true);
+
+        if (isUUID) {
+          query = query.eq("id", id);
+        } else {
+          query = query.eq("short_code", id);
+        }
+
+        const { data: link, error } = await query.single();
 
         if (error || !link) {
           setLoading(false);

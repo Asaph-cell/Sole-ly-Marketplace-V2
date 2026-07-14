@@ -91,15 +91,15 @@ const HOW_IT_WORKS = [
   {
     step: "01",
     icon: ShoppingBag,
-    title: "Order Securely",
-    desc: "Checkout and pay securely via M-Pesa. Your money goes into our safe escrow, not directly to the seller.",
+    title: "Pay With Confidence",
+    desc: "Checkout and pay securely via M-Pesa. Your money goes into a protected holding account — not directly to the seller.",
     image: "/images/how-it-works/1-order.jpg"
   },
   {
     step: "02",
     icon: Lock,
-    title: "Money is Locked",
-    desc: "The vendor ships your order. We keep your funds locked and fully protected during transit.",
+    title: "Your Money is Safe",
+    desc: "While the vendor ships your order, your payment is held securely. Neither side can be scammed.",
     image: "/images/how-it-works/2-locked.png"
   },
   {
@@ -112,8 +112,8 @@ const HOW_IT_WORKS = [
   {
     step: "04",
     icon: Zap,
-    title: "Release Payment",
-    desc: "Happy with it? Give the vendor your unique 6-digit release code to instantly unlock their funds.",
+    title: "Confirm & Release",
+    desc: "Happy with it? Share the release code and the seller gets paid instantly. Not happy? Get a full refund.",
     image: "/images/how-it-works/4-release.png"
   },
 ];
@@ -235,19 +235,19 @@ const Home = () => {
         }
       `}</style>
       <SEO
-        title="Solely - Free to Use Website to Buy & Sell Safely in Kenya"
-        description="Solely is a 100% free to use ecommerce website. Just log in and list your items for free! Shop and sell electronics, fashion, and shoes with M-Pesa escrow protection."
+        title="Sole.ly — Sell & Shop on Social Media with 100% Safety | Kenya"
+        description="Sole.ly protects every online transaction. Sellers send secure M-Pesa payment links on WhatsApp, Instagram & TikTok. Buyers' money is safe until delivery. Zero scams. Zero upfront fees."
         canonical="https://solelymarketplace.com/"
         isHomepage={true}
         keywords={[
-          "free to use website",
-          "just log in and list your items",
-          "sell online for free in Kenya",
-          "free ecommerce platform Kenya",
-          "buy and sell safely",
-          "M-Pesa escrow marketplace",
-          "list items for free",
-          "online marketplace Nairobi"
+          "sell safely on social media Kenya",
+          "secure payment links WhatsApp",
+          "M-Pesa buyer protection",
+          "trusted checkout Kenya",
+          "sell on Instagram Kenya",
+          "online seller protection",
+          "buy safely online Kenya",
+          "social commerce Kenya"
         ]}
       />
 
@@ -280,14 +280,14 @@ const Home = () => {
           initial={{ opacity: 0, x: -40, y: 10 }}
           animate={{ opacity: 1, x: 0, y: [0, -10, 0] }}
           transition={{ opacity: { duration: 0.8, delay: 1 }, y: { repeat: Infinity, duration: 4, ease: "easeInOut" } }}
-          className="hidden xl:flex absolute top-[30%] left-[5%] 2xl:left-[10%] bg-white/10 backdrop-blur-md border border-white/20 p-3.5 pr-6 rounded-2xl shadow-2xl items-center gap-4 z-20 pointer-events-none"
+          className="hidden 2xl:flex absolute top-[30%] left-[5%] 2xl:left-[10%] bg-white/10 backdrop-blur-md border border-white/20 p-3.5 pr-6 rounded-2xl shadow-2xl items-center gap-4 z-20 pointer-events-none"
         >
           <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
             <Lock className="text-amber-400 w-5 h-5" />
           </div>
           <div className="flex flex-col text-left">
-            <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">M-Pesa Escrow</span>
-            <span className="text-sm text-white font-bold">Funds Locked 🔒</span>
+            <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">Buyer Protection</span>
+            <span className="text-sm text-white font-bold">Payment Protected 🔒</span>
           </div>
         </motion.div>
 
@@ -296,13 +296,13 @@ const Home = () => {
           initial={{ opacity: 0, x: 40, y: -10 }}
           animate={{ opacity: 1, x: 0, y: [0, 10, 0] }}
           transition={{ opacity: { duration: 0.8, delay: 1.2 }, y: { repeat: Infinity, duration: 5, ease: "easeInOut" } }}
-          className="hidden xl:flex absolute bottom-[30%] right-[5%] 2xl:right-[10%] bg-white/10 backdrop-blur-md border border-white/20 p-3.5 pr-6 rounded-2xl shadow-2xl items-center gap-4 z-20 pointer-events-none"
+          className="hidden 2xl:flex absolute bottom-[30%] right-[5%] 2xl:right-[10%] bg-white/10 backdrop-blur-md border border-white/20 p-3.5 pr-6 rounded-2xl shadow-2xl items-center gap-4 z-20 pointer-events-none"
         >
           <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
             <Shield className="text-emerald-400 w-5 h-5" />
           </div>
           <div className="flex flex-col text-left">
-            <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">100% Moneyback</span>
+            <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">100% Refund</span>
             <span className="text-sm text-white font-bold">If not delivered 🛡️</span>
           </div>
         </motion.div>
@@ -318,7 +318,7 @@ const Home = () => {
           >
             <Badge className="bg-primary/90 text-primary-foreground border-0 text-[10px] sm:text-xs font-bold uppercase tracking-widest px-3 py-1.5 shadow-lg">
               <Shield size={14} className="mr-1.5 inline-block mb-[2px]" />
-              Escrow Protected · Zero Scams
+              Trusted Checkout · 100% Safe
             </Badge>
           </motion.div>
 
@@ -329,10 +329,10 @@ const Home = () => {
             transition={{ duration: 0.7, delay: 0.4, type: "spring", stiffness: 100 }}
             className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-[1.15] text-white"
           >
-            The Safest Way to Buy & Sell. <br className="hidden sm:block" />
+            Sell and Shop on Social Media<br className="hidden sm:block" /> with{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-400 italic font-serif font-normal">
-              Zero
-            </span> 'Character Development'.
+              100% Safety.
+            </span>
           </motion.h1>
 
           {/* Subheadline */}
@@ -342,8 +342,7 @@ const Home = () => {
             transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
             className="text-lg md:text-xl text-slate-200 max-w-2xl mb-8 leading-relaxed"
           >
-            We hold your money safely in escrow until your order arrives exactly as promised. 
-            Kill ghost shops. Build instant trust. Share secure payment links everywhere.
+            Zero upfront fees. No scams. Just secure M-Pesa payments that protect both the buyer and the seller.
           </motion.p>
 
           {/* Dual-Path CTAs */}
@@ -353,24 +352,24 @@ const Home = () => {
             transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto"
           >
+            {/* Seller Path */}
+            <Link to={!isVendor ? "/vendor" : "/vendor/dashboard"} className="w-full sm:w-auto">
+              <Button size="lg" className="relative overflow-hidden w-full sm:w-auto rounded-full text-base h-14 px-8 font-bold shadow-[0_0_40px_-5px_rgba(var(--primary),0.8)] bg-primary text-primary-foreground hover:bg-primary/90 transition-transform hover:scale-105 group">
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-sweep" />
+                <Shield className="mr-2 w-5 h-5 relative z-10" /> 
+                <span className="relative z-10">{!isVendor ? "Start Selling Safely" : "Vendor Dashboard"}</span>
+              </Button>
+            </Link>
+
             {/* Buyer Path */}
             <button 
               onClick={() => document.getElementById('shop-section')?.scrollIntoView({ behavior: 'smooth' })}
               className="w-full sm:w-auto"
             >
-              <Button size="lg" className="relative overflow-hidden w-full sm:w-auto rounded-full text-base h-14 px-8 font-bold shadow-[0_0_40px_-5px_rgba(var(--primary),0.8)] bg-primary text-primary-foreground hover:bg-primary/90 transition-transform hover:scale-105 group">
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-sweep" />
-                <ShoppingBag className="mr-2 w-5 h-5 relative z-10" /> 
-                <span className="relative z-10">Browse Marketplace</span>
+              <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-full text-base h-14 px-8 font-bold bg-black/40 backdrop-blur-md border-slate-500 text-white hover:bg-white/10 hover:text-white hover:border-slate-400 transition-transform hover:scale-105">
+                <ShoppingBag className="mr-2 w-5 h-5" /> Shop Verified Sellers
               </Button>
             </button>
-
-            {/* Vendor Path */}
-            <Link to={!isVendor ? "/vendor" : "/vendor-dashboard"} className="w-full sm:w-auto">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-full text-base h-14 px-8 font-bold bg-black/40 backdrop-blur-md border-slate-500 text-white hover:bg-white/10 hover:text-white hover:border-slate-400 transition-transform hover:scale-105">
-                <LayoutDashboard className="mr-2 w-5 h-5" /> {!isVendor ? "Start Selling" : "Vendor Dashboard"}
-              </Button>
-            </Link>
           </motion.div>
 
 
@@ -382,9 +381,9 @@ const Home = () => {
             transition={{ duration: 1, delay: 1.2 }}
             className="flex flex-wrap justify-center items-center gap-6 mt-12 text-sm text-slate-300 font-medium"
           >
-            <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> Funds held in Escrow</span>
-            <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> Release on Delivery</span>
-            <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> 100% Moneyback Guarantee</span>
+            <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> Your money is protected until delivery</span>
+            <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> Full refund if order doesn't arrive</span>
+            <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> Works with M-Pesa · No apps needed</span>
           </motion.div>
         </div>
       </section>
@@ -441,9 +440,9 @@ const Home = () => {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">How Solely Works</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">How We Protect Every Sale</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Whether you are buying a fresh pair of sneakers or selling premium electronics, we make sure everyone is protected.
+              Every payment link is backed by our buyer protection protocol. Here's how it works for both sides.
             </p>
           </motion.div>
 
@@ -578,14 +577,14 @@ const Home = () => {
             <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
               <div className="max-w-xl text-center lg:text-left">
                 <Badge variant="outline" className="mb-6 bg-background/50 border-primary/30 text-primary py-1.5 px-4 text-xs font-semibold uppercase tracking-wider shadow-sm">
-                  🚀 For Sellers & Creators
+                  📱 For Instagram & WhatsApp Sellers
                 </Badge>
                 <h2 className="text-4xl sm:text-5xl font-extrabold mb-6 tracking-tight leading-[1.15] text-foreground">
-                  Sell on your platforms, <br className="hidden sm:block" />
-                  <span className="text-primary">Securely.</span>
+                  Sell on your platforms. <br className="hidden sm:block" />
+                  <span className="text-primary">Build trust through ours.</span>
                 </h2>
                 <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                  You don't need to force your customers to browse our website. Generate a secure <strong className="text-foreground">Payment Link</strong> from your dashboard and drop it in their DMs. We handle the M-Pesa checkout and escrow protection automatically.
+                  Stop losing customers who are afraid to pay upfront. Send them a secure Solely <strong className="text-foreground">Payment Link</strong> in their DMs. Your cash is secured, their delivery is tracked, and everyone is protected.
                 </p>
                 <Button size="lg" className="rounded-full px-8 h-14 font-bold text-base shadow-[0_8px_30px_-4px_rgba(255,215,0,0.4)] hover:scale-105 transition-all" asChild>
                   <Link to="/vendor">Start Selling Now <ArrowRight className="ml-2" size={18} strokeWidth={2.5} /></Link>
@@ -601,25 +600,25 @@ const Home = () => {
                   <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[-4deg] hover:rotate-0 hover:scale-[1.03] transition-all duration-300 w-72">
                      <div className="flex items-center gap-4 mb-2">
                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shadow-inner"><Link2 size={18} strokeWidth={2.5} /></div>
-                       <p className="font-bold text-base text-foreground">1. Create Link</p>
+                       <p className="font-bold text-base text-foreground">1. Create a Trusted Link</p>
                      </div>
-                     <p className="text-sm text-muted-foreground pl-14">Generate link for your custom item.</p>
+                     <p className="text-sm text-muted-foreground pl-14">List your item and generate a secure checkout link.</p>
                   </div>
 
                   <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[3deg] hover:rotate-0 hover:scale-[1.03] transition-all duration-300 w-72 translate-x-8">
                      <div className="flex items-center gap-4 mb-2">
                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-inner"><MessageCircle size={18} strokeWidth={2.5} /></div>
-                       <p className="font-bold text-base text-foreground">2. Share in DMs</p>
+                       <p className="font-bold text-base text-foreground">2. Drop it Anywhere</p>
                      </div>
-                     <p className="text-sm text-muted-foreground pl-14">Drop `sole.ly/pay/123` in WhatsApp.</p>
+                     <p className="text-sm text-muted-foreground pl-14">WhatsApp, Instagram, TikTok — wherever your customers are.</p>
                   </div>
 
                   <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[-2deg] hover:rotate-0 hover:scale-[1.03] transition-all duration-300 w-72">
                      <div className="flex items-center gap-4 mb-2">
                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary shadow-inner"><Shield size={18} strokeWidth={2.5} /></div>
-                       <p className="font-bold text-base text-foreground">3. Get Paid Safely</p>
+                       <p className="font-bold text-base text-foreground">3. Get Paid When They're Happy</p>
                      </div>
-                     <p className="text-sm text-muted-foreground pl-14">Buyer checks out with M-Pesa Escrow.</p>
+                     <p className="text-sm text-muted-foreground pl-14">Buyer confirms delivery. You get paid. Simple.</p>
                   </div>
                 </div>
               </div>
@@ -633,12 +632,11 @@ const Home = () => {
           <div className="overflow-hidden whitespace-nowrap py-1.5">
             <div className="inline-block animate-[scroll_30s_linear_infinite]">
               {[
-                "👟 Sell shoes, fashion & electronics - zero upfront fees!",
-                "🔒 Every order is escrow-protected, no more payment scams!",
-                "💰 6% commission only when you sell, start for free today!",
-                "📱 Sell electronics with verified KYC protection!",
-                "👗 List your fashion items and reach thousands of buyers!",
-                "🚀 Kenya's most trusted marketplace - join 1,200+ vendors!",
+                "🔗 Send payment links — sell on WhatsApp, IG & TikTok with buyer protection",
+                "🛡️ Buyers trust Sole.ly checkout — convert more followers into customers",
+                "💸 6% commission only when you sell — zero setup, zero monthly fees",
+                "🤝 Build trust instantly — your buyers' money is protected until delivery",
+                "📱 Not another marketplace — we're the checkout your social shop needs",
               ].map((text, i) => (
                 <span key={i} className="inline-block px-10 text-xs sm:text-sm font-medium">
                   {text}
@@ -858,11 +856,11 @@ const Home = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <Badge variant="secondary" className="mb-3 text-xs font-bold uppercase tracking-widest px-3 py-1">
-              Zero-Scam Guarantee
+              For Everyday Shoppers
             </Badge>
-            <h2 className="text-2xl sm:text-3xl font-extrabold">How Solely Protects You</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold">Shop Without the Fear</h2>
             <p className="text-muted-foreground mt-2 max-w-lg mx-auto text-sm sm:text-base">
-              Our 4-step escrow protocol means your money is always safe — whether you're buying or selling.
+              Shop from your favourite online creators without the fear of getting scammed. Your money is only released to the seller after your items arrive and you verify they are exactly what you ordered.
             </p>
           </div>
 
@@ -905,12 +903,12 @@ const Home = () => {
                 For Vendors
               </Badge>
               <h2 className="text-2xl sm:text-4xl font-extrabold mb-4 leading-tight">
-                Sell Without the Risk.<br />
-                <span className="text-primary">Get Paid, Every Time.</span>
+                Stop Losing Sales<br />
+                <span className="text-primary">to Mistrust.</span>
               </h2>
               <p className="text-secondary-foreground/80 max-w-md mx-auto lg:mx-0 text-sm sm:text-base leading-relaxed">
-                Solely's escrow system protects vendors too — once the buyer confirms receipt,
-                your money is released instantly. No chargebacks, no "I never got it" scams.
+                Your followers want to buy — but they don't trust "send to Till." With Solely,
+                you generate a protected payment link that tells buyers: "Your money is safe until you get what you ordered."
               </p>
               <ul className="mt-6 space-y-3 text-sm">
                 {[

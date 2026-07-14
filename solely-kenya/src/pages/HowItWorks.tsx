@@ -11,7 +11,7 @@ const steps = [
     icon: ShoppingBag,
     title: "Browse & Order",
     details: [
-      "Browse verified vendors across 9 categories",
+      "Browse verified sellers across 9 categories",
       "Add items to cart — no account needed to browse",
       "Choose delivery or pickup at checkout",
       "Pay securely via M-Pesa",
@@ -20,9 +20,9 @@ const steps = [
   {
     step: "02",
     icon: Lock,
-    title: "Funds Held in Escrow",
+    title: "Your Money is Protected",
     details: [
-      "Your payment is immediately locked in escrow",
+      "Your payment is immediately held in a protected account",
       "The vendor is notified and prepares your order",
       "Vendor accepts or declines within 24 hours",
       "If declined, funds are returned instantly",
@@ -42,7 +42,7 @@ const steps = [
   {
     step: "04",
     icon: Zap,
-    title: "Release Payment",
+    title: "Confirm & Release",
     details: [
       "Show the 6-digit code to the vendor (in-person or screenshot)",
       "Vendor enters the code in their app",
@@ -53,7 +53,7 @@ const steps = [
 ];
 
 const pickupSteps = [
-  { title: "Pay via M-Pesa — funds go to escrow" },
+  { title: "Pay via M-Pesa — money is protected" },
   { title: "Vendor prepares your item for pickup" },
   { title: "Collect item in person" },
   { title: "App generates your 6-digit release code" },
@@ -87,8 +87,8 @@ const HowItWorks = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="How Solely Works — Kenya's Zero-Scam Escrow Marketplace"
-        description="Learn how Solely's 4-step escrow protocol protects every transaction. No more pay-and-pray. Buyer and seller protected."
+        title="How Sole.ly Works — Trusted Checkout for Kenya"
+        description="Learn how Sole.ly protects every transaction. Your money stays safe until delivery. No more pay-and-pray. Both buyers and sellers are protected."
         canonical="https://solelymarketplace.com/how-it-works"
       />
 
@@ -96,14 +96,13 @@ const HowItWorks = () => {
       <section className="bg-gradient-hero text-primary-foreground py-14 sm:py-20">
         <div className="container mx-auto px-4 text-center">
           <Badge className="mb-4 bg-black/20 text-primary-foreground border-0 text-xs font-bold uppercase tracking-widest">
-            Zero-Scam Guarantee
+            100% Buyer Protection
           </Badge>
           <h1 className="text-3xl sm:text-5xl font-extrabold mb-4 leading-tight">
             Shopping Without Stress
           </h1>
           <p className="text-base sm:text-xl max-w-2xl mx-auto opacity-90">
-            Solely's escrow protocol ensures your money is safe at every step —
-            for both buyers and sellers.
+            Your money stays safe at every step — protected until you receive exactly what you ordered.
           </p>
           <div className="flex flex-wrap gap-3 justify-center mt-8">
             <Button size="lg" variant="secondary" className="rounded-full font-bold" asChild>

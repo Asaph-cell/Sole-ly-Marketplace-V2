@@ -13,7 +13,7 @@ import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import {
   Package, Star, Eye, ShoppingCart, TrendingUp,
   DollarSign, AlertTriangle, ArrowRight, Clock,
-  CheckCircle, Zap, Share2
+  CheckCircle, Zap, Share2, Link2, Copy
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -178,22 +178,6 @@ const VendorDashboard = () => {
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{vendorName} 👋</h1>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-1.5 text-xs sm:text-sm bg-white"
-                onClick={() => {
-                  const link = `${window.location.origin}/store/${profile?.store_link || profile?.id}`;
-                  navigator.clipboard.writeText(link);
-                  toast({
-                    title: "Link Copied!",
-                    description: "Your store link has been copied to your clipboard.",
-                  });
-                }}
-              >
-                <Share2 size={14} strokeWidth={1.5} /> Copy Store Link
-              </Button>
-
               <Button size="sm" onClick={() => navigate("/vendor/list-item")} className="gap-1.5 text-xs sm:text-sm">
                 <Package size={14} strokeWidth={1.5}  /> List Item
               </Button>
@@ -211,6 +195,63 @@ const VendorDashboard = () => {
             </div>
           ) : (
             <>
+              {/* ── Quick Actions ── */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                {/* Storefront Link Card */}
+                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Share2 size={16} strokeWidth={1.5} className="text-primary" />
+                      </div>
+                      <h3 className="font-semibold">Your Storefront Link</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Share this link on your Instagram bio or WhatsApp to direct customers to your entire product catalog. List items so they appear here!
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="bg-muted px-3 py-2 rounded-md flex-1 overflow-hidden">
+                      <p className="text-xs font-mono truncate text-muted-foreground">
+                        sole.ly/store/{profile?.store_link || profile?.id?.substring(0, 8)}
+                      </p>
+                    </div>
+                    <Button 
+                      variant="default" 
+                      size="sm"
+                      onClick={() => {
+                        const link = `${window.location.origin}/store/${profile?.store_link || profile?.id}`;
+                        navigator.clipboard.writeText(link);
+                        toast({ title: "Link Copied!", description: "Store link copied to clipboard." });
+                      }}
+                    >
+                      <Copy size={14} className="mr-1.5" /> Copy
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Create Payment Link Card */}
+                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                        <Link2 size={16} strokeWidth={1.5} className="text-blue-600" />
+                      </div>
+                      <h3 className="font-semibold">Create Payment Link</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Close deals in the DMs securely. Generate a quick, professional checkout link for any item so your buyer feels safe paying upfront.
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40"
+                    onClick={() => navigate("/vendor/payment-links")}
+                  >
+                    <Link2 size={16} className="mr-2" /> Generate Secure Link
+                  </Button>
+                </div>
+              </div>
               {/* ── Urgent action banner (only when needed) ── */}
               {stats.pendingOrders > 0 && (
                 <Link

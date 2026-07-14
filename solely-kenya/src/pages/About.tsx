@@ -22,7 +22,7 @@ const About = () => {
     <div className="min-h-screen py-12">
       <SEO
         title="About Us"
-        description="Learn about Sole-ly Marketplace's mission to connect buyers with trusted vendors across Kenya through secure escrow-protected transactions — shoes, electronics, fashion, beauty & more."
+        description="Sole.ly is the trust layer for Kenya's social commerce. We protect every transaction between online sellers and buyers with secure M-Pesa payments and buyer protection."
         canonical="https://solelymarketplace.com/about"
         breadcrumbs={[
           { name: "Home", url: "/" },
@@ -39,7 +39,7 @@ const About = () => {
           />
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">About Sole.ly Kenya</h1>
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed font-medium">
-            At Sole.ly Kenya, we are redefining online trading by making every transaction safer, smarter, and more trustworthy.
+            Sole.ly is the trust layer for Kenya's social commerce. We're not another marketplace — we're the checkout system that makes buying from Instagram, WhatsApp, and TikTok sellers safe for everyone.
           </p>
         </div>
 
@@ -47,14 +47,14 @@ const About = () => {
         <div className="bg-gradient-hero text-primary-foreground rounded-2xl p-8 md:p-12 mb-20 shadow-xl">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <p className="text-base sm:text-lg md:text-xl leading-relaxed opacity-95">
-              We are a secure digital marketplace that connects buyers and sellers through a protected escrow-based payment system designed to promote confidence and transparency in every transaction.
+              We built Sole.ly because online sellers in Kenya lose customers every day — not because their products are bad, but because buyers are afraid of being scammed. When a buyer sees a Sole.ly payment link, they know their money is protected until they receive exactly what they ordered.
             </p>
             <p className="text-base sm:text-lg md:text-xl leading-relaxed opacity-95">
-              Built to address the growing challenge of fraud and lack of trust in online commerce, our platform empowers individuals and businesses to trade with peace of mind. Whether purchasing products or conducting business online, users can transact confidently knowing both parties are protected through a fair and secure process.
+              For sellers, this means more conversions, fewer "I'll think about it" responses, and a professional checkout experience that builds trust from the first transaction. For buyers, it means shopping from social media sellers with complete peace of mind.
             </p>
             <div className="pt-4 border-t border-primary-foreground/20">
               <p className="text-lg sm:text-2xl font-bold tracking-tight">
-                At Sole.ly Kenya, trust is not assumed, it is built into every transaction.
+                At Sole.ly Kenya, trust isn't assumed — it's built into every transaction.
               </p>
             </div>
           </div>

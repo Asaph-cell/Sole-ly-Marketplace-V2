@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { ShoeSizeChart } from "@/components/ShoeSizeChart";
 import { VideoUploader } from "@/components/VideoUploader";
+import { PricingCalculator } from "@/components/vendor/PricingCalculator";
 import { AlertTriangle } from "lucide-react";
 import { CATEGORIES, ALL_CATEGORIES, getCategoryName } from "@/lib/categories";
 
@@ -249,10 +250,12 @@ const VendorAddProduct = () => {
                     <Input
                       id="price"
                       type="number"
+                      min="1"
                       value={formData.price_ksh}
                       onChange={(e) => setFormData({ ...formData, price_ksh: e.target.value })}
                       required
                     />
+                    <PricingCalculator price={parseFloat(formData.price_ksh)} />
                   </div>
 
                   <div className="flex flex-col justify-center space-y-2 border rounded-md p-3">

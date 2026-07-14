@@ -9,8 +9,8 @@ const Vendor = () => {
   return (
     <div className="min-h-screen py-12">
       <SEO 
-        title="Sell Online in Kenya | Become a Vendor on Solely"
-        description="Join Kenya's secure social commerce marketplace. Sell electronics, fashion, beauty, shoes & more with zero upfront fees. Reach thousands of buyers across Kenya with escrow protection."
+        title="Sell Online Safely in Kenya | Sole.ly Trusted Checkout"
+        description="Stop losing sales to mistrust. Generate secure M-Pesa payment links for your Instagram, WhatsApp & TikTok shop. Your buyers pay with confidence — money is protected until delivery."
         canonical="https://solelymarketplace.com/vendor"
       />
       <div className="container mx-auto px-4">
@@ -21,9 +21,9 @@ const Vendor = () => {
             alt="Sole-ly Marketplace"
             className="h-20 w-auto mx-auto mb-6"
           />
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">Become a Vendor</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">Stop Losing Sales to Mistrust.</h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed mb-6 sm:mb-8">
-            Join Kenya's secure commission-based marketplace! Start selling with zero upfront fees. We only take 6% commission when you make a sale. Your customers pay through our escrow system, and you receive payouts after delivery confirmation.
+            Your followers want to buy — but they don't trust "send to Till." With Solely, you generate a protected payment link that tells buyers: "Your money is safe until you get what you ordered." Zero setup fees. 6% only when you sell.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button size="lg" asChild>
@@ -42,18 +42,18 @@ const Vendor = () => {
 
         {/* Benefits */}
         <div className="mb-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">Why Sell on Sole-ly?</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">Why Sellers Trust Sole.ly</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="border-2 shadow-card hover:shadow-hover transition-all">
               <CardHeader>
                 <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                   <Users size={24} strokeWidth={1.5} className=" text-primary" />
                 </div>
-                <CardTitle>Reach More Customers</CardTitle>
+                <CardTitle>Build Instant Trust</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Connect with buyers from Nairobi to Mombasa and everywhere in between. Our platform helps you reach customers you'd never find on your own.
+                  When buyers see a Sole.ly payment link, they know their money is safe. No more "I'll think about it" — convert followers into paying customers.
                 </p>
               </CardContent>
             </Card>

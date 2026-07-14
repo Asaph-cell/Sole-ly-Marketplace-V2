@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { VendorNavbar } from "@/components/vendor/VendorNavbar";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
+import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
+import { PricingCalculator } from "@/components/vendor/PricingCalculator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,6 +88,9 @@ const VendorPaymentLinks = () => {
         payload.custom_title = customTitle;
         payload.custom_price_ksh = parseFloat(customPrice);
       }
+      
+      // Generate short_code
+      payload.short_code = Math.random().toString(36).substring(2, 9).toUpperCase();
 
       const { error } = await supabase.from("payment_links").insert(payload);
 
@@ -141,8 +146,9 @@ const VendorPaymentLinks = () => {
     }
   };
 
-  const copyToClipboard = (id: string) => {
-    const url = `${window.location.origin}/pay/${id}`;
+  const copyToClipboard = (id: string, short_code?: string) => {
+    const urlId = short_code || id;
+    const url = `${window.location.origin}/pay/${urlId}`;
     navigator.clipboard.writeText(url);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -222,6 +228,7 @@ const VendorPaymentLinks = () => {
                           ))}
                         </SelectContent>
                       </Select>
+                      <PricingCalculator price={selectedProductId ? (products.find(p => p.id === selectedProductId)?.price_ksh || 0) : 0} />
                     </div>
                   ) : (
                     <>
@@ -244,6 +251,7 @@ const VendorPaymentLinks = () => {
                           onChange={(e) => setCustomPrice(e.target.value)} 
                           required={linkType === "custom"}
                         />
+                        <PricingCalculator price={parseFloat(customPrice)} />
                       </div>
                     </>
                   )}
@@ -322,7 +330,7 @@ const VendorPaymentLinks = () => {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                onClick={() => copyToClipboard(link.id)}
+                                onClick={() => copyToClipboard(link.id, link.short_code)}
                                 disabled={!link.is_active}
                               >
                                 {copiedId === link.id ? <CheckCircle size={14} className="text-emerald-500" /> : <Copy size={14} />}

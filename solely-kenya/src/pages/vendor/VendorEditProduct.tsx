@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { ShoeSizeChart } from "@/components/ShoeSizeChart";
 import { VideoUploader } from "@/components/VideoUploader";
+import { PricingCalculator } from "@/components/vendor/PricingCalculator";
 import { AlertTriangle } from "lucide-react";
 import { CATEGORIES, ALL_CATEGORIES } from "@/lib/categories";
 import { compressImages } from "@/lib/compressImage";
@@ -261,6 +262,7 @@ const VendorEditProduct = () => {
                     {parseInt(formData.price_ksh) > 300000 && (
                       <p className="text-xs text-red-500 font-medium mt-1">Maximum allowed price is 300,000.</p>
                     )}
+                    <PricingCalculator price={parseFloat(formData.price_ksh)} />
                   </div>
 
                   <div className="flex flex-col justify-center space-y-2 border rounded-md p-3">
