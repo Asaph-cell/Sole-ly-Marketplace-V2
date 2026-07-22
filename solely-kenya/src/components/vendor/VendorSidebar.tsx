@@ -260,6 +260,18 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
           }
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+        },
+        () => {
+          // Re-fetch when is_read flips to true so badge decrements
+          fetchAlertCounts();
+        }
+      )
       .subscribe();
 
     return () => {

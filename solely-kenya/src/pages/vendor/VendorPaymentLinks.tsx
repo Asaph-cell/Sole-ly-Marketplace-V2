@@ -133,13 +133,16 @@ const VendorPaymentLinks = () => {
   const deleteLink = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this payment link? This action cannot be undone.")) return;
     
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("payment_links")
-      .delete()
+      .delete({ count: "exact" })
       .eq("id", id);
       
     if (error) {
       toast.error("Failed to delete link");
+    } else if (count === 0) {
+      toast.error("Could not delete link — please try again or refresh.");
+      fetchLinks(); // Re-sync with DB
     } else {
       toast.success("Link deleted successfully");
       setLinks(links.filter(l => l.id !== id));
@@ -156,7 +159,8 @@ const VendorPaymentLinks = () => {
   };
 
   const shareToWhatsApp = (link: any) => {
-    const url = `${window.location.origin}/pay/${link.id}`;
+    const urlId = link.short_code || link.id;
+    const url = `${window.location.origin}/pay/${urlId}`;
     const title = link.product_id ? link.product?.name : link.custom_title;
     const price = link.product_id ? link.product?.price_ksh : link.custom_price_ksh;
     

@@ -228,9 +228,31 @@ export const ConversationList = ({
           className={`p-4 cursor-pointer transition-colors hover:bg-accent ${
             selectedConversationId === conv.id ? 'bg-accent' : ''
           }`}
-          onClick={() => {
+          onClick={async () => {
             // Delivery conversations → go to full negotiation page with propose/accept/counter
             if (conv.delivery_agreement_id) {
+              // Mark messages as read before navigating away (otherwise the badge never clears)
+              try {
+                const { data: { user } } = await supabase.auth.getUser();
+                let currentUserId = user?.id as string | undefined;
+                if (!currentUserId) {
+                  currentUserId = localStorage.getItem("guestId") || undefined;
+                }
+                if (currentUserId) {
+                  await supabase
+                    .from('messages')
+                    .update({ is_read: true })
+                    .eq('conversation_id', conv.id)
+                    .neq('sender_id', currentUserId)
+                    .eq('is_read', false);
+                  // Update local state so badge clears immediately
+                  setConversations(prev =>
+                    prev.map(c => c.id === conv.id ? { ...c, unread_count: 0 } : c)
+                  );
+                }
+              } catch (err) {
+                console.error('Error marking messages as read:', err);
+              }
               navigate(`/delivery-negotiation?agreementId=${conv.delivery_agreement_id}`);
             } else {
               onSelectConversation(conv.id);
