@@ -204,7 +204,7 @@ const Shop = () => {
   const subHeading  = `${filteredProducts.length} item${filteredProducts.length !== 1 ? "s" : ""} from trusted vendors across Kenya`;
 
   const seoTitle       = `${heading} for Sale in Kenya | Solely`;
-  const seoDescription = `Browse ${filteredProducts.length} ${heading.toLowerCase()} listings with full escrow protection. Verified vendors. Pay only when you're happy.`;
+  const seoDescription = `Browse ${filteredProducts.length} ${heading.toLowerCase()} from verified sellers. Your money is protected until you get what you ordered.`;
   const seoCanonical   = selectedCategory !== "all"
     ? `https://solelymarketplace.com/shop?category=${selectedCategory}${selectedSub !== "all" ? `&sub=${selectedSub}` : ""}`
     : "https://solelymarketplace.com/shop";

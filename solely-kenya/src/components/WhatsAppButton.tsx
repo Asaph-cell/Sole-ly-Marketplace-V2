@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 const WhatsAppButton = () => {
     const location = useLocation();
     const phoneNumber = "254790793213"; // Format: country code + number without leading 0
-    const message = encodeURIComponent("Hi! I have a question about Solely Marketplace.");
+    const message = encodeURIComponent("Hi! I have a question about Solely.");
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
 
     const bottomClass = "bottom-6";

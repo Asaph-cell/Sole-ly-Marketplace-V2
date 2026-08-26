@@ -88,7 +88,7 @@ const VendorStorefront = () => {
         <h1 className="text-2xl font-bold">Store Not Found</h1>
         <p className="text-muted-foreground">This vendor may have closed their store or the link is broken.</p>
         <button onClick={() => navigate("/shop")} className="mt-4 px-6 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl">
-          Browse Marketplace
+          Browse Shop
         </button>
       </div>
     );

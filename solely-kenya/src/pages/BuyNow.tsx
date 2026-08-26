@@ -137,7 +137,7 @@ const BuyNow = () => {
           onClick={() => navigate("/shop")}
           className="px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold"
         >
-          Browse the marketplace
+          Browse the shop
         </button>
       </div>
     );

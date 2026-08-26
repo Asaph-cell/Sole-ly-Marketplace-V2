@@ -175,7 +175,7 @@ const Checkout = () => {
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <h1 className="text-2xl font-semibold">No items to checkout</h1>
         <Button asChild>
-          <Link to="/shop">Browse the marketplace</Link>
+          <Link to="/shop">Browse the shop</Link>
         </Button>
       </div>
     );

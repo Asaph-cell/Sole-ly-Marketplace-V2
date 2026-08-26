@@ -11,8 +11,8 @@ const Blog = () => {
     return (
         <div className="min-h-screen py-12 bg-background">
             <SEO 
-                title="Solely Blog | Kenya's Marketplace Guide"
-                description="Expert tips on escrow security, selling online, and growing your business in Kenya. Relatable stories for Kenya's ecommerce community."
+                title="Solely Blog | Safe Online Selling & Shopping Guide"
+                description="Tips on selling safely online, growing your social media shop, and protecting yourself as a buyer. Real stories from Kenya's online sellers."
                 canonical="https://solelymarketplace.com/blog"
             />
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -92,7 +92,7 @@ const Blog = () => {
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
                   <h3 className="text-2xl md:text-3xl font-bold mb-4 italic">Turn Your Kicks into Cash</h3>
                   <p className="opacity-90 mb-8 max-w-xl mx-auto text-base">
-                    Have a collection you're ready to move? Join Nairobi's fastest-growing marketplace and start selling with zero upfront fees.
+                    Have a collection you're ready to sell? Join Kenya's safest way to sell online — start selling with zero upfront fees.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Button asChild size="lg" className="bg-primary text-primary-foreground px-10 rounded-full font-bold hover:shadow-xl transition-all h-14 text-lg">

@@ -42,7 +42,7 @@ export const OrderReceipt = forwardRef<HTMLDivElement, ReceiptProps>(
                 <div className="flex justify-between items-start border-b-2 border-gray-300 pb-4 mb-6">
                     <div>
                         <img src={logo} alt="Solely" className="h-12 mb-2" />
-                        <p className="text-sm text-gray-600">Solely Kenya Marketplace</p>
+                        <p className="text-sm text-gray-600">Solely Kenya</p>
                         <p className="text-sm text-gray-600">contact@solelymarketplace.com</p>
                     </div>
                     <div className="text-right">

@@ -153,7 +153,7 @@ const VendorRegistration = () => {
     <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-muted/20">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
-          <img src={logo} alt="Solely Marketplace" className="h-16 w-auto mx-auto mb-4" />
+          <img src={logo} alt="Solely" className="h-16 w-auto mx-auto mb-4" />
           <CardTitle className="text-2xl">Become a Vendor</CardTitle>
           <CardDescription>
             Register to start selling on Sole-ly. Complete the form below to get started.

@@ -281,7 +281,7 @@ const Auth = () => {
       <div className="min-h-screen flex items-center justify-center py-12 px-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <img src={logo} alt="Solely Marketplace" className="h-16 w-auto mx-auto mb-4" />
+            <img src={logo} alt="Solely" className="h-16 w-auto mx-auto mb-4" />
             <CardTitle className="text-2xl">Forgot Password?</CardTitle>
             <CardDescription>
               Enter your email and we'll send you a link to reset your password
@@ -381,7 +381,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center py-12 pb-28 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <img src={logo} alt="Solely Marketplace" className="h-16 w-auto mx-auto mb-4" />
+          <img src={logo} alt="Solely" className="h-16 w-auto mx-auto mb-4" />
           <CardTitle className="text-2xl">Welcome to Solely</CardTitle>
           <CardDescription>Sign in or create an account to start shopping</CardDescription>
         </CardHeader>

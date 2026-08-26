@@ -17,7 +17,7 @@ const ParallaxHero = ({ children }: ParallaxHeroProps) => {
             <div className="absolute inset-0 pointer-events-none bg-black">
                 <img
                     src={heroImage}
-                    alt="Buy authentic sneakers and shoes online in Kenya - Solely Marketplace"
+                    alt="Buy and sell safely online in Kenya - Solely"
                     className="w-full h-full object-cover object-center"
                 />
             </div>

@@ -235,19 +235,19 @@ const Home = () => {
         }
       `}</style>
       <SEO
-        title="Sole.ly — Sell & Shop on Social Media with 100% Safety | Kenya"
-        description="Sole.ly protects every online transaction. Sellers send secure M-Pesa payment links on WhatsApp, Instagram & TikTok. Buyers' money is safe until delivery. Zero scams. Zero upfront fees."
+        title="Solely — Buy & Sell Anything Online Safely | Kenya"
+        description="Your money is protected until you get what you ordered. Sellers get paid when buyers are happy. Send secure M-Pesa payment links on WhatsApp, Instagram & TikTok. No scams. No fees to start."
         canonical="https://solelymarketplace.com/"
         isHomepage={true}
         keywords={[
-          "sell safely on social media Kenya",
-          "secure payment links WhatsApp",
-          "M-Pesa buyer protection",
-          "trusted checkout Kenya",
-          "sell on Instagram Kenya",
-          "online seller protection",
           "buy safely online Kenya",
-          "social commerce Kenya"
+          "sell safely online Kenya",
+          "safe online payments Kenya",
+          "M-Pesa buyer protection",
+          "sell on WhatsApp safely",
+          "sell on Instagram Kenya",
+          "protected online payments",
+          "safe online shopping Kenya"
         ]}
       />
 
@@ -636,7 +636,7 @@ const Home = () => {
                 "🛡️ Buyers trust Sole.ly checkout — convert more followers into customers",
                 "💸 6% commission only when you sell — zero setup, zero monthly fees",
                 "🤝 Build trust instantly — your buyers' money is protected until delivery",
-                "📱 Not another marketplace — we're the checkout your social shop needs",
+                "📱 Not another shop — we're the safe checkout your online business needs",
               ].map((text, i) => (
                 <span key={i} className="inline-block px-10 text-xs sm:text-sm font-medium">
                   {text}

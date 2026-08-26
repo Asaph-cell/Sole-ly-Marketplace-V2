@@ -115,7 +115,7 @@ const ResetPassword = () => {
         <div className="min-h-screen flex items-center justify-center py-12 px-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
-                    <img src={logo} alt="Solely Marketplace" className="h-16 w-auto mx-auto mb-4" />
+                    <img src={logo} alt="Solely" className="h-16 w-auto mx-auto mb-4" />
                     <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
                         <KeyRound size={24} strokeWidth={1.5} className=" text-primary" />
                     </div>

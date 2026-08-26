@@ -196,7 +196,7 @@ const VendorAddProduct = () => {
 
       if (publishError) throw publishError;
 
-      toast.success("Product listed successfully! It is now live on the marketplace.");
+      toast.success("Product listed successfully! It's live and ready to share.");
       navigate("/vendor/products");
     } catch (error: any) {
       toast.error(error.message);

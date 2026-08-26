@@ -111,7 +111,7 @@ const Cart = () => {
         {items.length === 0 ? (
           <Card className="p-6 sm:p-10 text-center">
             <CardTitle className="mb-3 sm:mb-4 text-lg sm:text-xl">Your cart is empty</CardTitle>
-            <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">Browse the marketplace and add your next pair of kicks.</p>
+            <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">Browse the shop and add your next find.</p>
             <Button asChild className="min-h-[48px] tap-active">
               <Link to="/shop">Continue shopping</Link>
             </Button>

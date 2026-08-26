@@ -87,10 +87,10 @@ export const SEO = ({
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": SITE_NAME,
-        "alternateName": "Solely Shoes Kenya",
+        "alternateName": "Solely Safe Checkout Kenya",
         "url": SITE_URL,
         "logo": `${SITE_URL}/favicon.ico`,
-        "description": "Kenya's trusted online marketplace. Discover authentic sneakers, formal shoes, and boots from verified vendors with secure escrow protection.",
+        "description": "The safest way to buy and sell anything online in Kenya. Your money is protected until you receive what you ordered. Works with M-Pesa.",
         "address": {
             "@type": "PostalAddress",
             "addressLocality": "Nairobi",
@@ -102,7 +102,7 @@ export const SEO = ({
         },
         "hasOfferCatalog": {
             "@type": "OfferCatalog",
-            "name": "Marketplace Catalog",
+            "name": "Solely Services",
             "itemListElement": [
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Buyer Protection Escrow" } },
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Vendor Sales Platform" } }

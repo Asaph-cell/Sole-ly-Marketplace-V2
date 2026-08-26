@@ -22,7 +22,7 @@ const About = () => {
     <div className="min-h-screen py-12">
       <SEO
         title="About Us"
-        description="Sole.ly is the trust layer for Kenya's social commerce. We protect every transaction between online sellers and buyers with secure M-Pesa payments and buyer protection."
+        description="Solely is the safest way to buy and sell online in Kenya. We protect every transaction — your money is safe until you get what you ordered."
         canonical="https://solelymarketplace.com/about"
         breadcrumbs={[
           { name: "Home", url: "/" },
@@ -34,12 +34,12 @@ const About = () => {
         <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-16">
           <img
             src={logo}
-            alt="Solely Marketplace"
+            alt="Solely — Buy & Sell Safely"
             className="h-14 sm:h-20 w-auto mx-auto mb-6"
           />
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">About Sole.ly Kenya</h1>
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed font-medium">
-            Sole.ly is the trust layer for Kenya's social commerce. We're not another marketplace — we're the checkout system that makes buying from Instagram, WhatsApp, and TikTok sellers safe for everyone.
+            Sole.ly makes online buying and selling safe in Kenya. We're not another shop — we're the checkout system that protects you when buying from Instagram, WhatsApp, and TikTok sellers.
           </p>
         </div>
 
@@ -70,7 +70,7 @@ const About = () => {
               </div>
               <h3 className="text-xl font-bold mb-4">1. Community First</h3>
               <p className="text-muted-foreground leading-relaxed">
-                We're more than a marketplace, we're a community built on trust, passion, and connection. Every buyer and seller is an important part of our journey.
+                We're more than a platform — we're a community built on trust, passion, and connection. Every buyer and seller is an important part of our journey.
               </p>
             </div>
             

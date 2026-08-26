@@ -9,8 +9,8 @@ const Vendor = () => {
   return (
     <div className="min-h-screen py-12">
       <SEO 
-        title="Sell Online Safely in Kenya | Sole.ly Trusted Checkout"
-        description="Stop losing sales to mistrust. Generate secure M-Pesa payment links for your Instagram, WhatsApp & TikTok shop. Your buyers pay with confidence — money is protected until delivery."
+        title="Sell Online Safely in Kenya | Solely"
+        description="Stop losing sales because buyers don't trust you yet. Send them a secure Solely payment link — their money is protected until delivery. Zero fees to start. Works on WhatsApp, Instagram & TikTok."
         canonical="https://solelymarketplace.com/vendor"
       />
       <div className="container mx-auto px-4">
@@ -18,7 +18,7 @@ const Vendor = () => {
         <div className="max-w-3xl mx-auto text-center mb-16">
           <img
             src={logo}
-            alt="Sole-ly Marketplace"
+            alt="Sole-ly — Buy & Sell Safely"
             className="h-20 w-auto mx-auto mb-6"
           />
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">Stop Losing Sales to Mistrust.</h1>
@@ -107,7 +107,7 @@ const Vendor = () => {
               </div>
               <h3 className="font-semibold mb-2">List Your Products</h3>
               <p className="text-sm text-muted-foreground">
-                Upload photos, set prices, and publish your products to the marketplace
+                Upload photos, set prices, and publish. Share the link on your socials — or let buyers find you on Solely's built-in shop
               </p>
             </div>
             <div className="text-center">

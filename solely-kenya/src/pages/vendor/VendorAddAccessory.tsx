@@ -120,7 +120,7 @@ const VendorAddAccessory = () => {
 
             if (error) throw error;
 
-            toast.success("Accessory is now live on the marketplace!");
+            toast.success("Accessory is live and ready to share!");
             navigate("/vendor/products");
         } catch (error: any) {
             toast.error(error.message);
