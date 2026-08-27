@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.solelymarketplace.app",
+    "sha256_cert_fingerprints": [
+      "6A:18:BE:41:57:FF:7A:09:50:75:DB:00:83:83:36:C7:3D:2F:42:2C:53:E1:F4:F1:B5:01:20:F1:9D:F4:30:20"
+    ]
+  }
+}]
