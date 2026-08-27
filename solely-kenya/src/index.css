@@ -9,49 +9,71 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Backgrounds */
-    --background:        0 0% 100%;       /* Pure White */
-    --background-alt:    0 0% 96%;        /* Muted surfaces */
-    --sidebar:           0 0% 98%;        /* Sidebar bg */
+    --background: 0 0% 100%;
+    /* Pure White */
+    --background-alt: 0 0% 96%;
+    /* Muted surfaces */
+    --sidebar: 0 0% 98%;
+    /* Sidebar bg */
 
     /* Foreground / Text */
-    --foreground:        0 0% 20%;        /* Primary text */
-    --foreground-muted:  0 0% 45%;        /* Muted / secondary text */
+    --foreground: 0 0% 20%;
+    /* Primary text */
+    --foreground-muted: 0 0% 45%;
+    /* Muted / secondary text */
 
     /* Brand */
-    --primary:           45 69% 50%;      /* Golden Yellow — main accent */
-    --primary-hover:     45 69% 42%;      /* Darker gold on hover */
-    --primary-foreground: 0 0% 10%;       /* Text on primary buttons */
+    --primary: 45 69% 50%;
+    /* Golden Yellow — main accent */
+    --primary-hover: 45 69% 42%;
+    /* Darker gold on hover */
+    --primary-foreground: 0 0% 10%;
+    /* Text on primary buttons */
 
     /* Secondary */
-    --secondary:         0 0% 10%;        /* Very dark gray */
-    --secondary-foreground: 0 0% 98%;     /* Text on secondary buttons */
+    --secondary: 0 0% 10%;
+    /* Very dark gray */
+    --secondary-foreground: 0 0% 98%;
+    /* Text on secondary buttons */
 
     /* Surfaces */
-    --muted:             0 0% 96%;        /* Muted background */
-    --muted-foreground:  0 0% 45%;        /* Text on muted bg */
+    --muted: 0 0% 96%;
+    /* Muted background */
+    --muted-foreground: 0 0% 45%;
+    /* Text on muted bg */
 
     /* Borders & Inputs */
-    --border:            0 0% 89.8%;      /* Default border */
-    --input:             0 0% 89.8%;      /* Input border */
-    --ring:              45 69% 50%;      /* Focus ring — matches primary */
+    --border: 0 0% 89.8%;
+    /* Default border */
+    --input: 0 0% 89.8%;
+    /* Input border */
+    --ring: 45 69% 50%;
+    /* Focus ring — matches primary */
 
     /* Feedback */
-    --destructive:       0 84.2% 60.2%;  /* Error / delete */
+    --destructive: 0 84.2% 60.2%;
+    /* Error / delete */
     --destructive-foreground: 0 0% 98%;
 
-    --success:           142 71% 45%;     /* Emerald green */
+    --success: 142 71% 45%;
+    /* Emerald green */
     --success-foreground: 0 0% 98%;
 
     /* Card */
-    --card:              0 0% 100%;
-    --card-foreground:   0 0% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
 
     /* Radius */
-    --radius-sm:   0.375rem;   /* 6px  — inputs, badges */
-    --radius-md:   0.5rem;     /* 8px  — buttons */
-    --radius-lg:   0.75rem;    /* 12px — cards */
-    --radius-xl:   1rem;       /* 16px — modals, sheets */
-    --radius-2xl:  1.5rem;     /* 24px — hero cards */
+    --radius-sm: 0.375rem;
+    /* 6px  — inputs, badges */
+    --radius-md: 0.5rem;
+    /* 8px  — buttons */
+    --radius-lg: 0.75rem;
+    /* 12px — cards */
+    --radius-xl: 1rem;
+    /* 16px — modals, sheets */
+    --radius-2xl: 1.5rem;
+    /* 24px — hero cards */
 
     /* Keep existing tokens not mentioned but maybe used */
     --popover: 0 0% 100%;
@@ -69,32 +91,38 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background:        0 0% 3.9%;       /* Almost Black */
-    --background-alt:    0 0% 7%;
-    --sidebar:           240 5.9% 10%;    /* Very Dark Gray */
+    --background: 0 0% 3.9%;
+    /* Almost Black */
+    --background-alt: 0 0% 7%;
+    --sidebar: 240 5.9% 10%;
+    /* Very Dark Gray */
 
-    --foreground:        0 0% 98%;        /* Almost White */
-    --foreground-muted:  0 0% 60%;
+    --foreground: 0 0% 98%;
+    /* Almost White */
+    --foreground-muted: 0 0% 60%;
 
-    --primary:           45 69% 50%;      /* Golden Yellow — unchanged */
-    --primary-hover:     45 69% 58%;      /* Lighter gold in dark mode */
+    --primary: 45 69% 50%;
+    /* Golden Yellow — unchanged */
+    --primary-hover: 45 69% 58%;
+    /* Lighter gold in dark mode */
     --primary-foreground: 0 0% 10%;
 
-    --secondary:         0 0% 14.9%;
+    --secondary: 0 0% 14.9%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted:             0 0% 14.9%;
-    --muted-foreground:  0 0% 55%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 55%;
 
-    --border:            0 0% 14.9%;
-    --input:             0 0% 14.9%;
-    --ring:              45 69% 50%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 45 69% 50%;
 
-    --destructive:       0 62.8% 30.6%;  /* Darker red in dark mode */
+    --destructive: 0 62.8% 30.6%;
+    /* Darker red in dark mode */
     --destructive-foreground: 0 0% 98%;
 
-    --card:              0 0% 6%;
-    --card-foreground:   0 0% 98%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 98%;
 
     /* Keep existing tokens not mentioned but maybe used */
     --popover: 0 0% 3.9%;
@@ -318,6 +346,7 @@ All colors MUST be HSL.
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -513,7 +542,9 @@ a {
     line-height: 1.25 !important;
   }
 
-  h4, h5, h6 {
+  h4,
+  h5,
+  h6 {
     font-size: clamp(0.875rem, 3vw, 1.25rem) !important;
     line-height: 1.3 !important;
   }
@@ -540,6 +571,7 @@ a {
    column below 480px
    ========================================== */
 @media (max-width: 479px) {
+
   /* Force any 2-column form grid to stack */
   form .grid-cols-2,
   form .sm\:grid-cols-2,
@@ -570,8 +602,11 @@ a {
    from overflowing on mobile
    ========================================== */
 @media (max-width: 639px) {
+
   /* Section headings inside vendor pages */
-  main h1, main h2, main h3 {
+  main h1,
+  main h2,
+  main h3 {
     word-break: break-word;
     hyphens: auto;
   }
@@ -589,6 +624,7 @@ a {
    scale appropriately on all screens
    ========================================== */
 @media (max-width: 359px) {
+
   /* Very small screens: shrink body text slightly */
   body {
     font-size: 14px;
@@ -630,16 +666,42 @@ a {
   }
 
   /* Reduce card internal padding on tiny screens */
-  .p-6 { padding: 1rem !important; }
-  .p-8 { padding: 1.25rem !important; }
-  .px-6 { padding-left: 1rem !important; padding-right: 1rem !important; }
-  .px-8 { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
-  .py-12 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
-  .py-16 { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }
+  .p-6 {
+    padding: 1rem !important;
+  }
+
+  .p-8 {
+    padding: 1.25rem !important;
+  }
+
+  .px-6 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .px-8 {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+
+  .py-12 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+  }
+
+  .py-16 {
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
+  }
 
   /* Reduce gaps on tiny screens */
-  .gap-8 { gap: 1.25rem !important; }
-  .gap-6 { gap: 1rem !important; }
+  .gap-8 {
+    gap: 1.25rem !important;
+  }
+
+  .gap-6 {
+    gap: 1rem !important;
+  }
 }
 
 /* --- SWIPER NAVIGATION OVERRIDES --- */

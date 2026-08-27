@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Link2, Copy, Trash2, Plus, CheckCircle, Share2, EyeOff, Tag, Package } from "lucide-react";
+import { Link2, Copy, Trash2, Plus, CheckCircle, Share2, EyeOff, Tag, Package, Code2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SEO } from "@/components/SEO";
@@ -29,6 +29,12 @@ const VendorPaymentLinks = () => {
   const [customPrice, setCustomPrice] = useState("");
   const [deliveryFee, setDeliveryFee] = useState("");
   const [creating, setCreating] = useState(false);
+
+  // Embed code dialog state
+  const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
+  const [embedCode, setEmbedCode] = useState("");
+  const [embedTheme, setEmbedTheme] = useState<"dark" | "amber" | "light">("dark");
+  const [embedCopied, setEmbedCopied] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -350,6 +356,21 @@ const VendorPaymentLinks = () => {
                                 <Share2 size={14} />
                                 <span className="sr-only sm:not-sr-only sm:ml-2">WhatsApp</span>
                               </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const urlId = link.short_code || link.id;
+                                  const code = `<!-- Solely Secure Checkout Widget -->\n<div data-solely-link="${urlId}" data-solely-theme="${embedTheme}"></div>\n<script src="https://solelymarketplace.com/solely-widget.js" async></script>`;
+                                  setEmbedCode(code);
+                                  setEmbedDialogOpen(true);
+                                }}
+                                disabled={!link.is_active}
+                                title="Get embed code for your website"
+                              >
+                                <Code2 size={14} />
+                                <span className="sr-only sm:not-sr-only sm:ml-2">Embed</span>
+                              </Button>
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
@@ -380,6 +401,78 @@ const VendorPaymentLinks = () => {
           </div>
         </main>
       </div>
+
+      {/* Embed Code Dialog */}
+      <Dialog open={embedDialogOpen} onOpenChange={(open) => { setEmbedDialogOpen(open); setEmbedCopied(false); }}>
+        <DialogContent className="sm:max-w-[540px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Code2 size={18} /> Embed on Your Website
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Paste this code on your website, blog, or link-in-bio page. A <strong>"Buy Safely on Solely"</strong> button 
+              will appear that opens a secure checkout modal — your buyer never leaves your site.
+            </p>
+
+            {/* Theme selector */}
+            <div className="space-y-2">
+              <Label className="text-xs">Button Style</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {(["dark", "amber", "light"] as const).map(t => (
+                  <button
+                    key={t}
+                    onClick={() => {
+                      setEmbedTheme(t);
+                      // Update the code preview
+                      setEmbedCode(prev => prev.replace(/data-solely-theme="[^"]*"/, `data-solely-theme="${t}"`));
+                    }}
+                    className={`h-10 rounded-xl text-xs font-bold border-2 transition-all ${
+                      embedTheme === t
+                        ? 'border-primary ring-2 ring-primary/20'
+                        : 'border-border hover:border-muted-foreground/30'
+                    } ${
+                      t === 'dark' ? 'bg-zinc-900 text-white' :
+                      t === 'amber' ? 'bg-amber-500 text-white' :
+                      'bg-white text-zinc-900'
+                    }`}
+                  >
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Code preview */}
+            <div className="bg-zinc-950 text-zinc-300 rounded-xl p-4 font-mono text-[11px] leading-relaxed overflow-x-auto">
+              <pre className="whitespace-pre-wrap break-all">{embedCode}</pre>
+            </div>
+
+            <Button 
+              onClick={() => {
+                navigator.clipboard.writeText(embedCode);
+                setEmbedCopied(true);
+                toast.success("Embed code copied to clipboard!");
+                setTimeout(() => setEmbedCopied(false), 2500);
+              }}
+              className="w-full gap-2"
+            >
+              {embedCopied ? <CheckCircle size={16} /> : <Copy size={16} />}
+              {embedCopied ? "Copied!" : "Copy Embed Code"}
+            </Button>
+
+            <div className="bg-amber-50 dark:bg-amber-950/30 rounded-xl p-4 border border-amber-200 dark:border-amber-900">
+              <p className="text-xs text-amber-800 dark:text-amber-200 font-semibold mb-2">💡 Customization Options</p>
+              <ul className="text-[11px] text-amber-700 dark:text-amber-300 space-y-1.5">
+                <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">data-solely-theme</code> — <code>"dark"</code>, <code>"amber"</code>, or <code>"light"</code></li>
+                <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">data-solely-text</code> — Custom button text, e.g. <code>"Buy Now"</code></li>
+                <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">data-solely-size</code> — <code>"sm"</code>, <code>"md"</code>, or <code>"lg"</code></li>
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

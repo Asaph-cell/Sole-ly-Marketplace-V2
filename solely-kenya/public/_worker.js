@@ -163,10 +163,47 @@ export default {
 
         // All other routes: serve static assets normally
         var assetResponse = await env.ASSETS.fetch(request);
+
+        // Allow iframe embedding for /pay/* (Solely checkout widget)
+        if (url.pathname.startsWith('/pay/')) {
+            var payHeaders = new Headers(assetResponse.headers);
+            payHeaders.delete('X-Frame-Options');
+            payHeaders.set('Content-Security-Policy', 'frame-ancestors *');
+            return new Response(assetResponse.body, {
+                status: assetResponse.status,
+                headers: payHeaders,
+            });
+        }
+
+        // Cache solely-widget.js for external consumers
+        if (url.pathname === '/solely-widget.js') {
+            var widgetHeaders = new Headers(assetResponse.headers);
+            widgetHeaders.set('Cache-Control', 'public, max-age=86400');
+            widgetHeaders.set('Content-Type', 'application/javascript; charset=utf-8');
+            widgetHeaders.set('Access-Control-Allow-Origin', '*');
+            return new Response(assetResponse.body, {
+                status: assetResponse.status,
+                headers: widgetHeaders,
+            });
+        }
+
         if (assetResponse.status === 404 && !url.pathname.includes('.')) {
             // SPA Fallback for unknown routes without extensions
             var spaReq = new Request(url.origin + '/index.html', request);
-            return env.ASSETS.fetch(spaReq);
+            var spaResponse = await env.ASSETS.fetch(spaReq);
+
+            // Also allow iframe embedding for SPA-routed /pay/* paths
+            if (url.pathname.startsWith('/pay/')) {
+                var spaPayHeaders = new Headers(spaResponse.headers);
+                spaPayHeaders.delete('X-Frame-Options');
+                spaPayHeaders.set('Content-Security-Policy', 'frame-ancestors *');
+                return new Response(spaResponse.body, {
+                    status: 200,
+                    headers: spaPayHeaders,
+                });
+            }
+
+            return spaResponse;
         }
         return assetResponse;
     },

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Shield, Truck, ThumbsUp, Lock, Phone, User, MapPin, Star, Zap, Info, Printer } from "lucide-react";
@@ -10,6 +10,8 @@ import { LocationPinMap } from "@/components/LocationPinMap";
 const SecureInvoice = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isEmbed = searchParams.get("embed") === "true";
   const [paymentLink, setPaymentLink] = useState<any>(null);
   const [vendor, setVendor] = useState<any>(null);
   const [vendorStats, setVendorStats] = useState({ rating: 4.8, reviews: 0 });
@@ -118,8 +120,12 @@ const SecureInvoice = () => {
             notes: notes || null,
             customerId: userId,
           },
-          successUrl: `${window.location.origin}/track/__ORDER_ID__?payment_success=true`,
-          cancelUrl: `${window.location.origin}/pay/${id}?cancelled=true`,
+          successUrl: isEmbed
+            ? `${window.location.origin}/pay/${id}?embed=true&payment_success=true&order_id=__ORDER_ID__`
+            : `${window.location.origin}/track/__ORDER_ID__?payment_success=true`,
+          cancelUrl: isEmbed
+            ? `${window.location.origin}/pay/${id}?embed=true&cancelled=true`
+            : `${window.location.origin}/pay/${id}?cancelled=true`,
         },
       });
 
@@ -137,6 +143,19 @@ const SecureInvoice = () => {
     }
   };
 
+  // Notify parent window when returning from payment in embed mode
+  useEffect(() => {
+    if (isEmbed && searchParams.get("payment_success") === "true") {
+      const orderId = searchParams.get("order_id") || "";
+      if (window.parent !== window) {
+        window.parent.postMessage(
+          { type: 'solely-payment-success', orderId },
+          '*'
+        );
+      }
+    }
+  }, [isEmbed, searchParams]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted/20">
@@ -151,8 +170,8 @@ const SecureInvoice = () => {
         <Shield className="h-12 w-12 text-slate-400" />
         <h1 className="text-xl font-bold">Secure Link Not Found</h1>
         <p className="text-slate-500 text-sm">This link may be inactive, paid, or deleted.</p>
-        <button onClick={() => navigate("/")} className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-semibold">
-          Go to Sole-ly Homepage
+        <button onClick={() => isEmbed && window.parent !== window ? window.parent.postMessage({ type: 'solely-checkout-close' }, '*') : navigate("/")} className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-semibold">
+          {isEmbed ? "Close" : "Go to Sole-ly Homepage"}
         </button>
       </div>
     );
@@ -166,14 +185,16 @@ const SecureInvoice = () => {
   const orderDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 pb-8">
+    <div className={`min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 pb-8 ${isEmbed ? 'solely-embed-mode' : ''}`}>
       <SEO title={`Secure Checkout: ${title}`} description={`Pay safely for ${title} via Sole-ly.`} />
 
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white py-2 px-4 flex items-center justify-center gap-2 shadow-md sticky top-0 z-10 print:hidden">
-        <Shield className="h-4 w-4" />
-        <span className="text-xs font-semibold">Protected by Sole-ly Escrow</span>
-      </div>
+      {/* Header Banner — hidden in embed mode */}
+      {!isEmbed && (
+        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white py-2 px-4 flex items-center justify-center gap-2 shadow-md sticky top-0 z-10 print:hidden">
+          <Shield className="h-4 w-4" />
+          <span className="text-xs font-semibold">Protected by Sole-ly Escrow</span>
+        </div>
+      )}
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
         
