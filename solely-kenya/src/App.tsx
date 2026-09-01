@@ -76,7 +76,7 @@ const BlogPost = lazyRetry(() => import("./pages/BlogPost"), "BlogPost");
 const HowItWorks = lazyRetry(() => import("./pages/HowItWorks"), "HowItWorks");
 const BuyNow = lazyRetry(() => import("./pages/BuyNow"), "BuyNow");
 const NotFound = lazyRetry(() => import("./pages/NotFound"), "NotFound");
-const WhatsAppButton = lazyRetry(() => import("./components/WhatsAppButton"), "WhatsAppButton");
+const ChatBot = lazyRetry(() => import("./components/ChatBot"), "ChatBot");
 const Wishlist = lazyRetry(() => import("./pages/Wishlist"), "Wishlist");
 const Messages = lazyRetry(() => import("./pages/Messages"), "Messages");
 const VendorMessages = lazyRetry(() => import("./pages/vendor/VendorMessages"), "VendorMessages");
@@ -197,7 +197,7 @@ const AppLayout = () => {
       <ScrollToTop />
       <React.Suspense fallback={<SneakerLoader message="Loading..." />}>
         <AnimatedRoutes />
-        <WhatsAppButton />
+        <ChatBot />
       </React.Suspense>
     </div>
   );
