@@ -53,7 +53,7 @@ const Cart = () => {
     }, {} as Record<string, typeof items>);
   }, [items]);
 
-  const handleCheckout = (vendorId: string) => {
+  const handleCheckout = async (vendorId: string) => {
     const vendorItems = groupedItems[vendorId];
     if (!vendorItems || vendorItems.length === 0) {
       toast.error("Your cart is empty");
@@ -84,13 +84,29 @@ const Cart = () => {
       return;
     }
 
+    // Skip the separate delivery-details page when every item already has
+    // free delivery - Checkout.tsx already collects the same recipient/
+    // address/GPS-pin info itself, so that page would just be a redundant
+    // extra step. Delivery-details is still needed for paid-delivery items,
+    // since the fee has to be negotiated with the vendor before checkout.
+    const productIds = vendorItems.map((item) => item.productId);
+    const { data: products } = await supabase
+      .from("products")
+      .select("id, free_delivery")
+      .in("id", productIds);
+    const allFreeDelivery = products?.every((p) => p.free_delivery === true) ?? false;
+
+    const nextPath = allFreeDelivery
+      ? `/checkout?vendorId=${vendorId}`
+      : `/delivery-details?vendorId=${vendorId}`;
+
     if (!authLoading && !user) {
       toast.info("Please sign in to proceed to checkout");
-      navigate(`/auth?redirect=/delivery-details?vendorId=${vendorId}`);
+      navigate(`/auth?redirect=${nextPath}`);
       return;
     }
 
-    navigate(`/delivery-details?vendorId=${vendorId}`);
+    navigate(nextPath);
   };
 
   const cartProductIds = useMemo(() => [...new Set(items.map(i => i.productId))], [items]);

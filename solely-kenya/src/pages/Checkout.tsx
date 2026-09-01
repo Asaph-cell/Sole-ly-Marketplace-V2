@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState, useMemo } from "react";
-import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +32,13 @@ const Checkout = () => {
   const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.quantity * item.priceKsh, 0), [items]);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
+
+  // Delivery details already collected on the /delivery-details page (e.g.
+  // for paid-delivery vendors), passed via router state so the buyer isn't
+  // asked for the same recipient/address info twice.
+  const passedDeliveryDetails = (location.state as { deliveryDetails?: any } | null)?.deliveryDetails;
 
   const CHECKOUT_DISABLED = false;
 
@@ -40,17 +46,17 @@ const Checkout = () => {
   const [paymentGateway, setPaymentGateway] = useState<string>("intasend");
   const [vendorProfile, setVendorProfile] = useState<any>(null);
   const [shipping, setShipping] = useState({
-    recipientName: user?.user_metadata?.full_name || "",
-    phone: "",
-    email: user?.email ?? "",
-    addressLine1: "",
+    recipientName: passedDeliveryDetails?.recipientName || user?.user_metadata?.full_name || "",
+    phone: passedDeliveryDetails?.phone || "",
+    email: passedDeliveryDetails?.email || user?.email || "",
+    addressLine1: passedDeliveryDetails?.addressLine1 || "",
     addressLine2: "",
-    city: "",
-    county: "",
+    city: passedDeliveryDetails?.city || "",
+    county: passedDeliveryDetails?.county || "",
     postalCode: "",
-    deliveryNotes: "",
-    gps_latitude: null as number | null,
-    gps_longitude: null as number | null,
+    deliveryNotes: passedDeliveryDetails?.deliveryNotes || "",
+    gps_latitude: passedDeliveryDetails?.gpsLat ?? (null as number | null),
+    gps_longitude: passedDeliveryDetails?.gpsLng ?? (null as number | null),
     google_maps_link: null as string | null,
   });
 

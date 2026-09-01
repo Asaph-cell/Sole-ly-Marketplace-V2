@@ -116,10 +116,17 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
                 setParsedAddress({
                     road: data.address.road || data.address.pedestrian || data.address.footway,
                     suburb: data.address.suburb || data.address.neighbourhood || data.address.residential,
-                    city: data.address.city || data.address.town || data.address.village,
-                    county: data.address.county || data.address.state_district,
+                    city:
+                        data.address.city ||
+                        data.address.town ||
+                        data.address.village ||
+                        data.address.municipality ||
+                        data.address.city_district,
+                    county: data.address.county || data.address.state_district || data.address.region,
                     state: data.address.state,
                 });
+            } else {
+                setParsedAddress({});
             }
         } catch (err) {
             console.error("Reverse geocoding error:", err);
@@ -238,14 +245,22 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
             parsedAddress.suburb
         ].filter(Boolean).join(', ') || geocodedAddress.split(',')[0] || '';
 
+        // For addresses in smaller towns/wards, LocationIQ sometimes has no
+        // city/town/village/suburb field at all - fall back to parsing the
+        // display address itself (e.g. "Kabete ward, Kabete, Kiambu, ...")
+        // rather than leaving the field empty.
+        const addressParts = geocodedAddress.split(',').map(p => p.trim()).filter(Boolean);
+        const fallbackCity = addressParts.length > 1 ? addressParts[1] : addressParts[0] || '';
+        const fallbackCounty = addressParts.length > 2 ? addressParts[addressParts.length - 3] : '';
+
         onLocationSelect({
             latitude: lat,
             longitude: lng,
             address: geocodedAddress,
             googleMapsLink,
             addressLine1,
-            city: parsedAddress.city || parsedAddress.suburb || '',
-            county: parsedAddress.county || parsedAddress.state || 'Nairobi',
+            city: parsedAddress.city || parsedAddress.suburb || fallbackCity,
+            county: parsedAddress.county || parsedAddress.state || fallbackCounty || 'Nairobi',
         });
 
         setHasConfirmed(true);
