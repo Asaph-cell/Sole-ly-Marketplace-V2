@@ -112,7 +112,7 @@ export const StoreShowcase = () => {
     const fetchStores = async () => {
       try {
         const { data, error } = await supabase
-          .from("profiles")
+          .from("public_vendor_profiles")
           .select(`
             id,
             store_name,

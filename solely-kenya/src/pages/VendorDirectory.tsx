@@ -18,7 +18,7 @@ const VendorDirectory = () => {
     setLoading(true);
     // Fetch all profiles that have listed items (or just fetch all for now)
     const { data, error } = await supabase
-      .from("profiles")
+      .from("public_vendor_profiles")
       .select(`
         id, store_name, full_name, kyc_status, vendor_city, vendor_county, store_link
       `)

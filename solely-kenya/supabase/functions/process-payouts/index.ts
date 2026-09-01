@@ -23,6 +23,18 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Internal-only: this function disburses real M-Pesa money and must only
+  // ever be triggered by its scheduled cron job, which authenticates with the
+  // service-role key. Reject anything else.
+  const authHeader = req.headers.get('Authorization');
+  const expectedAuth = `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`;
+  if (!authHeader || authHeader !== expectedAuth) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -68,14 +80,27 @@ serve(async (req) => {
 
     for (const payout of pendingPayouts) {
       try {
-        // Update payout status to processing
-        await supabase
+        // Atomically claim this payout (only if it's still 'pending') before
+        // doing anything else, so two overlapping runs of this function can
+        // never disburse the same payout twice.
+        const { data: claimed, error: claimError } = await supabase
           .from('payouts')
           .update({
             status: 'processing',
             processing_at: new Date().toISOString(),
           })
-          .eq('id', payout.id);
+          .eq('id', payout.id)
+          .eq('status', 'pending')
+          .select('id')
+          .maybeSingle();
+
+        if (claimError) {
+          throw new Error(`Failed to claim payout ${payout.id}: ${claimError.message}`);
+        }
+        if (!claimed) {
+          console.log(`Payout ${payout.id} already claimed by another run - skipping.`);
+          continue;
+        }
 
         const vendorProfile = payout.profiles;
         if (!vendorProfile?.mpesa_number) {

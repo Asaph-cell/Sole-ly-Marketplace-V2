@@ -58,7 +58,7 @@ const SecureInvoice = () => {
         setPaymentLink(link);
 
         const { data: prof } = await supabase
-          .from("profiles")
+          .from("public_vendor_profiles")
           .select("*")
           .eq("id", link.vendor_id)
           .single();

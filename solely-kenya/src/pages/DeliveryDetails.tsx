@@ -104,7 +104,7 @@ const DeliveryDetails = () => {
         const vendorId = vendorIdParam || products?.[0]?.vendor_id;
         if (vendorId) {
           const { data: profile } = await supabase
-            .from("profiles")
+            .from("public_vendor_profiles")
             .select("id, full_name, store_name, whatsapp_number")
             .eq("id", vendorId)
             .single();

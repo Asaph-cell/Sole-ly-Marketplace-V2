@@ -20,6 +20,18 @@ serve(async (req: Request) => {
         return new Response(null, { headers: corsHeaders });
     }
 
+    // Internal-only: this function disburses real M-Pesa money and must only
+    // ever be triggered by the pg_cron job, which authenticates with the
+    // service-role key. Reject anything else.
+    const authHeader = req.headers.get('Authorization');
+    const expectedAuth = `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`;
+    if (!authHeader || authHeader !== expectedAuth) {
+        return new Response(
+            JSON.stringify({ error: 'Unauthorized' }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+    }
+
     try {
         const supabase = createClient(
             Deno.env.get('SUPABASE_URL')!,
@@ -90,38 +102,66 @@ serve(async (req: Request) => {
 
                 const netPayout = balance - PAYOUT_FEE; // Deduct the KES 100 fee form the balance
 
-                // 3. Call IntaSend API
-                console.log(`[Auto-Payout Checker] Initiating IntaSend transfer to ${normalizedPhone}`);
-                const intasendResponse = await fetch('https://api.intasend.com/api/v1/send-money/initiate/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${INTASEND_SECRET_KEY}`,
-                    },
-                    body: JSON.stringify({
-                        provider: 'MPESA-B2C',
-                        currency: 'KES',
-                        requires_approval: 'NO',
-                        transactions: [{
-                            name: vendorProfile.full_name || 'Vendor',
-                            account: normalizedPhone,
-                            amount: netPayout,
-                            narrative: 'Solely Kenya payout',
-                        }],
-                    }),
-                });
+                // Atomically claim this balance before paying out, so two
+                // overlapping runs (or a retried/duplicate invocation) can
+                // never disburse the same balance twice. Only succeeds if the
+                // balance is still exactly what we just read.
+                const { data: claimedBalance, error: claimErr } = await supabase
+                    .from('vendor_balances')
+                    .update({ pending_balance: 0, updated_at: new Date().toISOString() })
+                    .eq('vendor_id', vendorId)
+                    .eq('pending_balance', balance)
+                    .select('vendor_id')
+                    .maybeSingle();
 
-                let intasendResult;
-                const contentType = intasendResponse.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    intasendResult = await intasendResponse.json();
-                } else {
-                    const text = await intasendResponse.text();
-                    throw new Error(`IntaSend returned non-JSON: ${text.substring(0, 100)}`);
+                if (claimErr) {
+                    throw new Error(`Failed to claim balance for vendor ${vendorId}: ${claimErr.message}`);
+                }
+                if (!claimedBalance) {
+                    console.log(`[Auto-Payout Checker] Balance for ${vendorId} changed or already claimed - skipping.`);
+                    results.push({ vendor_id: vendorId, success: false, skipped: true, reason: 'already_claimed' });
+                    continue;
                 }
 
-                if (!intasendResponse.ok) {
-                    throw new Error(`IntaSend error: ${JSON.stringify(intasendResult)}`);
+                // 3. Call IntaSend API
+                let intasendResult;
+                try {
+                    console.log(`[Auto-Payout Checker] Initiating IntaSend transfer to ${normalizedPhone}`);
+                    const intasendResponse = await fetch('https://api.intasend.com/api/v1/send-money/initiate/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${INTASEND_SECRET_KEY}`,
+                        },
+                        body: JSON.stringify({
+                            provider: 'MPESA-B2C',
+                            currency: 'KES',
+                            requires_approval: 'NO',
+                            transactions: [{
+                                name: vendorProfile.full_name || 'Vendor',
+                                account: normalizedPhone,
+                                amount: netPayout,
+                                narrative: 'Solely Kenya payout',
+                            }],
+                        }),
+                    });
+
+                    const contentType = intasendResponse.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        intasendResult = await intasendResponse.json();
+                    } else {
+                        const text = await intasendResponse.text();
+                        throw new Error(`IntaSend returned non-JSON: ${text.substring(0, 100)}`);
+                    }
+
+                    if (!intasendResponse.ok) {
+                        throw new Error(`IntaSend error: ${JSON.stringify(intasendResult)}`);
+                    }
+                } catch (transferErr) {
+                    // The disbursement never succeeded, so restore the balance
+                    // we claimed above - a later run should retry this vendor.
+                    await supabase.from('vendor_balances').update({ pending_balance: balance, updated_at: new Date().toISOString() }).eq('vendor_id', vendorId);
+                    throw transferErr;
                 }
 
                 // 4. Record Payout
@@ -145,11 +185,11 @@ serve(async (req: Request) => {
                     payoutId = payout?.id;
                 }
 
-                // 5. Update Balance
+                // 5. Update running totals (pending_balance was already zeroed
+                // by the atomic claim above, before the money moved).
                 const { error: updateError } = await supabase
                     .from('vendor_balances')
                     .update({
-                        pending_balance: 0,
                         total_paid_out: (vendorBalanceRec.total_paid_out || 0) + netPayout,
                         last_payout_at: new Date().toISOString(),
                         updated_at: new Date().toISOString(),

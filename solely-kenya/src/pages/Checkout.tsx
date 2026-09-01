@@ -74,7 +74,7 @@ const Checkout = () => {
 
           if (product?.vendor_id) {
             const { data: profile } = await supabase
-              .from("profiles")
+              .from("public_vendor_profiles")
               .select("*, vendor_county, vendor_city")
               .eq("id", product.vendor_id)
               .single();
@@ -242,7 +242,7 @@ const Checkout = () => {
 
       // Verify vendor profile exists (prevents FK constraint errors)
       const { data: vendorProfileCheck, error: vendorCheckError } = await supabase
-        .from("profiles")
+        .from("public_vendor_profiles")
         .select("id")
         .eq("id", vendorId)
         .single();
@@ -349,7 +349,7 @@ const Checkout = () => {
         .from("payments")
         .insert({
           order_id: order.id,
-          gateway: paymentGateway === "intasend" ? "intasend" : "mpesa",
+          gateway: "intasend",
           status: "pending",
           amount_ksh: finalTotal,
           currency: "KES",
@@ -370,17 +370,6 @@ const Checkout = () => {
           .from("delivery_agreements")
           .update({ status: "used", updated_at: new Date().toISOString() })
           .eq("id", deliveryAgreement.id);
-      }
-
-      if (paymentGateway === "mpesa") {
-        if (vendorIdParam) {
-          removeItemsByVendor(vendorIdParam);
-        } else {
-          removeItemsByVendor(items[0]?.vendorId);
-        }
-        toast.success("Order placed! Redirecting to payment...");
-        navigate(`/orders/${order.id}?payment=manual_pending`);
-        return;
       }
 
       const { data: intasendResponse, error: intasendError } = await supabase.functions.invoke("intasend-initiate-payment", {

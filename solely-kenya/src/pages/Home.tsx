@@ -133,7 +133,7 @@ const Home = () => {
   const fetchMarqueeVendors = async () => {
     try {
       const { data, error } = await supabase
-        .from("profiles")
+        .from("public_vendor_profiles")
         .select("store_name")
         .not("store_name", "is", null)
         .order("created_at", { ascending: false })

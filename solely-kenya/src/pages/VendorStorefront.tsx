@@ -25,7 +25,7 @@ const VendorStorefront = () => {
     setLoading(true);
     try {
       // 1. Fetch vendor profile (by store_link or id fallback)
-      let profQuery = supabase.from("profiles").select("*");
+      let profQuery = supabase.from("public_vendor_profiles").select("*");
       
       // UUID check
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier || '');

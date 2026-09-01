@@ -207,7 +207,7 @@ const DeliveryNegotiation = () => {
 
       // Fetch vendor profile
       const { data: vendor } = await supabase
-        .from("profiles")
+        .from("public_vendor_profiles")
         .select("id, full_name, store_name")
         .eq("id", agr.vendor_id)
         .single();

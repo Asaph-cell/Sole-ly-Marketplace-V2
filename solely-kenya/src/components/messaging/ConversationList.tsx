@@ -157,7 +157,7 @@ export const ConversationList = ({
       
       if (otherUserIds.length > 0) {
         const { data: profiles } = await supabase
-          .from('profiles')
+          .from('public_vendor_profiles')
           .select('id, full_name, store_name')
           .in('id', otherUserIds as string[]);
         

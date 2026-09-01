@@ -86,27 +86,7 @@ SELECT cron.schedule(
 );
 ```
 
-### 4. Check Payment Status (every 15 min)
-Verifies pending payment statuses.
-
-```sql
-SELECT cron.schedule(
-  'check-payment-status',
-  '*/15 * * * *',
-  $$
-  SELECT net.http_post(
-    url := 'https://YOUR_PROJECT_ID.supabase.co/functions/v1/check-payment-status',
-    headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'supabase_service_key')
-    ),
-    body := '{}'::jsonb
-  );
-  $$
-);
-```
-
-### 5. Process Payouts (daily at 6 AM)
+### 4. Process Payouts (daily at 6 AM)
 Processes vendor payouts.
 
 ```sql

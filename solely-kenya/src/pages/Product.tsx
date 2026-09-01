@@ -115,7 +115,7 @@ const Product = () => {
 
       // Fetch vendor profile
       const { data: profileData } = await supabase
-        .from("profiles")
+        .from("public_vendor_profiles")
         .select("*")
         .eq("id", productData.vendor_id)
         .single();

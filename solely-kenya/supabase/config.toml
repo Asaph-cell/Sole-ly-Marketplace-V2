@@ -1,14 +1,5 @@
 project_id = "ktoodrjfytteppnpyhvi"
 
-[functions.mpesa-stk-push]
-verify_jwt = true
-
-[functions.mpesa-callback]
-verify_jwt = false
-
-[functions.check-payment-status]
-verify_jwt = true
-
 [functions.intasend-webhook]
 verify_jwt = false
 

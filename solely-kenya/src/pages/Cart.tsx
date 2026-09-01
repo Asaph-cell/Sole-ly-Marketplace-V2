@@ -25,7 +25,7 @@ const Cart = () => {
       if (vendorIds.length === 0) return;
       
       const { data } = await supabase
-        .from('profiles')
+        .from('public_vendor_profiles')
         .select('id, store_name')
         .in('id', vendorIds);
         

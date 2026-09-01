@@ -93,7 +93,7 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
             // Store names
             const vendorIds = [...new Set(productsData.map((p) => p.vendor_id))];
             const { data: profilesData } = await supabase
-                .from("profiles")
+                .from("public_vendor_profiles")
                 .select("id, store_name")
                 .in("id", vendorIds);
 

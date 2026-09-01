@@ -20,6 +20,19 @@ serve(async (req: Request) => {
         return new Response(null, { headers: corsHeaders });
     }
 
+    // Internal-only: this function moves real money and must only ever be
+    // called by trusted server-side code (confirm-order, verify-delivery-otp,
+    // auto-release-escrow), which already authenticate with the service-role
+    // key. Reject anything else so a vendor's own session can never invoke it.
+    const authHeader = req.headers.get('Authorization');
+    const expectedAuth = `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`;
+    if (!authHeader || authHeader !== expectedAuth) {
+        return new Response(
+            JSON.stringify({ error: 'Unauthorized' }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+    }
+
     try {
         const supabase = createClient(
             Deno.env.get('SUPABASE_URL')!,
@@ -52,6 +65,29 @@ serve(async (req: Request) => {
 
         if (order.status !== 'completed') {
             throw new Error(`Order is not completed: ${order.status}`);
+        }
+
+        // Atomically claim this order for payout so the same order can never
+        // be transferred to IntaSend twice, even if this function is called
+        // more than once (retry, duplicate cron tick, etc). Only one caller
+        // can win this UPDATE.
+        const { data: claimed, error: claimError } = await supabase
+            .from('orders')
+            .update({ payout_transferred_at: new Date().toISOString() })
+            .eq('id', order_id)
+            .is('payout_transferred_at', null)
+            .select('id')
+            .maybeSingle();
+
+        if (claimError) {
+            throw new Error(`Failed to claim payout lock for order ${order_id}: ${claimError.message}`);
+        }
+        if (!claimed) {
+            console.log(`[Transfer to Vendor] Order ${order_id} already transferred (or a transfer is in progress). Skipping duplicate.`);
+            return new Response(
+                JSON.stringify({ success: true, skipped: true, reason: 'already_transferred' }),
+                { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
         }
 
         // Get vendor's IntaSend wallet ID
@@ -101,31 +137,38 @@ serve(async (req: Request) => {
         console.log(`[Transfer to Vendor] Order total: ${orderTotal}, Commission: ${commission}, Vendor share: ${vendorShare}`);
 
         // Transfer from settlement wallet to vendor wallet
-        const response = await fetch(`https://api.intasend.com/api/v1/wallets/${SETTLEMENT_WALLET_ID}/intra_transfer/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${INTASEND_SECRET_KEY}`,
-            },
-            body: JSON.stringify({
-                wallet_id: vendorWalletId,
-                amount: vendorShare,
-                narrative: `Order ${order_id.slice(0, 8)} - vendor share`,
-            }),
-        });
-
-        const responseText = await response.text();
-        console.log(`[Transfer to Vendor] IntaSend response:`, responseText);
-
         let transferResult;
         try {
-            transferResult = JSON.parse(responseText);
-        } catch {
-            throw new Error(`IntaSend returned invalid JSON: ${responseText.substring(0, 200)}`);
-        }
+            const response = await fetch(`https://api.intasend.com/api/v1/wallets/${SETTLEMENT_WALLET_ID}/intra_transfer/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${INTASEND_SECRET_KEY}`,
+                },
+                body: JSON.stringify({
+                    wallet_id: vendorWalletId,
+                    amount: vendorShare,
+                    narrative: `Order ${order_id.slice(0, 8)} - vendor share`,
+                }),
+            });
 
-        if (!response.ok) {
-            throw new Error(`IntaSend transfer error: ${JSON.stringify(transferResult)}`);
+            const responseText = await response.text();
+            console.log(`[Transfer to Vendor] IntaSend response:`, responseText);
+
+            try {
+                transferResult = JSON.parse(responseText);
+            } catch {
+                throw new Error(`IntaSend returned invalid JSON: ${responseText.substring(0, 200)}`);
+            }
+
+            if (!response.ok) {
+                throw new Error(`IntaSend transfer error: ${JSON.stringify(transferResult)}`);
+            }
+        } catch (transferErr) {
+            // The transfer never succeeded, so release the claim - a later
+            // manual/automatic retry should be able to attempt this order again.
+            await supabase.from('orders').update({ payout_transferred_at: null }).eq('id', order_id);
+            throw transferErr;
         }
 
         console.log(`[Transfer to Vendor] Successfully transferred ${vendorShare} to vendor wallet ${vendorWalletId}`);

@@ -197,7 +197,7 @@ const Orders = () => {
     if (data && data.length > 0) {
       const vendorIds = [...new Set(data.map(order => order.vendor_id))];
       const { data: profiles } = await supabase
-        .from("profiles")
+        .from("public_vendor_profiles")
         .select("id, store_name, whatsapp_number, store_description")
         .in("id", vendorIds);
 

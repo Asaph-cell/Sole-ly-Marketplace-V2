@@ -42,7 +42,7 @@ const BuyNow = () => {
 
       // Vendor profile
       const { data: prof } = await supabase
-        .from("profiles")
+        .from("public_vendor_profiles")
         .select("*")
         .eq("id", p.vendor_id)
         .single();
