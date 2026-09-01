@@ -151,9 +151,8 @@ const ProductCard = ({
   // Calculate if product is new (within last 30 days)
   const isNew = (Date.now() - new Date(createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000;
 
-  // Format price (e.g. 65000 -> 65K, 10000 -> 10K)
+  // Format price with commas (e.g. 65000 -> 65,000)
   const formatPrice = (p: number) => {
-    if (p >= 1000 && p % 1000 === 0) return `${p / 1000}K`;
     return p.toLocaleString();
   };
 
