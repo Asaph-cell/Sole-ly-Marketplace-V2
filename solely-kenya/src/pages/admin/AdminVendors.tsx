@@ -45,51 +45,42 @@ const AdminVendors = () => {
     try {
       const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
-        .select("user_id, role");
+        .select("user_id, role")
+        .in("role", ["vendor", "revoked_vendor"]);
 
       if (rolesError) throw rolesError;
-      
-      const vendorRoles = roles?.filter(r => r.role === "vendor") || [];
-      const allVendorIds = vendorRoles.map(r => r.user_id);
+
+      const roleByVendorId = new Map((roles || []).map(r => [r.user_id, r.role]));
+      const allVendorIds = Array.from(roleByVendorId.keys());
 
       if (allVendorIds.length === 0) {
         setVendors([]);
         return;
       }
 
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, full_name, created_at")
-        .in("id", allVendorIds);
+      const [{ data: profiles, error: profilesError }, { data: ratingStats }, { data: completedOrders }] = await Promise.all([
+        supabase.from("profiles").select("id, full_name, created_at").in("id", allVendorIds),
+        supabase.from("vendor_rating_stats").select("vendor_id, avg_rating, rating_count").in("vendor_id", allVendorIds),
+        supabase.from("orders").select("vendor_id").eq("status", "completed").in("vendor_id", allVendorIds),
+      ]);
 
       if (profilesError) throw profilesError;
 
-      const vendorsData = await Promise.all(
-        (profiles || []).map(async (profile) => {
-          const { data: ratings } = await supabase
-            .from("vendor_ratings")
-            .select("rating")
-            .eq("vendor_id", profile.id);
-          
-          let avgRating = 5.0;
-          if (ratings && ratings.length > 0) {
-            avgRating = ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
-          }
+      const ratingByVendorId = new Map((ratingStats || []).map(r => [r.vendor_id, r]));
+      const salesCountByVendorId = new Map<string, number>();
+      (completedOrders || []).forEach(o => {
+        salesCountByVendorId.set(o.vendor_id, (salesCountByVendorId.get(o.vendor_id) || 0) + 1);
+      });
 
-          const { count: salesCount } = await supabase
-            .from("orders")
-            .select("*", { count: "exact", head: true })
-            .eq("vendor_id", profile.id)
-            .eq("status", "completed");
-
-          return {
-            ...profile,
-            rating: avgRating,
-            total_sales: salesCount || 0,
-            status: "active"
-          };
-        })
-      );
+      const vendorsData = (profiles || []).map((profile) => {
+        const stats = ratingByVendorId.get(profile.id);
+        return {
+          ...profile,
+          rating: stats ? Number(stats.avg_rating) : 5.0,
+          total_sales: salesCountByVendorId.get(profile.id) || 0,
+          status: roleByVendorId.get(profile.id) === "revoked_vendor" ? "revoked" : "active",
+        };
+      });
 
       setVendors(vendorsData);
     } catch (error) {
@@ -199,7 +190,7 @@ const AdminVendors = () => {
                     {v.rating?.toFixed(1) || "5.0"}
                   </span>
                   <Link
-                    to={`/vendor-store/${v.id}`}
+                    to={`/store/${v.id}`}
                     className="text-[10px] text-primary hover:underline flex items-center gap-0.5 ml-1 shrink-0"
                   >
                     <ExternalLink size={9} />

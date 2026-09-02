@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SearchBar, ActionButton, StatusPill, EmptyState } from "@/components/admin/AdminShared";
 import { Package, Image as ImageIcon, ExternalLink } from "lucide-react";
@@ -31,32 +30,16 @@ interface Product {
 }
 
 const AdminProducts = () => {
-  const { user, loading } = useAuth();
   const { toast } = useToast();
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [productSearch, setProductSearch] = useState("");
-  
+
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      if (!user) return;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .single();
-
-      if (data) {
-        setIsAdmin(true);
-        loadProducts();
-      }
-    };
-    if (!loading) checkAdmin();
-  }, [user, loading]);
+    loadProducts();
+  }, []);
 
   const loadProducts = async () => {
     setLoadingData(true);
@@ -144,8 +127,6 @@ const AdminProducts = () => {
 
   const formatCurrency = (val: number) => `KES ${val.toLocaleString()}`;
 
-  if (loading || (!isAdmin && !loadingData)) return <SneakerLoader message="Loading products..." />;
-
   return (
     <AdminLayout pageTitle="Products">
       <SearchBar 
@@ -189,7 +170,7 @@ const AdminProducts = () => {
                   </p>
                   {product.vendor_id && (
                     <Link
-                      to={`/vendor-store/${product.vendor_id}`}
+                      to={`/store/${product.vendor_id}`}
                       className="text-[10px] text-primary hover:underline flex items-center gap-0.5 ml-1 shrink-0"
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -199,7 +180,7 @@ const AdminProducts = () => {
                   )}
                 </div>
                 <div className="mt-1">
-                  <StatusPill status={product.status === 'draft' ? 'paused' : product.status} />
+                  <StatusPill status={product.status} />
                 </div>
               </div>
 

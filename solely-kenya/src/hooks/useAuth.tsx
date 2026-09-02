@@ -9,6 +9,11 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [isVendor, setIsVendor] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  // False until checkUserRoles has resolved for the current session (or there's no
+  // user to check). loading turning false does NOT mean isAdmin/isVendor are final -
+  // the roles query runs separately/later, so anything gating on isAdmin must wait
+  // for rolesReady too, or it'll bounce real admins/vendors during that window.
+  const [rolesReady, setRolesReady] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,15 +22,17 @@ export const useAuth = () => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        
+
         // Check roles when user changes
         if (session?.user) {
+          setRolesReady(false);
           setTimeout(() => {
             checkUserRoles(session.user.id);
           }, 0);
         } else {
           setIsVendor(false);
           setIsAdmin(false);
+          setRolesReady(true);
         }
       }
     );
@@ -34,9 +41,11 @@ export const useAuth = () => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      
+
       if (session?.user) {
         checkUserRoles(session.user.id);
+      } else {
+        setRolesReady(true);
       }
     });
 
@@ -49,7 +58,7 @@ export const useAuth = () => {
         .from("user_roles")
         .select("role")
         .eq("user_id", userId);
-      
+
       if (error) {
         console.error("Error checking roles:", error);
         // Set defaults on error
@@ -57,7 +66,7 @@ export const useAuth = () => {
         setIsAdmin(false);
         return;
       }
-      
+
       if (data) {
         setIsVendor(data.some(r => r.role === "vendor"));
         setIsAdmin(data.some(r => r.role === "admin"));
@@ -70,6 +79,8 @@ export const useAuth = () => {
       // Set defaults on error
       setIsVendor(false);
       setIsAdmin(false);
+    } finally {
+      setRolesReady(true);
     }
   };
 
@@ -109,5 +120,5 @@ export const useAuth = () => {
     }
   };
 
-  return { user, session, loading, signOut, isVendor, isAdmin };
+  return { user, session, loading, signOut, isVendor, isAdmin, rolesReady };
 };

@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { SneakerLoader } from "./components/ui/SneakerLoader";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { OfflineBanner } from "./components/OfflineBanner";
+import { AdminGuard } from "./components/admin/AdminGuard";
 
 const queryClient = new QueryClient();
 
@@ -156,13 +157,13 @@ const AnimatedRoutes = () => {
       <Route path="/vendor/payment-links" element={<PageWrapper><VendorPaymentLinks /></PageWrapper>} />
       <Route path="/vendor/settings" element={<PageWrapper><VendorSettings /></PageWrapper>} />
       <Route path="/vendor/messages" element={<PageWrapper><VendorMessages /></PageWrapper>} />
-      <Route path="/admin" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
-      <Route path="/admin/dashboard" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
-      <Route path="/admin/disputes" element={<PageWrapper><AdminDisputes /></PageWrapper>} />
-      <Route path="/admin/vendors" element={<PageWrapper><AdminVendors /></PageWrapper>} />
-      <Route path="/admin/products" element={<PageWrapper><AdminProducts /></PageWrapper>} />
-      <Route path="/admin/comms" element={<PageWrapper><AdminComms /></PageWrapper>} />
-      <Route path="/admin/mailing-list" element={<PageWrapper><AdminMailingList /></PageWrapper>} />
+      <Route path="/admin" element={<PageWrapper><AdminGuard><AdminDashboard /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/dashboard" element={<PageWrapper><AdminGuard><AdminDashboard /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/disputes" element={<PageWrapper><AdminGuard><AdminDisputes /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/vendors" element={<PageWrapper><AdminGuard><AdminVendors /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/products" element={<PageWrapper><AdminGuard><AdminProducts /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/comms" element={<PageWrapper><AdminGuard><AdminComms /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/mailing-list" element={<PageWrapper><AdminGuard><AdminMailingList /></AdminGuard></PageWrapper>} />
 
       {/* Standalone routes */}
       <Route path="/buy/:productId" element={<PageWrapper><BuyNow /></PageWrapper>} />

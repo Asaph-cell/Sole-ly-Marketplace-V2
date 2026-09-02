@@ -117,23 +117,26 @@ serve(async (req) => {
       }
 
       case "revoke_vendor": {
-        // Just delete the vendor role (since revoked_vendor is not a valid enum value)
+        // Swap the role rather than deleting it, so the vendor stays visible
+        // (marked revoked) in AdminVendors.tsx instead of vanishing with no
+        // way to find/restore them.
         const { error } = await serviceClient
           .from("user_roles")
-          .delete()
+          .update({ role: "revoked_vendor" })
           .eq("user_id", targetId)
           .eq("role", "vendor");
 
         if (error) throw error;
-        result.message = "Vendor access revoked (role deleted)";
+        result.message = "Vendor access revoked";
         break;
       }
 
       case "restore_vendor": {
-        // We shouldn't reach here if we removed "revoked" from UI, but just in case
         const { error } = await serviceClient
           .from("user_roles")
-          .insert({ user_id: targetId, role: "vendor" });
+          .update({ role: "vendor" })
+          .eq("user_id", targetId)
+          .eq("role", "revoked_vendor");
 
         if (error) throw error;
         result.message = "Vendor access restored";

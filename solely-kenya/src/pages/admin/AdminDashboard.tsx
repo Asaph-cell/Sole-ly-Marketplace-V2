@@ -1,20 +1,24 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { StatBar } from "@/components/admin/AdminShared";
 import { AreaChart, Area, Tooltip, ResponsiveContainer } from "recharts";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { ArrowRight } from "lucide-react";
+import { AlertTriangle, Star } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
+interface LowRatedVendor {
+  vendor_id: string;
+  store_name: string;
+  avg_rating: number;
+  rating_count: number;
+}
+
 const AdminDashboard = () => {
-  const { user, loading } = useAuth();
   const { toast } = useToast();
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
 
   const [stats, setStats] = useState({
@@ -30,24 +34,11 @@ const AdminDashboard = () => {
 
   const [dailyRevenue, setDailyRevenue] = useState<{ date: string, revenue: number, orders: number }[]>([]);
   const [activityFeed, setActivityFeed] = useState<any[]>([]);
+  const [lowRatedVendors, setLowRatedVendors] = useState<LowRatedVendor[]>([]);
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      if (!user) return;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .single();
-
-      if (data) {
-        setIsAdmin(true);
-        loadData();
-      }
-    };
-    if (!loading) checkAdmin();
-  }, [user, loading]);
+    loadData();
+  }, []);
 
   const loadData = async () => {
     setLoadingData(true);
@@ -81,6 +72,33 @@ const AdminDashboard = () => {
         supabase.from("orders").select("id, created_at, status").order("created_at", { ascending: false }).limit(10),
         supabase.from("disputes").select("id, opened_at, status").order("opened_at", { ascending: false }).limit(10),
       ]);
+
+      // Vendors needing attention: lowest average rating, with enough ratings
+      // (>=3) that one troll review doesn't unfairly flag a brand-new vendor.
+      const { data: lowRatedStats } = await supabase
+        .from("vendor_rating_stats")
+        .select("vendor_id, avg_rating, rating_count")
+        .gte("rating_count", 3)
+        .order("avg_rating", { ascending: true })
+        .limit(6);
+
+      if (lowRatedStats && lowRatedStats.length > 0) {
+        const { data: lowRatedProfiles } = await supabase
+          .from("public_vendor_profiles")
+          .select("id, store_name")
+          .in("id", lowRatedStats.map(s => s.vendor_id));
+        const nameByVendorId = new Map((lowRatedProfiles || []).map(p => [p.id, p.store_name]));
+        setLowRatedVendors(
+          lowRatedStats.map(s => ({
+            vendor_id: s.vendor_id,
+            store_name: nameByVendorId.get(s.vendor_id) || "Unknown store",
+            avg_rating: Number(s.avg_rating),
+            rating_count: s.rating_count,
+          }))
+        );
+      } else {
+        setLowRatedVendors([]);
+      }
 
       const totalCommission = (commissionsAll || []).reduce((sum: number, r: any) => sum + (r.commission_amount || 0), 0);
       const totalRevenue = (ordersAll || []).reduce((sum: number, r: any) => sum + (r.total_ksh || 0), 0);
@@ -138,12 +156,6 @@ const AdminDashboard = () => {
   };
 
   const formatCurrency = (val: number) => `KES ${val.toLocaleString()}`;
-  
-  // Calculate a fake progress for monthly target (let's say target is 50k KES)
-  const monthlyTarget = 50000;
-  const monthlyProgressPercent = Math.min(100, Math.round((stats.monthlyRevenue / monthlyTarget) * 100)) || 0;
-
-  if (loading || (!isAdmin && !loadingData)) return <SneakerLoader message="Loading admin dashboard..." />;
 
   return (
     <AdminLayout>
@@ -158,8 +170,6 @@ const AdminDashboard = () => {
             <StatBar
               label="Total revenue"
               value={formatCurrency(stats.totalRevenue)}
-              progress={monthlyProgressPercent}
-              hint={`${monthlyProgressPercent}% of monthly target`}
             />
 
             {/* 2-col sub stats */}
@@ -197,6 +207,29 @@ const AdminDashboard = () => {
                 ))}
               </div>
             </div>
+
+            {/* Vendors needing attention */}
+            {lowRatedVendors.length > 0 && (
+              <div className="rounded-xl border border-border bg-card px-4 py-3">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                  <AlertTriangle size={11} strokeWidth={2} className="text-destructive" />
+                  Vendors needing attention
+                </p>
+                <div className="flex flex-col divide-y divide-border">
+                  {lowRatedVendors.map(v => (
+                    <div key={v.vendor_id} className="flex items-center justify-between gap-2 py-2 first:pt-0 last:pb-0">
+                      <Link to={`/store/${v.vendor_id}`} className="text-xs text-foreground hover:text-primary truncate">
+                        {v.store_name}
+                      </Link>
+                      <div className="flex items-center gap-1 flex-shrink-0 text-[11px] text-muted-foreground">
+                        <Star size={10} strokeWidth={1.5} className="text-destructive fill-destructive" />
+                        {v.avg_rating.toFixed(1)} ({v.rating_count})
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right column */}
@@ -207,10 +240,6 @@ const AdminDashboard = () => {
                 <p className="text-xs font-medium text-foreground">
                   Recent activity
                 </p>
-                <Link to="/admin" className="text-[11px] text-primary flex items-center gap-1 hover:text-primary-hover transition-colors">
-                  View all
-                  <ArrowRight size={11} strokeWidth={2} />
-                </Link>
               </div>
 
               <div className="flex flex-col divide-y divide-border">
@@ -221,7 +250,6 @@ const AdminDashboard = () => {
                       item.type === "order_complete" && "bg-success",
                       item.type === "dispute_open"   && "bg-destructive",
                       item.type === "vendor_new"     && "bg-primary",
-                      item.type === "product_flag"   && "bg-primary",
                     )} />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-foreground leading-snug">
