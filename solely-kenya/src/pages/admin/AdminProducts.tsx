@@ -4,6 +4,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SearchBar, ActionButton, StatusPill, EmptyState } from "@/components/admin/AdminShared";
 import { Package, Image as ImageIcon, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminAction } from "@/hooks/useAdminAction";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import {
   AlertDialog,
@@ -31,6 +32,7 @@ interface Product {
 
 const AdminProducts = () => {
   const { toast } = useToast();
+  const { adminAction } = useAdminAction();
   const [loadingData, setLoadingData] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [productSearch, setProductSearch] = useState("");
@@ -82,33 +84,6 @@ const AdminProducts = () => {
     }
   };
 
-  /** Call the admin-action Edge Function (bypasses RLS via service role) */
-  const adminAction = async (action: string, targetId: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-action", {
-        body: { action, targetId },
-      });
-
-      if (error) {
-        // Try to extract a readable message from the edge function error
-        let msg = error.message;
-        if (error.context && typeof error.context.json === "function") {
-          try {
-            const errJson = await error.context.json();
-            if (errJson?.error) msg = errJson.error;
-          } catch (_) { /* ignore */ }
-        }
-        throw new Error(msg);
-      }
-
-      toast({ title: "Success", description: data?.message || "Action completed" });
-      return true;
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-      return false;
-    }
-  };
-
   const toggleProductStatus = async (productId: string, currentStatus: string) => {
     const action = currentStatus === "active" ? "pause_product" : "restore_product";
     const ok = await adminAction(action, productId);
@@ -138,7 +113,7 @@ const AdminProducts = () => {
       {loadingData ? (
         <SneakerLoader message="Loading..." fullScreen={false} />
       ) : filteredProducts.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card">
+        <div className="rounded-xl border border-border bg-card shadow-soft">
           <EmptyState 
             icon={Package}
             title="No products listed"
@@ -146,7 +121,7 @@ const AdminProducts = () => {
           />
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-card divide-y divide-border">
+        <div className="rounded-xl border border-border bg-card shadow-soft divide-y divide-border">
           {filteredProducts.map((product) => (
             <div key={product.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 transition-colors">
               

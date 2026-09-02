@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -49,6 +50,7 @@ type ResolutionType = 'full_refund_penalty' | 'partial_refund' | 'release_funds'
 const AdminDisputes = () => {
     const { user } = useAuth();
     const { toast } = useToast();
+    const [searchParams] = useSearchParams();
     const [disputes, setDisputes] = useState<Dispute[]>([]);
     const [loadingData, setLoadingData] = useState(true);
     const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
@@ -93,6 +95,12 @@ const AdminDisputes = () => {
 
             if (error) throw error;
             setDisputes(data as any);
+
+            const disputeIdParam = searchParams.get("dispute");
+            if (disputeIdParam) {
+                const match = (data as any)?.find((d: Dispute) => d.id === disputeIdParam);
+                if (match) setSelectedDispute(match);
+            }
         } catch (error: any) {
             toast({ title: "Error", description: "Failed to load disputes", variant: "destructive" });
         } finally {

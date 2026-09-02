@@ -124,7 +124,7 @@ const AdminComms = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         
         {/* Announcement composer */}
-        <div className="rounded-xl border border-border bg-card p-4 h-fit">
+        <div className="rounded-xl border border-border bg-card shadow-soft p-4 h-fit">
           <p className="text-xs font-medium text-foreground mb-3">
             Send announcement
           </p>
@@ -176,7 +176,7 @@ const AdminComms = () => {
         </div>
 
         {/* Feedback list */}
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="rounded-xl border border-border bg-card shadow-soft overflow-hidden">
           <div className="px-4 py-3 border-b border-border">
             <p className="text-xs font-medium text-foreground">
               Community feedback

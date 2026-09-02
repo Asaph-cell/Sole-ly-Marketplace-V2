@@ -283,6 +283,27 @@ serve(async (req: Request) => {
             .eq("id", disputeId);
         if (disputeUpdateError) throw new Error(`Failed to update dispute: ${disputeUpdateError.message}`);
 
+        const activityDetails: Record<string, unknown> = { order_id: order.id, resolution_notes: resolutionNotes };
+        if (action === "release") {
+            activityDetails.amount_released = order.total_ksh;
+        } else if (action === "refund") {
+            activityDetails.refund_amount = order.total_ksh;
+            activityDetails.vendor_penalized = applyVendorPenalty ?? true;
+        } else if (action === "partial_refund") {
+            activityDetails.refund_amount = partialRefundAmount;
+        } else if (action === "close") {
+            activityDetails.restored_status = order.pre_dispute_status;
+        }
+        const { error: activityError } = await supabase.from("admin_activity_log").insert({
+            admin_id: user.id,
+            action_type: `resolve_dispute_${action}`,
+            target_type: "dispute",
+            target_id: disputeId,
+            vendor_id: order.vendor_id,
+            details: activityDetails,
+        });
+        if (activityError) console.error("[Resolve Dispute] Failed to record admin activity:", activityError);
+
         fetch(`${supabaseUrl}/functions/v1/notify-dispute-update`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseServiceKey}` },

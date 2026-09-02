@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SearchBar, ActionButton, StatusPill, EmptyState } from "@/components/admin/AdminShared";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminAction } from "@/hooks/useAdminAction";
 import { Store, Star, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -31,6 +32,7 @@ interface VendorDetails {
 const AdminVendors = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { adminAction } = useAdminAction();
   const [vendors, setVendors] = useState<VendorDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -97,32 +99,6 @@ const AdminVendors = () => {
     }
   }, [user]);
 
-  /** Call the admin-action Edge Function (bypasses RLS via service role) */
-  const adminAction = async (action: string, targetId: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.functions.invoke("admin-action", {
-        body: { action, targetId },
-      });
-
-      if (error) {
-        let msg = error.message;
-        if (error.context && typeof error.context.json === "function") {
-          try {
-            const errJson = await error.context.json();
-            if (errJson?.error) msg = errJson.error;
-          } catch (_) { /* ignore */ }
-        }
-        throw new Error(msg);
-      }
-
-      toast({ title: "Success", description: data?.message || "Action completed" });
-      return true;
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-      return false;
-    }
-  };
-
   const handleAction = async () => {
     const { type, vendor } = confirmState;
     if (!type || !vendor) return;
@@ -158,7 +134,7 @@ const AdminVendors = () => {
       {loading ? (
         <SneakerLoader message="Loading vendors..." fullScreen={false} />
       ) : filteredVendors.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card">
+        <div className="rounded-xl border border-border bg-card shadow-soft">
           <EmptyState 
             icon={Store}
             title="No vendors yet"
@@ -166,7 +142,7 @@ const AdminVendors = () => {
           />
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-card divide-y divide-border">
+        <div className="rounded-xl border border-border bg-card shadow-soft divide-y divide-border">
           {filteredVendors.map(v => (
             <div key={v.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 transition-colors">
               
@@ -177,9 +153,9 @@ const AdminVendors = () => {
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-foreground truncate">
+                <Link to={`/admin/vendors/${v.id}`} className="text-xs font-medium text-foreground truncate hover:text-primary transition-colors block">
                   {v.full_name || "Unknown Vendor"}
-                </p>
+                </Link>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-[11px] text-muted-foreground">
                     {v.total_sales} sales

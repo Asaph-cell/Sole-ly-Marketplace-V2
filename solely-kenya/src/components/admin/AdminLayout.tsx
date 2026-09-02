@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Store, Scale, Package, Megaphone, Bell, Mail } from "lucide-react";
+import { LayoutDashboard, Store, Scale, Package, Megaphone, Mail, History, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { NotificationBell } from "@/components/admin/NotificationBell";
 
 export function AdminLayout({ children, pageTitle }: { children: React.ReactNode, pageTitle?: string }) {
   const location = useLocation();
@@ -31,10 +32,12 @@ export function AdminLayout({ children, pageTitle }: { children: React.ReactNode
   const tabs = [
     { label: "Overview", icon: LayoutDashboard, href: "/admin", badge: 0 },
     { label: "Disputes", icon: Scale, href: "/admin/disputes", badge: openDisputeCount },
+    { label: "Orders", icon: ClipboardList, href: "/admin/orders", badge: 0 },
     { label: "Vendors", icon: Store, href: "/admin/vendors", badge: 0 },
     { label: "Products", icon: Package, href: "/admin/products", badge: 0 },
     { label: "Comms", icon: Megaphone, href: "/admin/comms", badge: 0 },
     { label: "Mailing List", icon: Mail, href: "/admin/mailing-list", badge: 0 },
+    { label: "Activity", icon: History, href: "/admin/activity", badge: 0 },
   ];
 
   return (
@@ -51,12 +54,7 @@ export function AdminLayout({ children, pageTitle }: { children: React.ReactNode
         </div>
 
         <div className="flex items-center gap-2">
-          <button 
-            className="w-8 h-8 rounded-lg border border-border flex items-center justify-center hover:bg-muted transition-colors"
-            aria-label="Notifications"
-          >
-            <Bell size={15} strokeWidth={1.5} className="text-muted-foreground" />
-          </button>
+          <NotificationBell />
           <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary">
             A
           </div>

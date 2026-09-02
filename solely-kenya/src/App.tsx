@@ -72,6 +72,9 @@ const AdminVendors = lazyRetry(() => import("./pages/admin/AdminVendors"), "Admi
 const AdminProducts = lazyRetry(() => import("./pages/admin/AdminProducts"), "AdminProducts");
 const AdminComms = lazyRetry(() => import("./pages/admin/AdminComms"), "AdminComms");
 const AdminMailingList = lazyRetry(() => import("./pages/admin/AdminMailingList"), "AdminMailingList");
+const AdminActivity = lazyRetry(() => import("./pages/admin/AdminActivity"), "AdminActivity");
+const AdminOrders = lazyRetry(() => import("./pages/admin/AdminOrders"), "AdminOrders");
+const AdminVendorDetail = lazyRetry(() => import("./pages/admin/AdminVendorDetail"), "AdminVendorDetail");
 const Blog = lazyRetry(() => import("./pages/Blog"), "Blog");
 const BlogPost = lazyRetry(() => import("./pages/BlogPost"), "BlogPost");
 const HowItWorks = lazyRetry(() => import("./pages/HowItWorks"), "HowItWorks");
@@ -164,6 +167,9 @@ const AnimatedRoutes = () => {
       <Route path="/admin/products" element={<PageWrapper><AdminGuard><AdminProducts /></AdminGuard></PageWrapper>} />
       <Route path="/admin/comms" element={<PageWrapper><AdminGuard><AdminComms /></AdminGuard></PageWrapper>} />
       <Route path="/admin/mailing-list" element={<PageWrapper><AdminGuard><AdminMailingList /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/activity" element={<PageWrapper><AdminGuard><AdminActivity /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/orders" element={<PageWrapper><AdminGuard><AdminOrders /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/vendors/:vendorId" element={<PageWrapper><AdminGuard><AdminVendorDetail /></AdminGuard></PageWrapper>} />
 
       {/* Standalone routes */}
       <Route path="/buy/:productId" element={<PageWrapper><BuyNow /></PageWrapper>} />

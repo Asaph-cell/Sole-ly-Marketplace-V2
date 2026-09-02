@@ -68,40 +68,103 @@ serve(async (req) => {
 
     let result: any = { success: true };
 
+    // Records an audit-log row after a mutation succeeds. Never throws -
+    // a logging failure shouldn't fail an otherwise-successful admin action.
+    const logActivity = async (
+      actionType: string,
+      targetType: "product" | "vendor" | "dispute",
+      vendorId: string | null,
+      details: Record<string, unknown>
+    ) => {
+      const { error } = await serviceClient.from("admin_activity_log").insert({
+        admin_id: user.id,
+        action_type: actionType,
+        target_type: targetType,
+        target_id: targetId,
+        vendor_id: vendorId,
+        details,
+      });
+      if (error) console.error("Failed to record admin activity:", error);
+    };
+
     switch (action) {
       // ── Product Actions ──
       case "pause_product": {
+        const { data: product } = await serviceClient
+          .from("products")
+          .select("name, vendor_id, status")
+          .eq("id", targetId)
+          .single();
+
         const { error } = await serviceClient
           .from("products")
           .update({ status: "paused" })
           .eq("id", targetId);
         if (error) throw error;
+
+        await logActivity("pause_product", "product", product?.vendor_id ?? null, {
+          product_name: product?.name,
+          previous_status: product?.status,
+          new_status: "paused",
+        });
         result.message = "Product paused successfully";
         break;
       }
 
       case "restore_product": {
+        const { data: product } = await serviceClient
+          .from("products")
+          .select("name, vendor_id, status")
+          .eq("id", targetId)
+          .single();
+
         const { error } = await serviceClient
           .from("products")
           .update({ status: "active" })
           .eq("id", targetId);
         if (error) throw error;
+
+        await logActivity("restore_product", "product", product?.vendor_id ?? null, {
+          product_name: product?.name,
+          previous_status: product?.status,
+          new_status: "active",
+        });
         result.message = "Product restored successfully";
         break;
       }
 
       case "delete_product": {
+        // Must read before deleting - the row is gone afterward and this is
+        // the only chance to capture what it was for the log.
+        const { data: product } = await serviceClient
+          .from("products")
+          .select("name, vendor_id, price_ksh, status")
+          .eq("id", targetId)
+          .single();
+
         const { error } = await serviceClient
           .from("products")
           .delete()
           .eq("id", targetId);
         if (error) throw error;
+
+        await logActivity("delete_product", "product", product?.vendor_id ?? null, {
+          product_name: product?.name,
+          price_ksh: product?.price_ksh,
+          previous_status: product?.status,
+        });
         result.message = "Product deleted successfully";
         break;
       }
 
       // ── Vendor Actions ──
       case "penalize_vendor": {
+        const { data: vendor } = await serviceClient
+          .from("profiles")
+          .select("full_name, store_name")
+          .eq("id", targetId)
+          .single();
+
         const { error } = await serviceClient
           .from("vendor_ratings")
           .insert({
@@ -112,11 +175,22 @@ serve(async (req) => {
             review: "System Penalty: Violation of marketplace rules or vendor misconduct.",
           });
         if (error) throw error;
+
+        await logActivity("penalize_vendor", "vendor", targetId, {
+          vendor_name: vendor?.store_name || vendor?.full_name,
+          rating_inserted: 1,
+        });
         result.message = "Vendor penalized with 1-star rating";
         break;
       }
 
       case "revoke_vendor": {
+        const { data: vendor } = await serviceClient
+          .from("profiles")
+          .select("full_name, store_name")
+          .eq("id", targetId)
+          .single();
+
         // Swap the role rather than deleting it, so the vendor stays visible
         // (marked revoked) in AdminVendors.tsx instead of vanishing with no
         // way to find/restore them.
@@ -127,11 +201,23 @@ serve(async (req) => {
           .eq("role", "vendor");
 
         if (error) throw error;
+
+        await logActivity("revoke_vendor", "vendor", targetId, {
+          vendor_name: vendor?.store_name || vendor?.full_name,
+          previous_role: "vendor",
+          new_role: "revoked_vendor",
+        });
         result.message = "Vendor access revoked";
         break;
       }
 
       case "restore_vendor": {
+        const { data: vendor } = await serviceClient
+          .from("profiles")
+          .select("full_name, store_name")
+          .eq("id", targetId)
+          .single();
+
         const { error } = await serviceClient
           .from("user_roles")
           .update({ role: "vendor" })
@@ -139,6 +225,12 @@ serve(async (req) => {
           .eq("role", "revoked_vendor");
 
         if (error) throw error;
+
+        await logActivity("restore_vendor", "vendor", targetId, {
+          vendor_name: vendor?.store_name || vendor?.full_name,
+          previous_role: "revoked_vendor",
+          new_role: "vendor",
+        });
         result.message = "Vendor access restored";
         break;
       }

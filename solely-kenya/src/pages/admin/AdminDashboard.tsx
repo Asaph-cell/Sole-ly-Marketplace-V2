@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { StatBar } from "@/components/admin/AdminShared";
-import { AreaChart, Area, Tooltip, ResponsiveContainer } from "recharts";
+import { StatBar, MiniAreaChart } from "@/components/admin/AdminShared";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, Star } from "lucide-react";
+import { AlertTriangle, Star, DollarSign, Percent, Store, Scale, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface LowRatedVendor {
@@ -170,35 +169,42 @@ const AdminDashboard = () => {
             <StatBar
               label="Total revenue"
               value={formatCurrency(stats.totalRevenue)}
+              icon={DollarSign}
+              variant="hero"
             />
 
             {/* 2-col sub stats */}
             <div className="grid grid-cols-2 gap-2">
-              <StatBar label="This month" value={formatCurrency(stats.monthlyRevenue)} />
-              <StatBar label="Commission"  value={formatCurrency(stats.netCommission)} />
+              <StatBar label="This month" value={formatCurrency(stats.monthlyRevenue)} icon={DollarSign} delay={0.05} />
+              <StatBar label="Commission" value={formatCurrency(stats.netCommission)} icon={Percent} delay={0.1} />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <StatBar label="Vendors" value={stats.totalVendors} />
+              <StatBar label="Vendors" value={stats.totalVendors} icon={Store} delay={0.15} />
               <StatBar
                 label="Disputes"
                 value={`${stats.openDisputes} open`}
                 alert={stats.openDisputes > 0}
+                icon={Scale}
+                delay={0.2}
               />
             </div>
 
             {/* Orders at a glance */}
-            <div className="rounded-xl border border-border bg-card px-4 py-3">
+            <div className="rounded-xl border border-border bg-card shadow-soft px-4 py-3">
               <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-3">
                 Orders
               </p>
               <div className="grid grid-cols-3 divide-x divide-border">
                 {[
-                  { label: "Pending",   value: stats.pendingOrders, color: "text-primary" },
-                  { label: "Completed", value: stats.completedOrders, color: "text-success" },
-                  { label: "Disputed",  value: stats.disputedOrders, color: "text-destructive" },
+                  { label: "Pending", value: stats.pendingOrders, color: "text-primary", bg: "bg-primary/10", icon: Clock },
+                  { label: "Completed", value: stats.completedOrders, color: "text-success", bg: "bg-success/10", icon: CheckCircle2 },
+                  { label: "Disputed", value: stats.disputedOrders, color: "text-destructive", bg: "bg-destructive/10", icon: XCircle },
                 ].map(item => (
-                  <div key={item.label} className="flex flex-col items-center gap-0.5 py-1">
+                  <div key={item.label} className="flex flex-col items-center gap-1 py-1">
+                    <div className={cn("h-7 w-7 rounded-full flex items-center justify-center", item.bg)}>
+                      <item.icon size={13} strokeWidth={2} className={item.color} />
+                    </div>
                     <p className={cn("text-base font-medium", item.color)}>
                       {item.value}
                     </p>
@@ -210,22 +216,25 @@ const AdminDashboard = () => {
 
             {/* Vendors needing attention */}
             {lowRatedVendors.length > 0 && (
-              <div className="rounded-xl border border-border bg-card px-4 py-3">
+              <div className="rounded-xl border border-border bg-card shadow-soft px-4 py-3">
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
                   <AlertTriangle size={11} strokeWidth={2} className="text-destructive" />
                   Vendors needing attention
                 </p>
                 <div className="flex flex-col divide-y divide-border">
                   {lowRatedVendors.map(v => (
-                    <div key={v.vendor_id} className="flex items-center justify-between gap-2 py-2 first:pt-0 last:pb-0">
-                      <Link to={`/store/${v.vendor_id}`} className="text-xs text-foreground hover:text-primary truncate">
+                    <Link key={v.vendor_id} to={`/admin/vendors/${v.vendor_id}`} className="flex items-center gap-2.5 py-2 first:pt-0 last:pb-0 group">
+                      <div className="w-7 h-7 rounded-full bg-primary/15 flex-shrink-0 flex items-center justify-center text-[10px] font-medium text-primary">
+                        {v.store_name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="flex-1 min-w-0 text-xs text-foreground group-hover:text-primary transition-colors truncate">
                         {v.store_name}
-                      </Link>
+                      </span>
                       <div className="flex items-center gap-1 flex-shrink-0 text-[11px] text-muted-foreground">
                         <Star size={10} strokeWidth={1.5} className="text-destructive fill-destructive" />
                         {v.avg_rating.toFixed(1)} ({v.rating_count})
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -234,8 +243,23 @@ const AdminDashboard = () => {
 
           {/* Right column */}
           <div className="flex flex-col gap-2.5">
+            {/* Mini chart */}
+            <div className="rounded-xl border border-border bg-card shadow-soft p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-medium text-foreground">Revenue</p>
+                <p className="text-[11px] text-muted-foreground">Last 30 days</p>
+              </div>
+              <MiniAreaChart
+                data={dailyRevenue}
+                dataKey="revenue"
+                gradientId="adminRevenue"
+                height={200}
+                tooltipFormatter={(v) => formatCurrency(v)}
+              />
+            </div>
+
             {/* Activity feed */}
-            <div className="rounded-xl border border-border bg-card p-4 flex-1">
+            <div className="rounded-xl border border-border bg-card shadow-soft p-4 flex-1">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-medium text-foreground">
                   Recent activity
@@ -243,63 +267,32 @@ const AdminDashboard = () => {
               </div>
 
               <div className="flex flex-col divide-y divide-border">
-                {activityFeed.map(item => (
-                  <div key={`${item.type}-${item.id}`} className="flex items-start gap-2.5 py-2.5 first:pt-0 last:pb-0">
-                    <div className={cn(
-                      "w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5",
-                      item.type === "order_complete" && "bg-success",
-                      item.type === "dispute_open"   && "bg-destructive",
-                      item.type === "vendor_new"     && "bg-primary",
-                    )} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-foreground leading-snug">
-                        {item.title}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {item.timeAgo}
-                      </p>
+                {activityFeed.map(item => {
+                  const meta = item.type === "order_complete"
+                    ? { icon: CheckCircle2, color: "text-success", bg: "bg-success/10" }
+                    : item.type === "dispute_open"
+                    ? { icon: Scale, color: "text-destructive", bg: "bg-destructive/10" }
+                    : { icon: DollarSign, color: "text-primary", bg: "bg-primary/10" };
+                  return (
+                    <div key={`${item.type}-${item.id}`} className="flex items-start gap-2.5 py-2.5 first:pt-0 last:pb-0">
+                      <div className={cn("h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0", meta.bg)}>
+                        <meta.icon size={12} strokeWidth={2} className={meta.color} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-foreground leading-snug">
+                          {item.title}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {item.timeAgo}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {activityFeed.length === 0 && (
                   <p className="text-xs text-muted-foreground py-2">No recent activity</p>
                 )}
               </div>
-            </div>
-
-            {/* Mini chart */}
-            <div className="rounded-xl border border-border bg-card p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-medium text-foreground">Revenue</p>
-                <p className="text-[11px] text-muted-foreground">Last 30 days</p>
-              </div>
-              <ResponsiveContainer width="100%" height={60}>
-                <AreaChart data={dailyRevenue}>
-                  <defs>
-                    <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(45,69%,50%)" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="hsl(45,69%,50%)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <Area 
-                    type="monotone" 
-                    dataKey="revenue"
-                    stroke="hsl(45,69%,50%)" 
-                    strokeWidth={1.5}
-                    fill="url(#rev)" 
-                    dot={false} 
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                      fontSize: "11px",
-                    }}
-                    cursor={false}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
             </div>
           </div>
 

@@ -196,7 +196,7 @@ const AdminMailingList = () => {
       </div>
 
       {showComposer && (
-        <div className="mb-6 rounded-xl border border-border bg-card p-4 animate-in slide-in-from-top-4">
+        <div className="mb-6 rounded-xl border border-border bg-card shadow-soft p-4 animate-in slide-in-from-top-4">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-sm font-semibold flex items-center gap-2">
               <Send size={14} className="text-primary" />
@@ -245,7 +245,7 @@ const AdminMailingList = () => {
       {loading ? (
         <SneakerLoader message="Loading directory..." fullScreen={false} />
       ) : validEmails.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card">
+        <div className="rounded-xl border border-border bg-card shadow-soft">
           <EmptyState 
             icon={Users}
             title="No users found"
@@ -253,7 +253,7 @@ const AdminMailingList = () => {
           />
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
+        <div className="rounded-xl border border-border bg-card shadow-soft divide-y divide-border overflow-hidden">
           <div className="grid grid-cols-[auto_1fr_1fr_100px] gap-4 p-3 bg-muted/20 text-xs font-medium text-muted-foreground">
             <div className="w-4 ml-1"></div>
             <div>User</div>
