@@ -281,13 +281,10 @@ const Orders = () => {
   };
 
   const handleConfirmationSuccess = () => {
-    // Send thank you email (non-blocking)
-    if (selectedOrderForConfirmation) {
-      supabase.functions.invoke("notify-buyer-order-completed", {
-        body: { orderId: selectedOrderForConfirmation.id },
-      }).catch(err => console.log("Order completion email failed (non-critical):", err));
-    }
-
+    // The order isn't actually "completed" yet at this point (that only
+    // happens later via auto-release-escrow or the vendor OTP flow, both of
+    // which send the completion email themselves), so there's nothing to
+    // notify here.
     setConfirmationModalOpen(false);
     setSelectedOrderForConfirmation(null);
     fetchOrders();

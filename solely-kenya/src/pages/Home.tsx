@@ -16,7 +16,6 @@ import { saveSearch } from "@/lib/searchHistory";
 import { rankByInterests, trackCategoryClick, hasInterestData, buildInterestProfile } from "@/lib/userInterests";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { StoreShowcase } from "@/components/home/StoreShowcase";
 
 // ─── Category pill nav (Mercari-style outlined pills, no emoji) ───────────────
 const PILL_CATEGORIES = [
@@ -847,9 +846,6 @@ const Home = () => {
           )}
         </div>
       </section>
-
-      {/* ─── STORE SHOWCASE ─── */}
-      <StoreShowcase />
 
       {/* ─── HOW IT WORKS ─── */}
       <section className="py-12 sm:py-16 bg-muted/30">

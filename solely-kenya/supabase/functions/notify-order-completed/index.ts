@@ -90,7 +90,8 @@ Deno.serve(async (req: Request) => {
                         customerName,
                         orderId: orderId.slice(0, 8),
                         items: itemsList,
-                        reviewUrl: `https://solelymarketplace.com/track/${orderId}`, // Can point to track page or dedicated review
+                        // /track/:orderId has no review UI - the working "Leave Review" flow lives on /orders.
+                        reviewUrl: `https://solelymarketplace.com/orders`,
                     }),
                 })
             );

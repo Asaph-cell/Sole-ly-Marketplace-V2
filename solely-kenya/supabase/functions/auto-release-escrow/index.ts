@@ -160,6 +160,19 @@ serve(async (req) => {
             console.error('[Auto-Release Escrow] Failed to trigger transfer:', err);
         }
 
+        // 6. Send completion email notifications (non-blocking) - this is the
+        // path that completes most orders, so without this call buyers and
+        // vendors never hear that the order finished (see notify-order-completed).
+        console.log(`[Auto-Release Escrow] Triggering notify-order-completed for order ${order.id}...`);
+        fetch(`${supabaseUrl}/functions/v1/notify-order-completed`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${serviceRoleKey}`,
+            },
+            body: JSON.stringify({ orderId: order.id }),
+        }).catch(err => console.error('[Auto-Release Escrow] Failed to trigger notifications:', err));
+
         releasedOrders.push(order.id);
         console.log(`Auto-released escrow for order ${order.id}`);
       } catch (error) {
