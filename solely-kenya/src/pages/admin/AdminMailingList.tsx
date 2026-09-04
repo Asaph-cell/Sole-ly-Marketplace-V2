@@ -215,11 +215,14 @@ const AdminMailingList = () => {
           />
 
           <textarea
-            className="w-full px-3 py-2.5 rounded-lg border border-input bg-muted text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background min-h-[150px] resize-y transition mb-3"
-            placeholder="Write your message... (HTML supported)"
+            className="w-full px-3 py-2.5 rounded-lg border border-input bg-muted text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background min-h-[150px] resize-y transition mb-1.5"
+            placeholder="Write your message... It's automatically wrapped in Sole-ly's branded email template - just write the body (plain text or basic HTML like <p>/<strong>/<a>)."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
+          <p className="text-[10px] text-muted-foreground mb-3">
+            Subject and message are all you need - the header, footer, and styling are added automatically so every email looks the same.
+          </p>
 
           <div className="flex justify-end gap-2">
             <button

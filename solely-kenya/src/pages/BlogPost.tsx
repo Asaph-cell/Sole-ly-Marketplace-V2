@@ -44,6 +44,10 @@ const BlogPost = () => {
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [suggestionSubmitted, setSuggestionSubmitted] = useState(false);
   const [topicIdea, setTopicIdea] = useState("");
+  // Honeypot: real visitors never see or fill this field. Bots that
+  // blindly fill every input on the form will populate it, so a
+  // non-empty value marks the submission as spam.
+  const [suggestHoneypot, setSuggestHoneypot] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [sidebarProducts, setSidebarProducts] = useState<any[]>([]);
@@ -154,7 +158,16 @@ const BlogPost = () => {
   const handleSuggest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topicIdea.trim()) return;
-    
+
+    if (suggestHoneypot.trim()) {
+      // Bot filled the hidden field - pretend success so it doesn't
+      // learn to adapt, but skip the actual insert.
+      setSuggestionSubmitted(true);
+      setTopicIdea("");
+      setTimeout(() => setSuggestionSubmitted(false), 5000);
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from("company_feedback")
@@ -393,6 +406,16 @@ const BlogPost = () => {
                       What should we, as a company, improve on? We're building Solely for you.
                     </p>
                     <form onSubmit={handleSuggest} className="space-y-3">
+                      <input
+                        type="text"
+                        name="company"
+                        value={suggestHoneypot}
+                        onChange={(e) => setSuggestHoneypot(e.target.value)}
+                        style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
+                        tabIndex={-1}
+                        autoComplete="off"
+                        aria-hidden="true"
+                      />
                       <Input
                         placeholder="e.g. Add more sneaker cleaning tips..."
                         value={topicIdea}

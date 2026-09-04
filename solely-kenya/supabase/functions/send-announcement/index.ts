@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendEmail, emailTemplates } from "../_shared/email-service.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -20,13 +21,8 @@ serve(async (req) => {
     }
 
     try {
-        const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
         const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
         const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-        if (!RESEND_API_KEY) {
-            throw new Error("RESEND_API_KEY not configured");
-        }
 
         if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
             throw new Error("Supabase credentials not configured");
@@ -60,7 +56,7 @@ serve(async (req) => {
         }
 
         // Parse request
-        const { subject, htmlContent, targetAudience }: AnnouncementRequest = await req.json();
+        const { subject, htmlContent, targetAudience, customEmails }: AnnouncementRequest = await req.json();
 
         if (!subject || !htmlContent || !targetAudience) {
             throw new Error("Missing required fields: subject, htmlContent, targetAudience");
@@ -129,36 +125,10 @@ serve(async (req) => {
             );
         }
 
-        // Build email HTML with styling
-        const styledHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #c8b34d 0%, #a89640 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
-          .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
-          .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
-          a { color: #c8b34d; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1 style="margin: 0;">Solely</h1>
-          </div>
-          <div class="content">
-            ${htmlContent}
-          </div>
-          <div class="footer">
-            <p>This email was sent by Solely</p>
-            <p><a href="https://solelymarketplace.com">solelymarketplace.com</a></p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
+        // Same branded shell every transactional email uses (order confirmations,
+        // dispute updates, etc.) - the admin only ever supplies a subject and a
+        // message body, never the surrounding template.
+        const styledHtml = emailTemplates.announcement({ subject, bodyHtml: htmlContent });
 
         // Send emails one at a time with delay to respect Resend's 2 req/s rate limit
         let sent = 0;
@@ -166,31 +136,13 @@ serve(async (req) => {
 
         for (let i = 0; i < emails.length; i++) {
             const email = emails[i];
-            try {
-                const response = await fetch("https://api.resend.com/emails", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${RESEND_API_KEY}`,
-                    },
-                    body: JSON.stringify({
-                        from: "Solely <notifications@solelymarketplace.com>",
-                        to: [email],
-                        subject: subject,
-                        html: styledHtml,
-                    }),
-                });
+            const result = await sendEmail({ to: email, subject, html: styledHtml });
 
-                if (response.ok) {
-                    sent++;
-                    console.log(`Sent to ${email} (${i + 1}/${emails.length})`);
-                } else {
-                    const error = await response.json();
-                    console.error(`Failed to send to ${email}:`, error);
-                    failed++;
-                }
-            } catch (error) {
-                console.error(`Error sending to ${email}:`, error);
+            if (result.success) {
+                sent++;
+                console.log(`Sent to ${email} (${i + 1}/${emails.length})`);
+            } else {
+                console.error(`Failed to send to ${email}:`, result.error);
                 failed++;
             }
 

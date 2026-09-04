@@ -89,9 +89,22 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
   }
 }
 
+// Escapes user-controlled text before it's dropped into an HTML email body,
+// so a name/description/etc. containing markup renders as inert text
+// instead of live HTML in the recipient's inbox.
+function escapeHtml(value: unknown): string {
+  const str = value === null || value === undefined ? '' : String(value);
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Email templates
 
-const baseEmailLayout = (title: string, content: string, titleColor: string = '#1a1a1a') => `
+export const baseEmailLayout = (title: string, content: string, titleColor: string = '#1a1a1a') => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -280,6 +293,16 @@ const baseEmailLayout = (title: string, content: string, titleColor: string = '#
 `;
 
 export const emailTemplates = {
+  // Wraps an admin-composed mass email (AdminComms/AdminMailingList) in the
+  // same branded shell as every transactional email, so a hand-typed
+  // announcement looks identical to an order/dispute notification instead
+  // of using its own separate, plainer template.
+  announcement: (data: { subject: string; bodyHtml: string }) =>
+    // bodyHtml is intentionally left unescaped: it's admin-composed rich
+    // content from an authenticated, server-verified admin, not public
+    // user input. subject is a plain title, so it's still escaped.
+    baseEmailLayout(escapeHtml(data.subject), data.bodyHtml),
+
   vendorDeliveryInquiry: (data: {
     buyerName: string;
     productNames: string;
@@ -287,10 +310,10 @@ export const emailTemplates = {
     negotiationUrl: string;
   }) => baseEmailLayout('New Delivery Inquiry', `
     <p>Hi,</p>
-    <p><strong>${data.buyerName}</strong> is interested in buying <strong>${data.productNames}</strong>.</p>
-    
+    <p><strong>${escapeHtml(data.buyerName)}</strong> is interested in buying <strong>${escapeHtml(data.productNames)}</strong>.</p>
+
     <div class="info-box">
-      <p>They need delivery to <strong>${data.city}</strong> and want to discuss the delivery fee with you.</p>
+      <p>They need delivery to <strong>${escapeHtml(data.city)}</strong> and want to discuss the delivery fee with you.</p>
     </div>
 
     <div class="cta-container">
@@ -303,7 +326,7 @@ export const emailTemplates = {
     businessName: string;
     dashboardUrl: string;
   }) => baseEmailLayout('Welcome to Sole-ly!', `
-    <p>Hi ${data.businessName},</p>
+    <p>Hi ${escapeHtml(data.businessName)},</p>
     <p>Welcome to <strong>Sole-ly</strong>! We are thrilled to have you join our marketplace.</p>
     
     <div style="background-color: #f9fafb; padding: 24px; border-radius: 8px; margin: 24px 0;">
@@ -334,17 +357,17 @@ export const emailTemplates = {
     dashboardUrl: string;
     googleMapsLink?: string | null;
   }) => baseEmailLayout('New Order Received', `
-    <p>Hi ${data.businessName},</p>
+    <p>Hi ${escapeHtml(data.businessName)},</p>
     <p>Great news! You have a new order waiting for your confirmation.</p>
-    
+
     <div class="order-details">
-      <p><strong>Order ID:</strong> #${data.orderId}</p>
-      <p><strong>Items:</strong> ${data.items}</p>
+      <p><strong>Order ID:</strong> #${escapeHtml(data.orderId)}</p>
+      <p><strong>Items:</strong> ${escapeHtml(data.items)}</p>
       <p><strong>Subtotal:</strong> KES ${data.subtotal.toLocaleString()}</p>
       <p><strong>Delivery Fee:</strong> KES ${data.deliveryFee.toLocaleString()}</p>
       <p><strong>Total:</strong> KES ${data.total.toLocaleString()}</p>
-      <p><strong>Delivery:</strong> ${data.deliveryLocation}</p>
-      <p><strong>Customer:</strong> ${data.customerName}</p>
+      <p><strong>Delivery:</strong> ${escapeHtml(data.deliveryLocation)}</p>
+      <p><strong>Customer:</strong> ${escapeHtml(data.customerName)}</p>
     </div>
     
     ${data.googleMapsLink ? `
@@ -371,14 +394,14 @@ export const emailTemplates = {
     total: number;
     customerName: string;
   }) => baseEmailLayout('Missed Order Alert', `
-    <p>Hi ${data.businessName},</p>
+    <p>Hi ${escapeHtml(data.businessName)},</p>
     <p>We're reaching out because you did not respond to an order within the required 48-hour window.</p>
-    
+
     <div class="order-details">
-      <p><strong>Order ID:</strong> #${data.orderId}</p>
-      <p><strong>Items:</strong> ${data.items}</p>
+      <p><strong>Order ID:</strong> #${escapeHtml(data.orderId)}</p>
+      <p><strong>Items:</strong> ${escapeHtml(data.items)}</p>
       <p><strong>Value:</strong> KES ${data.total.toLocaleString()}</p>
-      <p><strong>Customer:</strong> ${data.customerName}</p>
+      <p><strong>Customer:</strong> ${escapeHtml(data.customerName)}</p>
     </div>
     
     <div class="error-box">
@@ -404,22 +427,22 @@ export const emailTemplates = {
     vendorName: string;
     reason?: string;
   }) => baseEmailLayout('Order Update', `
-    <p>Hi ${data.customerName},</p>
+    <p>Hi ${escapeHtml(data.customerName)},</p>
     <p>We're sorry to inform you that your order could not be fulfilled by the vendor.</p>
-    
+
     <div class="order-details">
-      <p><strong>Order ID:</strong> #${data.orderId}</p>
-      <p><strong>Items:</strong> ${data.items}</p>
+      <p><strong>Order ID:</strong> #${escapeHtml(data.orderId)}</p>
+      <p><strong>Items:</strong> ${escapeHtml(data.items)}</p>
       <p><strong>Amount:</strong> KES ${data.total.toLocaleString()}</p>
-      <p><strong>Vendor:</strong> ${data.vendorName}</p>
-      ${data.reason ? `<p><strong>Reason:</strong> ${{
+      <p><strong>Vendor:</strong> ${escapeHtml(data.vendorName)}</p>
+      ${data.reason ? `<p><strong>Reason:</strong> ${escapeHtml({
         'out_of_stock': 'Item is out of stock',
         'wrong_size': 'Size not available',
         'pricing_error': 'Pricing error',
         'cannot_deliver': 'Cannot deliver to your location',
         'damaged_item': 'Item is damaged',
         'other': 'Other reason'
-      }[data.reason] || data.reason}</p>` : ''}
+      }[data.reason] || data.reason)}</p>` : ''}
     </div>
     
     <div class="success-box">
@@ -436,12 +459,12 @@ export const emailTemplates = {
     items: string;
     total: number;
   }) => baseEmailLayout('Order Update', `
-    <p>Hi ${data.customerName},</p>
+    <p>Hi ${escapeHtml(data.customerName)},</p>
     <p>We're sorry to let you know that the vendor was unable to accept your order within the required 48-hour window.</p>
-    
+
     <div class="order-details">
-      <p><strong>Order ID:</strong> #${data.orderId}</p>
-      <p><strong>Items:</strong> ${data.items}</p>
+      <p><strong>Order ID:</strong> #${escapeHtml(data.orderId)}</p>
+      <p><strong>Items:</strong> ${escapeHtml(data.items)}</p>
       <p><strong>Amount:</strong> KES ${data.total.toLocaleString()}</p>
     </div>
     
@@ -469,14 +492,14 @@ export const emailTemplates = {
     isPickup?: boolean;
     orderTrackingUrl: string;
   }) => baseEmailLayout('Order Confirmed', `
-    <p>Hi ${data.customerName},</p>
+    <p>Hi ${escapeHtml(data.customerName)},</p>
     <p>Thank you for your order! Your payment has been received and your order is now being processed.</p>
-    
+
     <div class="order-details">
-      <p><strong>Order ID:</strong> #${data.orderId}</p>
-      <p><strong>Items:</strong> ${data.items}</p>
+      <p><strong>Order ID:</strong> #${escapeHtml(data.orderId)}</p>
+      <p><strong>Items:</strong> ${escapeHtml(data.items)}</p>
       <p><strong>Total:</strong> KES ${data.total.toLocaleString()}</p>
-      <p><strong>Delivery:</strong> ${data.deliveryType}</p>
+      <p><strong>Delivery:</strong> ${escapeHtml(data.deliveryType)}</p>
       <p><span class="status-badge">Awaiting Vendor Confirmation</span></p>
     </div>
     
@@ -510,14 +533,14 @@ export const emailTemplates = {
     estimatedDate: string;
     isPickup?: boolean;
   }) => baseEmailLayout('Order Accepted', `
-    <p>Hi ${data.customerName},</p>
-    <p>Great news! <strong>${data.vendorName}</strong> has accepted your order and is ${data.isPickup ? 'preparing it for pickup' : 'preparing it for shipment'}.</p>
-    
+    <p>Hi ${escapeHtml(data.customerName)},</p>
+    <p>Great news! <strong>${escapeHtml(data.vendorName)}</strong> has accepted your order and is ${data.isPickup ? 'preparing it for pickup' : 'preparing it for shipment'}.</p>
+
     <div class="order-details">
-      <p><strong>Order ID:</strong> #${data.orderId}</p>
-      <p><strong>Items:</strong> ${data.items}</p>
-      <p><strong>Vendor:</strong> ${data.vendorName}</p>
-      <p><strong>${data.isPickup ? 'Expected ready by' : 'Expected to ship by'}:</strong> ${data.estimatedDate}</p>
+      <p><strong>Order ID:</strong> #${escapeHtml(data.orderId)}</p>
+      <p><strong>Items:</strong> ${escapeHtml(data.items)}</p>
+      <p><strong>Vendor:</strong> ${escapeHtml(data.vendorName)}</p>
+      <p><strong>${data.isPickup ? 'Expected ready by' : 'Expected to ship by'}:</strong> ${escapeHtml(data.estimatedDate)}</p>
       <p><span class="status-badge">${data.isPickup ? 'Preparing for Pickup' : 'Preparing for Shipment'}</span></p>
     </div>
     
@@ -535,26 +558,26 @@ export const emailTemplates = {
     orderTrackingUrl: string;
     deliveryOtp?: string;
   }) => baseEmailLayout('Order Shipped', `
-    <p>Hi ${data.customerName},</p>
-    <p>Your order from <strong>${data.vendorName}</strong> is on its way!</p>
-    
+    <p>Hi ${escapeHtml(data.customerName)},</p>
+    <p>Your order from <strong>${escapeHtml(data.vendorName)}</strong> is on its way!</p>
+
     ${data.deliveryOtp ? `
     <div class="info-box" style="text-align: center;">
       <p><strong>Your Delivery Code</strong></p>
-      <p class="otp-code">${data.deliveryOtp}</p>
+      <p class="otp-code">${escapeHtml(data.deliveryOtp)}</p>
       <p>Share this code with the vendor when they deliver. This confirms you received your order and releases payment.</p>
     </div>
     ` : ''}
-    
+
     <div class="alert-box" style="text-align: center;">
-      <p>Tracking Number (via ${data.courierName})</p>
-      <p class="tracking-number">${data.trackingNumber}</p>
+      <p>Tracking Number (via ${escapeHtml(data.courierName)})</p>
+      <p class="tracking-number">${escapeHtml(data.trackingNumber)}</p>
     </div>
-    
+
     <div class="order-details">
-      <p><strong>Order ID:</strong> #${data.orderId}</p>
-      <p><strong>Items:</strong> ${data.items}</p>
-      ${data.deliveryNotes ? `<p><strong>Notes:</strong> ${data.deliveryNotes}</p>` : ''}
+      <p><strong>Order ID:</strong> #${escapeHtml(data.orderId)}</p>
+      <p><strong>Items:</strong> ${escapeHtml(data.items)}</p>
+      ${data.deliveryNotes ? `<p><strong>Notes:</strong> ${escapeHtml(data.deliveryNotes)}</p>` : ''}
       <p><span class="status-badge">Being Delivered</span></p>
     </div>
     
@@ -573,21 +596,21 @@ export const emailTemplates = {
     vendorWhatsApp: string;
     deliveryOtp?: string;
   }) => baseEmailLayout('Ready for Pickup', `
-    <p>Hi ${data.customerName},</p>
-    <p>Great news! Your order from <strong>${data.vendorName}</strong> is ready for collection.</p>
-    
+    <p>Hi ${escapeHtml(data.customerName)},</p>
+    <p>Great news! Your order from <strong>${escapeHtml(data.vendorName)}</strong> is ready for collection.</p>
+
     ${data.deliveryOtp ? `
     <div class="info-box" style="text-align: center;">
       <p><strong>Your Pickup Code</strong></p>
-      <p class="otp-code">${data.deliveryOtp}</p>
+      <p class="otp-code">${escapeHtml(data.deliveryOtp)}</p>
       <p>Show this code to the vendor when you collect your order. This confirms you received your items and releases payment.</p>
     </div>
     ` : ''}
-    
+
     <div class="order-details">
-      <p><strong>Order ID:</strong> #${data.orderId}</p>
-      <p><strong>Items:</strong> ${data.items}</p>
-      <p><strong>Location:</strong> ${data.vendorAddress}</p>
+      <p><strong>Order ID:</strong> #${escapeHtml(data.orderId)}</p>
+      <p><strong>Items:</strong> ${escapeHtml(data.items)}</p>
+      <p><strong>Location:</strong> ${escapeHtml(data.vendorAddress)}</p>
     </div>
     
     <p>Please contact the seller to arrange the exact pickup time:</p>
@@ -604,12 +627,12 @@ export const emailTemplates = {
     items: string;
     reviewUrl: string;
   }) => baseEmailLayout('Order Completed', `
-    <p>Hi ${data.customerName},</p>
+    <p>Hi ${escapeHtml(data.customerName)},</p>
     <p>Your order has been completed successfully! We hope you love your purchase.</p>
-    
+
     <div class="order-details">
-      <p><strong>Order ID:</strong> #${data.orderId}</p>
-      <p><strong>Items:</strong> ${data.items}</p>
+      <p><strong>Order ID:</strong> #${escapeHtml(data.orderId)}</p>
+      <p><strong>Items:</strong> ${escapeHtml(data.items)}</p>
     </div>
     
     <div class="info-box">
@@ -627,8 +650,8 @@ export const emailTemplates = {
     orderId: string;
     payoutAmount: number;
   }) => baseEmailLayout('Payment Released', `
-    <p>Hi ${data.vendorName},</p>
-    <p>Great news! The buyer has confirmed delivery for order #${data.orderId}.</p>
+    <p>Hi ${escapeHtml(data.vendorName)},</p>
+    <p>Great news! The buyer has confirmed delivery for order #${escapeHtml(data.orderId)}.</p>
     
     <div class="success-box" style="text-align: center;">
       <p>Funds Released</p>
@@ -646,12 +669,12 @@ export const emailTemplates = {
     description: string;
     isVendor: boolean;
   }) => baseEmailLayout('Dispute Filed', `
-    <p>Hi ${data.userName},</p>
-    <p>${data.isVendor ? 'A buyer has filed a dispute' : 'Your dispute has been submitted'} for order #${data.orderId}.</p>
-    
+    <p>Hi ${escapeHtml(data.userName)},</p>
+    <p>${data.isVendor ? 'A buyer has filed a dispute' : 'Your dispute has been submitted'} for order #${escapeHtml(data.orderId)}.</p>
+
     <div class="error-box">
-      <p><strong>Reason:</strong> ${data.reason}</p>
-      <p style="margin-top: 8px;"><strong>Description:</strong> ${data.description}</p>
+      <p><strong>Reason:</strong> ${escapeHtml(data.reason)}</p>
+      <p style="margin-top: 8px;"><strong>Description:</strong> ${escapeHtml(data.description)}</p>
     </div>
     
     <div class="info-box">
@@ -676,14 +699,14 @@ export const emailTemplates = {
     isRefund: boolean;
     refundAmount?: number;
   }) => baseEmailLayout(data.isRefund ? 'Dispute Resolved' : 'Dispute Update', `
-    <p>Hi ${data.userName},</p>
-    <p>There's an update on your dispute for order #${data.orderId}.</p>
-    
+    <p>Hi ${escapeHtml(data.userName)},</p>
+    <p>There's an update on your dispute for order #${escapeHtml(data.orderId)}.</p>
+
     <div class="${data.isRefund ? 'success-box' : 'info-box'}">
-      <p><strong>Status:</strong> ${data.newStatus}</p>
-      <p style="margin-top: 8px;"><strong>Resolution:</strong> ${data.resolution}</p>
+      <p><strong>Status:</strong> ${escapeHtml(data.newStatus)}</p>
+      <p style="margin-top: 8px;"><strong>Resolution:</strong> ${escapeHtml(data.resolution)}</p>
       ${data.isRefund && data.refundAmount ? `<p style="margin-top: 8px;"><strong>Refund Amount:</strong> KES ${data.refundAmount.toLocaleString()}</p>` : ''}
-      ${data.adminNotes ? `<p style="margin-top: 8px;"><strong>Notes:</strong> ${data.adminNotes}</p>` : ''}
+      ${data.adminNotes ? `<p style="margin-top: 8px;"><strong>Notes:</strong> ${escapeHtml(data.adminNotes)}</p>` : ''}
     </div>
     
     ${data.isRefund ? `
@@ -709,16 +732,16 @@ export const emailTemplates = {
     <p>A new dispute has been filed and requires admin review.</p>
     
     <div class="error-box">
-      <p><strong>Order ID:</strong> #${data.orderId}</p>
+      <p><strong>Order ID:</strong> #${escapeHtml(data.orderId)}</p>
       <p><strong>Amount:</strong> KES ${data.orderAmount.toLocaleString()}</p>
-      <p><strong>Reason:</strong> ${data.reason}</p>
-      <p><strong>Description:</strong> ${data.description}</p>
+      <p><strong>Reason:</strong> ${escapeHtml(data.reason)}</p>
+      <p><strong>Description:</strong> ${escapeHtml(data.description)}</p>
     </div>
-    
+
     <div class="order-details">
-      <p><strong>Buyer:</strong> ${data.buyerName} (<a href="mailto:${data.buyerEmail}">${data.buyerEmail}</a>)</p>
+      <p><strong>Buyer:</strong> ${escapeHtml(data.buyerName)} (<a href="mailto:${escapeHtml(data.buyerEmail)}">${escapeHtml(data.buyerEmail)}</a>)</p>
       <div class="divider" style="margin: 12px 0;"></div>
-      <p><strong>Vendor:</strong> ${data.vendorName} (<a href="mailto:${data.vendorEmail}">${data.vendorEmail}</a>)</p>
+      <p><strong>Vendor:</strong> ${escapeHtml(data.vendorName)} (<a href="mailto:${escapeHtml(data.vendorEmail)}">${escapeHtml(data.vendorEmail)}</a>)</p>
     </div>
     
     ${data.evidenceUrls && data.evidenceUrls.length > 0 ? `
@@ -742,12 +765,12 @@ export const emailTemplates = {
     vendorName: string;
     confirmUrl: string;
   }) => baseEmailLayout('Order Arrived', `
-    <p>Hi ${data.customerName},</p>
-    <p>Great news! Your order from <strong>${data.vendorName}</strong> has arrived.</p>
-    
+    <p>Hi ${escapeHtml(data.customerName)},</p>
+    <p>Great news! Your order from <strong>${escapeHtml(data.vendorName)}</strong> has arrived.</p>
+
     <div class="order-details">
-      <p><strong>Order ID:</strong> #${data.orderId}</p>
-      <p><strong>Items:</strong> ${data.items}</p>
+      <p><strong>Order ID:</strong> #${escapeHtml(data.orderId)}</p>
+      <p><strong>Items:</strong> ${escapeHtml(data.items)}</p>
       <p><span class="status-badge" style="background: #ecfdf5; color: #065f46; border-color: #a7f3d0;">Delivered</span></p>
     </div>
     
@@ -766,11 +789,11 @@ export const emailTemplates = {
     orderId: string;
     totalAmount: number;
   }) => baseEmailLayout('Delivery Delay Review', `
-    <p>Hi ${data.customerName},</p>
+    <p>Hi ${escapeHtml(data.customerName)},</p>
     <p>Your order has not been marked as delivered within our 5-day delivery window.</p>
-    
+
     <div class="order-details">
-      <p><strong>Order ID:</strong> #${data.orderId}</p>
+      <p><strong>Order ID:</strong> #${escapeHtml(data.orderId)}</p>
       <p><strong>Amount:</strong> KES ${data.totalAmount.toLocaleString()}</p>
     </div>
     
