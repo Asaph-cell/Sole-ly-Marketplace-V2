@@ -8,14 +8,12 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { getPayoutFeeSchedule, resolvePayoutFee } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// IntaSend payout fee (platform absorbs this for batch payouts)
-const PAYOUT_FEE = 100;
 
 serve(async (req) => {
 
@@ -77,6 +75,7 @@ serve(async (req) => {
 
     const processedPayouts = [];
     const failedPayouts = [];
+    const payoutFeeSchedule = await getPayoutFeeSchedule(supabase);
 
     for (const payout of pendingPayouts) {
       try {
@@ -155,7 +154,7 @@ serve(async (req) => {
             status: 'processing', // IntaSend processes async, will be updated by webhook
             paid_at: new Date().toISOString(),
             reference: intasendResult.tracking_id || intasendResult.id,
-            transfer_fee_ksh: PAYOUT_FEE,
+            transfer_fee_ksh: resolvePayoutFee(payoutFeeSchedule, payout.amount_ksh),
             metadata: {
               intasend_tracking_id: intasendResult.tracking_id,
               intasend_status: intasendResult.status,

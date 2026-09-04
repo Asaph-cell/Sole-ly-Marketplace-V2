@@ -15,6 +15,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCommissionRatePercent } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -127,8 +128,9 @@ serve(async (req: Request) => {
         }
 
         // C. Create Payout Record
-        const payoutAmount = order.payout_amount ?? (order.total_ksh * 0.94);
-        const commissionAmount = order.commission_amount ?? (order.total_ksh * 0.06);
+        const currentRate = order.commission_rate ?? await getCommissionRatePercent(supabase);
+        const payoutAmount = order.payout_amount ?? (order.total_ksh * (1 - currentRate / 100));
+        const commissionAmount = order.commission_amount ?? (order.total_ksh * (currentRate / 100));
 
         console.log(`Creating payout: vendor=${order.vendor_id}, order=${orderId}, amount=${payoutAmount}`);
 
@@ -155,7 +157,7 @@ serve(async (req: Request) => {
             .insert({
                 order_id: orderId,
                 vendor_id: order.vendor_id,
-                commission_rate: order.commission_rate || 6,
+                commission_rate: currentRate,
                 commission_amount: commissionAmount,
                 notes: "Funds released via vendor OTP entry",
             });

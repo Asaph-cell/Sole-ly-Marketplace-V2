@@ -156,6 +156,34 @@ All colors MUST be HSL.
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  /* Admin dashboard gets its own richer palette, scoped so the public
+     storefront's look is untouched: a soft warm-gray page canvas (not
+     stark white) with the whole sidebar+content shell presented as one
+     floating rounded card - modeled on the reference dashboard the user
+     shared (soft gray canvas, floating white frame, a bold solid-fill
+     "hero" stat card, and a dramatic near-black card for the highest-
+     stakes controls, in place of flat white-on-white everywhere). */
+  .admin-shell {
+    --background: 32 16% 95%;
+    --sidebar: 36 25% 98%;
+    --sidebar-foreground: 20 15% 20%;
+    /* Stat-card gold. Deeper than brand --primary (45 69% 50%) on purpose:
+       white text on the brand gold only reaches ~2:1 contrast, this hits
+       ~4.4:1 so the labels stay readable. */
+    --admin-stat: 40 54% 38%;
+    --admin-critical-from: 15 22% 11%;
+    --admin-critical-to: 0 0% 5%;
+  }
+
+  .dark .admin-shell {
+    --background: 0 0% 5%;
+    --sidebar: 0 0% 9%;
+    --sidebar-foreground: 0 0% 92%;
+    --admin-stat: 40 54% 34%;
+    --admin-critical-from: 0 0% 4%;
+    --admin-critical-to: 0 0% 2%;
+  }
 }
 
 @layer base {

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCommissionRatePercent } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -65,8 +66,8 @@ serve(async (req) => {
             const itemPrice = paymentLink.product ? paymentLink.product.price_ksh : paymentLink.custom_price_ksh;
             const deliveryFee = paymentLink.delivery_fee_ksh || 0;
             const total = itemPrice + deliveryFee;
-            const commissionRate = 6;
-            const commissionAmount = total * 0.06;
+            const commissionRate = await getCommissionRatePercent(supabaseClient);
+            const commissionAmount = total * (commissionRate / 100);
             const payoutAmount = total - commissionAmount;
 
             // 1. Insert order

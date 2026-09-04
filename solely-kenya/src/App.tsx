@@ -8,7 +8,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { SneakerLoader } from "./components/ui/SneakerLoader";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { OfflineBanner } from "./components/OfflineBanner";
+import { MaintenanceBanner } from "./components/MaintenanceBanner";
 import { AdminGuard } from "./components/admin/AdminGuard";
+import { usePlatformSettings } from "./hooks/usePlatformSettings";
+import { captureFirstTouchSource } from "./lib/attribution";
+import { useAuth } from "./hooks/useAuth";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +77,8 @@ const AdminProducts = lazyRetry(() => import("./pages/admin/AdminProducts"), "Ad
 const AdminComms = lazyRetry(() => import("./pages/admin/AdminComms"), "AdminComms");
 const AdminMailingList = lazyRetry(() => import("./pages/admin/AdminMailingList"), "AdminMailingList");
 const AdminActivity = lazyRetry(() => import("./pages/admin/AdminActivity"), "AdminActivity");
+const AdminSettings = lazyRetry(() => import("./pages/admin/AdminSettings"), "AdminSettings");
+const AdminGrowth = lazyRetry(() => import("./pages/admin/AdminGrowth"), "AdminGrowth");
 const AdminOrders = lazyRetry(() => import("./pages/admin/AdminOrders"), "AdminOrders");
 const AdminVendorDetail = lazyRetry(() => import("./pages/admin/AdminVendorDetail"), "AdminVendorDetail");
 const Blog = lazyRetry(() => import("./pages/Blog"), "Blog");
@@ -168,6 +174,8 @@ const AnimatedRoutes = () => {
       <Route path="/admin/comms" element={<PageWrapper><AdminGuard><AdminComms /></AdminGuard></PageWrapper>} />
       <Route path="/admin/mailing-list" element={<PageWrapper><AdminGuard><AdminMailingList /></AdminGuard></PageWrapper>} />
       <Route path="/admin/activity" element={<PageWrapper><AdminGuard><AdminActivity /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/settings" element={<PageWrapper><AdminGuard><AdminSettings /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/growth" element={<PageWrapper><AdminGuard><AdminGrowth /></AdminGuard></PageWrapper>} />
       <Route path="/admin/orders" element={<PageWrapper><AdminGuard><AdminOrders /></AdminGuard></PageWrapper>} />
       <Route path="/admin/vendors/:vendorId" element={<PageWrapper><AdminGuard><AdminVendorDetail /></AdminGuard></PageWrapper>} />
 
@@ -186,11 +194,21 @@ const Maintenance = lazyRetry(() => import("./pages/Maintenance"));
 const AppLayout = () => {
   const location = useLocation();
 
-  // EMERGENCY MAINTENANCE MODE
-  // Set to true to hide the website from the public
-  const IS_MAINTENANCE_MODE = false;
+  // Admin-controlled emergency kill switch (Admin > Settings > Feature
+  // flags). Defaults to off via usePlatformSettings' initialData, so a
+  // normal page load never blocks on this fetch - only a real toggle
+  // (rare) causes a swap to the maintenance page once it resolves.
+  const { data: platformSettings } = usePlatformSettings();
 
-  if (IS_MAINTENANCE_MODE) {
+  // A logged-in admin is exempt everywhere, not just on /admin - otherwise
+  // turning maintenance mode on would block the admin from browsing their
+  // own live site to check on things while it's up for nobody else. /auth
+  // is always exempt too, so an admin who isn't currently logged in (fresh
+  // browser, expired session) can still sign in and reach /admin at all.
+  const { isAdmin } = useAuth();
+  const isMaintenanceExempt = isAdmin || location.pathname.startsWith("/auth");
+
+  if (platformSettings.maintenanceMode && !isMaintenanceExempt) {
     return (
       <React.Suspense fallback={<SneakerLoader message="Maintenance..." />}>
         <Maintenance />
@@ -200,6 +218,7 @@ const AppLayout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <MaintenanceBanner />
       <OfflineBanner />
       <ScrollToTop />
       <React.Suspense fallback={<SneakerLoader message="Loading..." />}>
@@ -210,18 +229,24 @@ const AppLayout = () => {
   );
 };
 
-const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <AppLayout />
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
-);
+const App = () => {
+  React.useEffect(() => {
+    captureFirstTouchSource();
+  }, []);
+
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <AppLayout />
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+};
 
 export default App;

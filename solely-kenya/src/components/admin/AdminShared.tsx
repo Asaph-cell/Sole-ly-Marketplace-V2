@@ -2,7 +2,11 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { Search, SlidersHorizontal, LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
-import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
+} from "recharts";
+import { Link } from "react-router-dom";
 
 interface StatBarProps {
   label: string;
@@ -11,59 +15,40 @@ interface StatBarProps {
   progress?: number;
   alert?: boolean;
   icon?: LucideIcon;
-  variant?: "default" | "hero";
   delay?: number;
 }
 
-export function StatBar({ label, value, hint, progress, alert, icon: Icon, variant = "default", delay = 0 }: StatBarProps) {
-  const isHero = variant === "hero";
+// One card treatment for every stat - solid gold fill, white text, same
+// type scale and icon badge across the row. No "hero" variant: a single
+// odd-one-out card just read as inconsistent next to the others.
+export function StatBar({ label, value, hint, progress, alert, icon: Icon, delay = 0 }: StatBarProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay }}
-      className={cn(
-        "rounded-xl border-l-[3px] border border-border px-3.5 py-3 bg-card shadow-soft hover:shadow-hover hover:-translate-y-0.5 transition-all",
-        alert
-          ? "border-l-destructive border-destructive/30"
-          : "border-l-primary"
-      )}
+      className="rounded-2xl px-4 py-4 shadow-soft hover:shadow-hover hover:-translate-y-0.5 transition-all text-white"
+      style={{ background: alert ? "hsl(var(--destructive))" : "hsl(var(--admin-stat))" }}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className={cn(
-          "text-[10px]",
-          alert ? "text-destructive" : "text-muted-foreground"
-        )}>
-          {label}
-        </p>
+        <p className="text-[11px] text-white/90">{label}</p>
         {Icon && (
-          <div className={cn(
-            "h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0",
-            alert ? "bg-destructive/10" : "bg-primary/10"
-          )}>
-            <Icon size={12} strokeWidth={2} className={alert ? "text-destructive" : "text-primary"} />
+          <div className="h-7 w-7 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0">
+            <Icon size={13} strokeWidth={2} className="text-white" />
           </div>
         )}
       </div>
-      <p className={cn(
-        "font-medium mt-0.5",
-        isHero
-          ? "text-3xl sm:text-4xl bg-clip-text text-transparent bg-gradient-to-br from-primary to-amber-600"
-          : "text-lg",
-        !isHero && (alert ? "text-destructive" : "text-foreground")
-      )}>
-        {value}
-      </p>
+      <p className="font-bold mt-1.5 text-2xl tracking-tight">{value}</p>
       {progress !== undefined && (
-        <div className="h-[3px] rounded-full bg-border mt-2">
+        <div className="h-[3px] rounded-full bg-white/20 mt-2">
           <div
-            className="h-full rounded-full bg-primary transition-all"
+            className="h-full rounded-full bg-white transition-all"
             style={{ width: `${progress}%` }}
           />
         </div>
       )}
       {hint && (
-        <p className="text-[10px] text-muted-foreground mt-1">{hint}</p>
+        <p className="text-[10px] text-white/60 mt-1">{hint}</p>
       )}
     </motion.div>
   );
@@ -262,5 +247,155 @@ export function MiniAreaChart({ data, dataKey, height = 200, gradientId, showAxe
         />
       </AreaChart>
     </ResponsiveContainer>
+  );
+}
+
+export interface DonutDatum {
+  name: string;
+  value: number;
+  /** A CSS color value, e.g. "hsl(var(--primary))". Falls back to the default palette by index. */
+  color?: string;
+}
+
+// Reuses the same 4 status hues already used throughout the admin pages
+// (StatusPill, the Orders-at-a-glance tiles on AdminDashboard) rather than
+// introducing a new categorical palette - this app has one small, fixed
+// vocabulary of state colors (primary/success/destructive/muted).
+const DEFAULT_DONUT_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--success))",
+  "hsl(var(--destructive))",
+  "hsl(var(--muted-foreground))",
+];
+
+interface DonutChartProps {
+  data: DonutDatum[];
+  height?: number;
+  centerLabel?: string;
+  centerValue?: string | number;
+}
+
+/** Status-breakdown donut with a legend, matching the inspiration dashboards' "Overall Status" widget. */
+export function DonutChart({ data, height = 200, centerLabel, centerValue }: DonutChartProps) {
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+
+  return (
+    <div className="flex items-center gap-4">
+      <div className="relative flex-shrink-0" style={{ width: height, height }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              innerRadius="65%"
+              outerRadius="100%"
+              paddingAngle={data.length > 1 ? 2 : 0}
+              stroke="none"
+            >
+              {data.map((entry, i) => (
+                <Cell key={entry.name} fill={entry.color ?? DEFAULT_DONUT_COLORS[i % DEFAULT_DONUT_COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(v: number, name: string) => [`${v} (${total > 0 ? Math.round((v / total) * 100) : 0}%)`, name]}
+              contentStyle={{
+                background: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "8px",
+                fontSize: "11px",
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        {(centerLabel || centerValue !== undefined) && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            {centerValue !== undefined && <p className="text-lg font-semibold text-foreground">{centerValue}</p>}
+            {centerLabel && <p className="text-[10px] text-muted-foreground text-center px-2">{centerLabel}</p>}
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-1.5 min-w-0">
+        {data.map((d, i) => (
+          <div key={d.name} className="flex items-center gap-2 text-xs min-w-0">
+            <span
+              className="w-2 h-2 rounded-full flex-shrink-0"
+              style={{ background: d.color ?? DEFAULT_DONUT_COLORS[i % DEFAULT_DONUT_COLORS.length] }}
+            />
+            <span className="text-muted-foreground truncate">{d.name}</span>
+            <span className="text-foreground font-medium ml-auto pl-2">{d.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export interface DataTableColumn<T> {
+  header: string;
+  cell: (row: T) => React.ReactNode;
+  align?: "left" | "right";
+  className?: string;
+}
+
+interface DataTableProps<T> {
+  columns: DataTableColumn<T>[];
+  rows: T[];
+  rowKey: (row: T) => string;
+  viewAllHref?: string;
+  emptyMessage?: string;
+}
+
+/** Compact list table matching the inspirations' "Recent Payroll Runs"/"Recent Transactions" widgets. */
+export function DataTable<T>({ columns, rows, rowKey, viewAllHref, emptyMessage = "Nothing to show yet" }: DataTableProps<T>) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b border-border">
+            {columns.map(col => (
+              <th
+                key={col.header}
+                className={cn(
+                  "py-2 font-medium text-muted-foreground whitespace-nowrap",
+                  col.align === "right" ? "text-right pl-3" : "text-left pr-3"
+                )}
+              >
+                {col.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {rows.map(row => (
+            <tr key={rowKey(row)} className="hover:bg-muted/40 transition-colors">
+              {columns.map(col => (
+                <td
+                  key={col.header}
+                  className={cn(
+                    "py-2.5",
+                    col.align === "right" ? "text-right pl-3" : "text-left pr-3",
+                    col.className
+                  )}
+                >
+                  {col.cell(row)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {rows.length === 0 && (
+        <p className="text-xs text-muted-foreground text-center py-6">{emptyMessage}</p>
+      )}
+      {viewAllHref && rows.length > 0 && (
+        <div className="pt-2 text-right">
+          <Link to={viewAllHref} className="text-[11px] text-primary hover:underline font-medium">
+            View all &rarr;
+          </Link>
+        </div>
+      )}
+    </div>
   );
 }

@@ -6,6 +6,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getPayoutFeeSchedule, resolvePayoutFee } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -133,15 +134,9 @@ serve(async (req: Request) => {
             throw new Error('No balance available for withdrawal. Your wallet is empty.');
         }
 
-        // IntaSend Fees Logic (Disbursement to M-Pesa)
-        // 0 - 100: KES 10
-        // 101 - 1000: KES 20
-        // 1001 - 150000: KES 100 (Maximum)
-
-        let transactionFee = 0;
-        if (totalBalance <= 100) transactionFee = 10;
-        else if (totalBalance <= 1000) transactionFee = 20;
-        else transactionFee = 100;
+        // IntaSend disbursement fee (admin-editable, Admin > Settings > Financial)
+        const payoutFeeSchedule = await getPayoutFeeSchedule(supabase);
+        const transactionFee = resolvePayoutFee(payoutFeeSchedule, totalBalance);
 
         // Calculate actual amount to send
         const amountToSend = totalBalance - transactionFee;

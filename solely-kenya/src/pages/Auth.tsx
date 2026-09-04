@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Mail, CheckCircle2, ArrowLeft, KeyRound } from "lucide-react";
 import logo from "@/assets/solely-logo.svg";
+import { getAttributionSource } from "@/lib/attribution";
 
 // Production URL for email verification redirect
 const SITE_URL = "https://solelymarketplace.com";
@@ -132,6 +133,7 @@ const Auth = () => {
         await supabase.from("profiles").upsert({
           id: data.user.id,
           full_name: fullName,
+          signup_source: getAttributionSource(),
         });
 
         // Show prominent email verification message

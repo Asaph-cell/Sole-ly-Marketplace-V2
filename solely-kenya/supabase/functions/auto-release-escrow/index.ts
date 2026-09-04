@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { getCommissionRatePercent } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -31,6 +32,7 @@ serve(async (req) => {
         auto_release_at,
         payout_amount,
         commission_amount,
+        commission_rate,
         escrow_transactions(id, status, release_amount, commission_amount)
       `)
       .eq('status', 'delivered')
@@ -50,6 +52,7 @@ serve(async (req) => {
 
     const releasedOrders = [];
     const failedOrders = [];
+    const fallbackRate = await getCommissionRatePercent(supabase);
 
     for (const order of ordersToRelease) {
       try {
@@ -105,9 +108,9 @@ serve(async (req) => {
           .insert({
             order_id: order.id,
             vendor_id: order.vendor_id,
-            commission_rate: 6,
+            commission_rate: order.commission_rate ?? fallbackRate,
             commission_amount: escrow.commission_amount,
-            notes: 'Auto-released 6 hours after buyer entered Package PIN (no vendor OTP)',
+            notes: 'Auto-released after buyer entered Package PIN (no vendor OTP)',
           });
 
         if (commissionError) {

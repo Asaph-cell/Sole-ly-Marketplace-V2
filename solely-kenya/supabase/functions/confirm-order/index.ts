@@ -9,6 +9,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCommissionRatePercent } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -90,9 +91,12 @@ serve(async (req: Request) => {
         if (updateEscrowError) console.error('Escrow update failed (non-critical if order is completed):', updateEscrowError);
 
         // C. Create Payout Record (CRITICAL MISSING STEP)
-        // Calculate 94% of total order value (assuming 6% commission) - or use stored commission
-        const payoutAmount = order.payout_amount ?? (order.total_ksh * 0.94);
-        const commissionAmount = order.commission_amount ?? (order.total_ksh * 0.06);
+        // Prefer the amounts locked in at order creation; only recompute
+        // from the current platform rate as a fallback for legacy rows
+        // that somehow lack a stored payout/commission amount.
+        const currentRate = order.commission_rate ?? await getCommissionRatePercent(supabase);
+        const payoutAmount = order.payout_amount ?? (order.total_ksh * (1 - currentRate / 100));
+        const commissionAmount = order.commission_amount ?? (order.total_ksh * (currentRate / 100));
 
         console.log(`Creating payout: vendor=${order.vendor_id}, order=${orderId}, amount=${payoutAmount}, commission=${commissionAmount}`);
 
@@ -120,7 +124,7 @@ serve(async (req: Request) => {
             .insert({
                 order_id: orderId,
                 vendor_id: order.vendor_id,
-                commission_rate: 6, // 6% commission
+                commission_rate: currentRate,
                 commission_amount: commissionAmount,
                 notes: "Buyer confirmed delivery",
             });

@@ -17,6 +17,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendEmail, emailTemplates } from "../_shared/email-service.ts";
+import { getPlatformSetting } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -36,8 +37,10 @@ Deno.serve(async (req: Request) => {
 
         // Find orders that are:
         // 1. Status = pending_vendor_confirmation
-        // 2. Created more than 48 hours ago
-        const cutoffTime = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+        // 2. Created more than `vendor_confirm_hours` ago (admin-editable,
+        //    Admin > Settings > Time windows; defaults to 48)
+        const vendorConfirmHours = await getPlatformSetting(supabase, "vendor_confirm_hours", 48);
+        const cutoffTime = new Date(Date.now() - vendorConfirmHours * 60 * 60 * 1000).toISOString();
 
         const { data: staleOrders, error: fetchError } = await supabase
             .from("orders")

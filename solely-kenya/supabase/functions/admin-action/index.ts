@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendEmail, emailTemplates } from "../_shared/email-service.ts";
+import { getPlatformSetting } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,11 +14,18 @@ type AdminAction =
   | "delete_product"
   | "penalize_vendor"
   | "revoke_vendor"
-  | "restore_vendor";
+  | "restore_vendor"
+  | "update_platform_setting"
+  | "promote_to_admin"
+  | "revoke_admin";
 
 interface AdminActionRequest {
   action: AdminAction;
-  targetId: string; // product ID or vendor user ID
+  targetId?: string; // product ID or vendor user ID - not used for update_platform_setting/promote_to_admin/revoke_admin
+  key?: string; // platform_settings key - update_platform_setting only
+  value?: unknown; // new value - update_platform_setting only
+  email?: string; // account to promote/revoke - promote_to_admin/revoke_admin only
+  reason?: string; // required for high-risk actions (update_platform_setting, promote_to_admin, revoke_admin)
 }
 
 serve(async (req) => {
@@ -60,10 +69,14 @@ serve(async (req) => {
     }
 
     // Parse request
-    const { action, targetId }: AdminActionRequest = await req.json();
+    const { action, targetId, key, value, email, reason }: AdminActionRequest = await req.json();
 
-    if (!action || !targetId) {
-      throw new Error("Missing required fields: action, targetId");
+    if (!action) {
+      throw new Error("Missing required field: action");
+    }
+    const targetIdOptionalActions: AdminAction[] = ["update_platform_setting", "promote_to_admin", "revoke_admin"];
+    if (!targetIdOptionalActions.includes(action) && !targetId) {
+      throw new Error("Missing required field: targetId");
     }
 
     let result: any = { success: true };
@@ -232,6 +245,184 @@ serve(async (req) => {
           new_role: "vendor",
         });
         result.message = "Vendor access restored";
+        break;
+      }
+
+      // ── User Roles ──
+      case "promote_to_admin": {
+        const normalizedEmail = email?.trim().toLowerCase();
+        if (!normalizedEmail) {
+          throw new Error("Missing required field: email");
+        }
+        if (!reason || !reason.trim()) {
+          throw new Error("A reason is required for granting admin access");
+        }
+
+        const { data: targetProfile } = await serviceClient
+          .from("profiles")
+          .select("id, full_name, email")
+          .eq("email", normalizedEmail)
+          .maybeSingle();
+
+        if (!targetProfile) {
+          throw new Error(`No account found with email ${normalizedEmail} — they need to sign up first`);
+        }
+
+        const { data: existingRole } = await serviceClient
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", targetProfile.id)
+          .eq("role", "admin")
+          .maybeSingle();
+
+        if (existingRole) {
+          result.message = `${normalizedEmail} is already an admin`;
+          break;
+        }
+
+        const { count: adminCount } = await serviceClient
+          .from("user_roles")
+          .select("*", { count: "exact", head: true })
+          .eq("role", "admin");
+
+        const maxAdmins = await getPlatformSetting(serviceClient, "max_admins", 3);
+        if ((adminCount ?? 0) >= maxAdmins) {
+          throw new Error(`Cannot add more admins — the limit is ${maxAdmins}. Remove one first.`);
+        }
+
+        // assign_admin_role is locked down to service_role only (see
+        // migration 20260904000400) - this is the one legitimate caller.
+        const { error: rpcError } = await serviceClient.rpc("assign_admin_role", {
+          _user_email: normalizedEmail,
+        });
+        if (rpcError) throw rpcError;
+
+        const { data: grantedByProfile } = await serviceClient
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+
+        await serviceClient.from("admin_activity_log").insert({
+          admin_id: user.id,
+          action_type: "promote_to_admin",
+          target_type: "user",
+          target_id: targetProfile.id,
+          vendor_id: null,
+          details: { email: normalizedEmail, reason },
+        });
+
+        result.message = `${normalizedEmail} is now an admin`;
+
+        if (targetProfile.email) {
+          const siteUrl = Deno.env.get("SITE_URL") || "https://solelymarketplace.com";
+          const emailResult = await sendEmail({
+            to: targetProfile.email,
+            subject: "You've Been Added as an Admin on Sole-ly",
+            html: emailTemplates.adminGranted({
+              recipientName: targetProfile.full_name || "there",
+              grantedByName: grantedByProfile?.full_name || "An admin",
+              adminUrl: `${siteUrl}/admin`,
+            }),
+          });
+          if (!emailResult.success) {
+            console.error("Failed to send admin-granted email:", emailResult.error);
+            // Don't fail the whole action over a notification email - the
+            // grant itself succeeded - but surface it so the admin isn't
+            // left thinking a silent email actually went out.
+            result.message += ` (notification email failed to send: ${emailResult.error})`;
+          }
+        }
+        break;
+      }
+
+      case "revoke_admin": {
+        const normalizedEmail = email?.trim().toLowerCase();
+        if (!normalizedEmail) {
+          throw new Error("Missing required field: email");
+        }
+        if (!reason || !reason.trim()) {
+          throw new Error("A reason is required for removing admin access");
+        }
+
+        const { data: targetProfile } = await serviceClient
+          .from("profiles")
+          .select("id, full_name, email")
+          .eq("email", normalizedEmail)
+          .maybeSingle();
+
+        if (!targetProfile) {
+          throw new Error(`No account found with email ${normalizedEmail}`);
+        }
+
+        const { count: adminCount } = await serviceClient
+          .from("user_roles")
+          .select("*", { count: "exact", head: true })
+          .eq("role", "admin");
+
+        if ((adminCount ?? 0) <= 1) {
+          throw new Error("Cannot remove the last remaining admin");
+        }
+
+        const { error, count: deletedCount } = await serviceClient
+          .from("user_roles")
+          .delete({ count: "exact" })
+          .eq("user_id", targetProfile.id)
+          .eq("role", "admin");
+        if (error) throw error;
+
+        if (!deletedCount) {
+          result.message = `${normalizedEmail} was not an admin`;
+          break;
+        }
+
+        await serviceClient.from("admin_activity_log").insert({
+          admin_id: user.id,
+          action_type: "revoke_admin",
+          target_type: "user",
+          target_id: targetProfile.id,
+          vendor_id: null,
+          details: { email: normalizedEmail, reason },
+        });
+
+        result.message = `Removed admin access for ${normalizedEmail}`;
+        break;
+      }
+
+      // ── Platform Settings ──
+      case "update_platform_setting": {
+        if (!key || value === undefined) {
+          throw new Error("Missing required fields: key, value");
+        }
+        if (!reason || !reason.trim()) {
+          throw new Error("A reason is required for settings changes");
+        }
+
+        const { data: previous } = await serviceClient
+          .from("platform_settings")
+          .select("value")
+          .eq("key", key)
+          .maybeSingle();
+
+        const { error } = await serviceClient
+          .from("platform_settings")
+          .upsert({ key, value, updated_at: new Date().toISOString(), updated_by: user.id });
+        if (error) throw error;
+
+        // Distinct shape from logActivity: no vendor_id, no real target_id
+        // (a setting key isn't a uuid), and the reason is stored alongside
+        // the before/after value instead.
+        const { error: logError } = await serviceClient.from("admin_activity_log").insert({
+          admin_id: user.id,
+          action_type: "update_platform_setting",
+          target_type: "setting",
+          target_id: null,
+          vendor_id: null,
+          details: { key, previous_value: previous?.value ?? null, new_value: value, reason },
+        });
+        if (logError) console.error("Failed to record admin activity:", logError);
+
+        result.message = `Setting "${key}" updated`;
         break;
       }
 

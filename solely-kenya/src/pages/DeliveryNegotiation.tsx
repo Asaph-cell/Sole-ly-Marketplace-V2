@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
+import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 interface DeliveryAgreement {
   id: string;
@@ -781,12 +782,13 @@ const InlineCheckout = ({
 }) => {
   const subtotal = products.reduce((sum, p) => sum + (p.price_ksh || 0), 0);
   const total = subtotal + agreement.delivery_fee_ksh;
+  const { data: platformSettings } = usePlatformSettings();
 
   const handleCheckout = async () => {
     if (processing) return;
     setProcessing(true);
     try {
-      const commissionRate = 6;
+      const commissionRate = platformSettings.commissionRatePercent;
       const subtotalRounded = Number(subtotal.toFixed(2));
       const deliveryFee = Number(agreement.delivery_fee_ksh.toFixed(2));
       const finalTotal = Number((subtotalRounded + deliveryFee).toFixed(2));

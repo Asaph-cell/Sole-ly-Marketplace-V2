@@ -16,6 +16,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getPlatformSetting } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -110,10 +111,13 @@ serve(async (req: Request) => {
         // Generate 6-digit OTP for fund release
         const otp = generateOTP();
 
-        // Auto-release fires 6 hours after buyer enters PIN (delivery orders only)
+        // Backstop only: funds normally release the moment the vendor enters
+        // the 6-digit OTP below. This timer just covers the case where they
+        // never do. Window is admin-editable (Admin > Settings > Time windows).
+        const pinReleaseHours = await getPlatformSetting(supabase, "pin_release_hours", 6);
         const deliveryType = order.order_shipping_details?.[0]?.delivery_type ?? "delivery";
         const autoReleaseAt = deliveryType === "delivery"
-            ? new Date(now.getTime() + 6 * 60 * 60 * 1000).toISOString()
+            ? new Date(now.getTime() + pinReleaseHours * 60 * 60 * 1000).toISOString()
             : null; // No auto-release for pickup
 
         // Update order

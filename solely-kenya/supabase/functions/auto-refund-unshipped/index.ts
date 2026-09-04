@@ -14,6 +14,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendEmail, emailTemplates } from "../_shared/email-service.ts";
+import { getPlatformSetting } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -33,8 +34,10 @@ Deno.serve(async (req: Request) => {
 
         // Find orders that are:
         // 1. Status = vendor_confirmed, processing, or accepted (confirmed but not arrived)
-        // 2. Confirmed more than 5 days ago
-        const cutoffTime = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
+        // 2. Confirmed more than `auto_dispute_days` ago (admin-editable,
+        //    Admin > Settings > Time windows; defaults to 5)
+        const autoDisputeDays = await getPlatformSetting(supabase, "auto_dispute_days", 5);
+        const cutoffTime = new Date(Date.now() - autoDisputeDays * 24 * 60 * 60 * 1000).toISOString();
 
         const { data: undeliveredOrders, error: fetchError } = await supabase
             .from("orders")

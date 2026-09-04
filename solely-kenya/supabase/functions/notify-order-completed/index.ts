@@ -6,6 +6,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendEmail, emailTemplates } from "../_shared/email-service.ts";
+import { getCommissionRatePercent } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -76,7 +77,8 @@ Deno.serve(async (req: Request) => {
         }
         
         const vendorName = order.vendor?.store_name || order.vendor?.full_name || "Vendor";
-        const payoutAmount = order.payout_amount || (order.total_ksh * 0.94);
+        const payoutAmount = order.payout_amount ||
+            (order.total_ksh * (1 - (await getCommissionRatePercent(supabase)) / 100));
 
         const promises = [];
 

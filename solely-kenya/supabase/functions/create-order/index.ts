@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { getCommissionRatePercent } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -94,7 +95,7 @@ serve(async (req) => {
       throw new Error("Checkout currently supports items from one vendor at a time");
     }
 
-    const commissionRate = 6;
+    const commissionRate = await getCommissionRatePercent(supabase);
 
     let subtotal = 0;
     const itemPayload = body.items.map((item) => {

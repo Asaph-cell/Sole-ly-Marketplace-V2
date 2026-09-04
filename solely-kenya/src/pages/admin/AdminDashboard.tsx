@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { StatBar, MiniAreaChart } from "@/components/admin/AdminShared";
+import { StatBar, MiniAreaChart, DonutChart, DataTable, StatusPill } from "@/components/admin/AdminShared";
 import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, Star, DollarSign, Percent, Store, Scale, Clock, CheckCircle2, XCircle } from "lucide-react";
+import {
+  AlertTriangle, Star, DollarSign, Percent, Store, Scale, Clock,
+  CheckCircle2, XCircle, ClipboardList, Megaphone, Settings, Mail,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface LowRatedVendor {
@@ -15,6 +18,21 @@ interface LowRatedVendor {
   avg_rating: number;
   rating_count: number;
 }
+
+interface RecentOrder {
+  id: string;
+  total_ksh: number;
+  status: string;
+  created_at: string;
+  customer_name: string;
+}
+
+const QUICK_ACTIONS = [
+  { label: "Orders", icon: ClipboardList, href: "/admin/orders" },
+  { label: "Announce", icon: Megaphone, href: "/admin/comms" },
+  { label: "Mailing List", icon: Mail, href: "/admin/mailing-list" },
+  { label: "Settings", icon: Settings, href: "/admin/settings" },
+];
 
 const AdminDashboard = () => {
   const { toast } = useToast();
@@ -34,6 +52,7 @@ const AdminDashboard = () => {
   const [dailyRevenue, setDailyRevenue] = useState<{ date: string, revenue: number, orders: number }[]>([]);
   const [activityFeed, setActivityFeed] = useState<any[]>([]);
   const [lowRatedVendors, setLowRatedVendors] = useState<LowRatedVendor[]>([]);
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
 
   useEffect(() => {
     loadData();
@@ -67,8 +86,8 @@ const AdminDashboard = () => {
         supabase.from("orders").select("total_ksh").eq("status", "completed"),
         supabase.from("orders").select("total_ksh").eq("status", "completed").gte("created_at", monthStart),
         supabase.from("orders").select("created_at, total_ksh").gte("created_at", thirtyDaysAgo).order("created_at", { ascending: true }),
-        // For activity feed
-        supabase.from("orders").select("id, created_at, status").order("created_at", { ascending: false }).limit(10),
+        // For the activity feed and the recent-orders table
+        supabase.from("orders").select("id, created_at, status, total_ksh, customer:profiles!customer_id(full_name)").order("created_at", { ascending: false }).limit(10),
         supabase.from("disputes").select("id, opened_at, status").order("opened_at", { ascending: false }).limit(10),
       ]);
 
@@ -114,6 +133,16 @@ const AdminDashboard = () => {
         date, revenue: data.revenue, orders: data.orders
       }));
 
+      setRecentOrders(
+        (recentOrdersData || []).map((o: any) => ({
+          id: o.id,
+          total_ksh: o.total_ksh,
+          status: o.status,
+          created_at: o.created_at,
+          customer_name: o.customer?.full_name || "Unknown",
+        }))
+      );
+
       // Combine and sort for activity feed
       const feed = [
         ...(recentOrdersData || []).map(o => ({
@@ -156,95 +185,46 @@ const AdminDashboard = () => {
 
   const formatCurrency = (val: number) => `KES ${val.toLocaleString()}`;
 
+  const orderStatusDonut = [
+    { name: "Pending", value: stats.pendingOrders },
+    { name: "Completed", value: stats.completedOrders },
+    { name: "Disputed", value: stats.disputedOrders },
+  ].filter(d => d.value > 0);
+
   return (
     <AdminLayout>
       {loadingData ? (
         <SneakerLoader message="Loading..." fullScreen={false} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          
-          {/* Left column */}
-          <div className="flex flex-col gap-2.5">
-            {/* Main revenue stat */}
-            <StatBar
-              label="Total revenue"
-              value={formatCurrency(stats.totalRevenue)}
-              icon={DollarSign}
-              variant="hero"
-            />
+        <div className="flex flex-col gap-4">
 
-            {/* 2-col sub stats */}
-            <div className="grid grid-cols-2 gap-2">
-              <StatBar label="This month" value={formatCurrency(stats.monthlyRevenue)} icon={DollarSign} delay={0.05} />
-              <StatBar label="Commission" value={formatCurrency(stats.netCommission)} icon={Percent} delay={0.1} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <StatBar label="Vendors" value={stats.totalVendors} icon={Store} delay={0.15} />
-              <StatBar
-                label="Disputes"
-                value={`${stats.openDisputes} open`}
-                alert={stats.openDisputes > 0}
-                icon={Scale}
-                delay={0.2}
-              />
-            </div>
-
-            {/* Orders at a glance */}
-            <div className="rounded-xl border border-border bg-card shadow-soft px-4 py-3">
-              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-3">
-                Orders
-              </p>
-              <div className="grid grid-cols-3 divide-x divide-border">
-                {[
-                  { label: "Pending", value: stats.pendingOrders, color: "text-primary", bg: "bg-primary/10", icon: Clock },
-                  { label: "Completed", value: stats.completedOrders, color: "text-success", bg: "bg-success/10", icon: CheckCircle2 },
-                  { label: "Disputed", value: stats.disputedOrders, color: "text-destructive", bg: "bg-destructive/10", icon: XCircle },
-                ].map(item => (
-                  <div key={item.label} className="flex flex-col items-center gap-1 py-1">
-                    <div className={cn("h-7 w-7 rounded-full flex items-center justify-center", item.bg)}>
-                      <item.icon size={13} strokeWidth={2} className={item.color} />
-                    </div>
-                    <p className={cn("text-base font-medium", item.color)}>
-                      {item.value}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">{item.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Vendors needing attention */}
-            {lowRatedVendors.length > 0 && (
-              <div className="rounded-xl border border-border bg-card shadow-soft px-4 py-3">
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                  <AlertTriangle size={11} strokeWidth={2} className="text-destructive" />
-                  Vendors needing attention
-                </p>
-                <div className="flex flex-col divide-y divide-border">
-                  {lowRatedVendors.map(v => (
-                    <Link key={v.vendor_id} to={`/admin/vendors/${v.vendor_id}`} className="flex items-center gap-2.5 py-2 first:pt-0 last:pb-0 group">
-                      <div className="w-7 h-7 rounded-full bg-primary/15 flex-shrink-0 flex items-center justify-center text-[10px] font-medium text-primary">
-                        {v.store_name.charAt(0).toUpperCase()}
-                      </div>
-                      <span className="flex-1 min-w-0 text-xs text-foreground group-hover:text-primary transition-colors truncate">
-                        {v.store_name}
-                      </span>
-                      <div className="flex items-center gap-1 flex-shrink-0 text-[11px] text-muted-foreground">
-                        <Star size={10} strokeWidth={1.5} className="text-destructive fill-destructive" />
-                        {v.avg_rating.toFixed(1)} ({v.rating_count})
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
+          {/* Stat card row */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatBar label="Total revenue" value={formatCurrency(stats.totalRevenue)} icon={DollarSign} />
+            <StatBar label="This month" value={formatCurrency(stats.monthlyRevenue)} icon={DollarSign} delay={0.05} />
+            <StatBar label="Commission" value={formatCurrency(stats.netCommission)} icon={Percent} delay={0.1} />
+            <StatBar label="Vendors" value={stats.totalVendors} icon={Store} delay={0.15} />
           </div>
 
-          {/* Right column */}
-          <div className="flex flex-col gap-2.5">
-            {/* Mini chart */}
-            <div className="rounded-xl border border-border bg-card shadow-soft p-4">
+          {/* Quick actions */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {QUICK_ACTIONS.map(action => (
+              <Link
+                key={action.href}
+                to={action.href}
+                className="flex items-center gap-2.5 rounded-2xl border border-border bg-card shadow-soft px-3.5 py-3 hover:shadow-hover hover:-translate-y-0.5 transition-all"
+              >
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <action.icon size={14} strokeWidth={2} className="text-primary" />
+                </div>
+                <span className="text-xs font-medium text-foreground truncate">{action.label}</span>
+              </Link>
+            ))}
+          </div>
+
+          {/* Chart + donut row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <div className="lg:col-span-2 rounded-2xl border border-border bg-card shadow-soft p-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-medium text-foreground">Revenue</p>
                 <p className="text-[11px] text-muted-foreground">Last 30 days</p>
@@ -253,45 +233,135 @@ const AdminDashboard = () => {
                 data={dailyRevenue}
                 dataKey="revenue"
                 gradientId="adminRevenue"
-                height={200}
+                height={220}
                 tooltipFormatter={(v) => formatCurrency(v)}
               />
             </div>
 
-            {/* Activity feed */}
-            <div className="rounded-xl border border-border bg-card shadow-soft p-4 flex-1">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-medium text-foreground">
-                  Recent activity
-                </p>
-              </div>
+            <div className="rounded-2xl border border-border bg-card shadow-soft p-4">
+              <p className="text-xs font-medium text-foreground mb-3">Order status</p>
+              {orderStatusDonut.length > 0 ? (
+                <DonutChart
+                  data={orderStatusDonut}
+                  height={140}
+                  centerLabel="Orders"
+                  centerValue={stats.pendingOrders + stats.completedOrders + stats.disputedOrders}
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground py-8 text-center">No orders yet</p>
+              )}
 
-              <div className="flex flex-col divide-y divide-border">
-                {activityFeed.map(item => {
-                  const meta = item.type === "order_complete"
-                    ? { icon: CheckCircle2, color: "text-success", bg: "bg-success/10" }
-                    : item.type === "dispute_open"
-                    ? { icon: Scale, color: "text-destructive", bg: "bg-destructive/10" }
-                    : { icon: DollarSign, color: "text-primary", bg: "bg-primary/10" };
-                  return (
-                    <div key={`${item.type}-${item.id}`} className="flex items-start gap-2.5 py-2.5 first:pt-0 last:pb-0">
-                      <div className={cn("h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0", meta.bg)}>
-                        <meta.icon size={12} strokeWidth={2} className={meta.color} />
+              <div className="mt-3 pt-3 border-t border-border">
+                <div className={cn(
+                  "flex items-center gap-1.5 text-[11px]",
+                  stats.openDisputes > 0 ? "text-destructive" : "text-muted-foreground"
+                )}>
+                  <Scale size={11} strokeWidth={2} />
+                  {stats.openDisputes} open dispute{stats.openDisputes === 1 ? "" : "s"}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent orders table + secondary column */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <div className="lg:col-span-2 rounded-2xl border border-border bg-card shadow-soft p-4">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-medium text-foreground">Recent orders</p>
+              </div>
+              <DataTable
+                rowKey={(o: RecentOrder) => o.id}
+                rows={recentOrders}
+                viewAllHref="/admin/orders"
+                emptyMessage="No orders yet"
+                columns={[
+                  {
+                    header: "Order",
+                    cell: (o) => <span className="font-medium text-foreground">#{o.id.substring(0, 8)}</span>,
+                  },
+                  {
+                    header: "Customer",
+                    cell: (o) => <span className="text-muted-foreground truncate">{o.customer_name}</span>,
+                  },
+                  {
+                    header: "Status",
+                    cell: (o) => <StatusPill status={o.status} />,
+                  },
+                  {
+                    header: "Date",
+                    cell: (o) => <span className="text-muted-foreground whitespace-nowrap">{formatDistanceToNow(new Date(o.created_at), { addSuffix: true })}</span>,
+                  },
+                  {
+                    header: "Total",
+                    align: "right",
+                    cell: (o) => <span className="font-medium text-foreground">{formatCurrency(o.total_ksh)}</span>,
+                  },
+                ]}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              {/* Vendors needing attention */}
+              {lowRatedVendors.length > 0 && (
+                <div className="rounded-2xl border border-border bg-card shadow-soft px-4 py-3">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                    <AlertTriangle size={11} strokeWidth={2} className="text-destructive" />
+                    Vendors needing attention
+                  </p>
+                  <div className="flex flex-col divide-y divide-border">
+                    {lowRatedVendors.map(v => (
+                      <Link key={v.vendor_id} to={`/admin/vendors/${v.vendor_id}`} className="flex items-center gap-2.5 py-2 first:pt-0 last:pb-0 group">
+                        <div className="w-7 h-7 rounded-full bg-primary/15 flex-shrink-0 flex items-center justify-center text-[10px] font-medium text-primary">
+                          {v.store_name.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="flex-1 min-w-0 text-xs text-foreground group-hover:text-primary transition-colors truncate">
+                          {v.store_name}
+                        </span>
+                        <div className="flex items-center gap-1 flex-shrink-0 text-[11px] text-muted-foreground">
+                          <Star size={10} strokeWidth={1.5} className="text-destructive fill-destructive" />
+                          {v.avg_rating.toFixed(1)} ({v.rating_count})
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Activity feed */}
+              <div className="rounded-2xl border border-border bg-card shadow-soft p-4 flex-1">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-medium text-foreground">
+                    Recent activity
+                  </p>
+                </div>
+
+                <div className="flex flex-col divide-y divide-border">
+                  {activityFeed.map(item => {
+                    const meta = item.type === "order_complete"
+                      ? { icon: CheckCircle2, color: "text-success", bg: "bg-success/10" }
+                      : item.type === "dispute_open"
+                      ? { icon: Scale, color: "text-destructive", bg: "bg-destructive/10" }
+                      : { icon: DollarSign, color: "text-primary", bg: "bg-primary/10" };
+                    return (
+                      <div key={`${item.type}-${item.id}`} className="flex items-start gap-2.5 py-2.5 first:pt-0 last:pb-0">
+                        <div className={cn("h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0", meta.bg)}>
+                          <meta.icon size={12} strokeWidth={2} className={meta.color} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-foreground leading-snug">
+                            {item.title}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            {item.timeAgo}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-foreground leading-snug">
-                          {item.title}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
-                          {item.timeAgo}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-                {activityFeed.length === 0 && (
-                  <p className="text-xs text-muted-foreground py-2">No recent activity</p>
-                )}
+                    );
+                  })}
+                  {activityFeed.length === 0 && (
+                    <p className="text-xs text-muted-foreground py-2">No recent activity</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

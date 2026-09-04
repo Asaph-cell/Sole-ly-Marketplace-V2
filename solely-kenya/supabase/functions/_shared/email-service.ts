@@ -303,6 +303,25 @@ export const emailTemplates = {
     // user input. subject is a plain title, so it's still escaped.
     baseEmailLayout(escapeHtml(data.subject), data.bodyHtml),
 
+  adminGranted: (data: {
+    recipientName: string;
+    grantedByName: string;
+    adminUrl: string;
+  }) => baseEmailLayout('You’ve Been Added as an Admin', `
+    <p>Hi ${escapeHtml(data.recipientName)},</p>
+    <p><strong>${escapeHtml(data.grantedByName)}</strong> has given your account admin access on Sole-ly.</p>
+
+    <div class="info-box">
+      <p>You can now manage vendors, orders, disputes, platform settings, and more from the admin dashboard.</p>
+    </div>
+
+    <div class="cta-container">
+      <a href="${data.adminUrl}" class="cta-button">Open Admin Dashboard</a>
+    </div>
+
+    <p style="font-size: 13px; color: #6b7280;">If you weren't expecting this, contact support right away.</p>
+  `),
+
   vendorDeliveryInquiry: (data: {
     buyerName: string;
     productNames: string;

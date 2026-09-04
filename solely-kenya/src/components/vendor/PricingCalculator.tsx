@@ -1,29 +1,36 @@
 import React from 'react';
 import { Lightbulb, Wallet } from 'lucide-react';
+import { usePlatformSettings, resolvePayoutFee } from '@/hooks/usePlatformSettings';
 
 interface PricingCalculatorProps {
   price: number;
 }
 
 export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ price }) => {
+  const { data: platformSettings } = usePlatformSettings();
+
   if (!price || isNaN(price) || price <= 0) return null;
 
-  const solelyFee = Math.ceil(price * 0.06);
-  const txFee = price > 1000 ? 100 : 20;
+  const commissionRate = platformSettings.commissionRatePercent / 100;
+  const schedule = platformSettings.payoutFeeSchedule;
+
+  const solelyFee = Math.ceil(price * commissionRate);
+  const txFee = resolvePayoutFee(schedule, price);
   const youReceive = price - solelyFee - txFee;
-  
-  // Calculate what they should charge to receive 'price' amount exactly
-  // priceToCharge - (priceToCharge * 0.06) - txFee(based on priceToCharge) = price
-  // priceToCharge * 0.94 = price + txFee
-  // priceToCharge = (price + txFee) / 0.94
-  // Note: the txFee might jump to 100 if the bumped price crosses 1000, so we should check the bumped price to determine the correct txFee for the suggestion.
-  let suggestedTxFee = price > 1000 ? 100 : 20;
-  let suggestedPrice = Math.ceil((price + suggestedTxFee) / 0.94);
-  
-  // Recalculate if the suggestion crossed the 1000 threshold
-  if (suggestedPrice > 1000 && suggestedTxFee === 20) {
-    suggestedTxFee = 100;
-    suggestedPrice = Math.ceil((price + suggestedTxFee) / 0.94);
+
+  // Calculate what they should charge to receive 'price' amount exactly:
+  // priceToCharge - (priceToCharge * commissionRate) - txFee(priceToCharge) = price
+  // priceToCharge * (1 - commissionRate) = price + txFee
+  // priceToCharge = (price + txFee) / (1 - commissionRate)
+  // The txFee tier might jump if the bumped price crosses a threshold, so
+  // recheck the fee against the bumped price before settling on it.
+  let suggestedTxFee = resolvePayoutFee(schedule, price);
+  let suggestedPrice = Math.ceil((price + suggestedTxFee) / (1 - commissionRate));
+
+  const feeAtSuggestedPrice = resolvePayoutFee(schedule, suggestedPrice);
+  if (feeAtSuggestedPrice !== suggestedTxFee) {
+    suggestedTxFee = feeAtSuggestedPrice;
+    suggestedPrice = Math.ceil((price + suggestedTxFee) / (1 - commissionRate));
   }
 
   return (
@@ -34,7 +41,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ price }) =
         <div className="flex justify-between items-center text-sm">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-            <span className="text-muted-foreground">Solely Fee (6%)</span>
+            <span className="text-muted-foreground">Solely Fee ({platformSettings.commissionRatePercent}%)</span>
           </div>
           <span className="font-medium text-destructive">- {solelyFee.toLocaleString()} KSh</span>
         </div>

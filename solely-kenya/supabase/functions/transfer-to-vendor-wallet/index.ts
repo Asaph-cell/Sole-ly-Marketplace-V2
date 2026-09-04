@@ -6,13 +6,13 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCommissionRatePercent } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const PLATFORM_COMMISSION_RATE = 0.06; // 6%
 const SETTLEMENT_WALLET_ID = Deno.env.get('INTASEND_SETTLEMENT_WALLET_ID') || 'KZRJ8VY';
 
 serve(async (req: Request) => {
@@ -129,10 +129,17 @@ serve(async (req: Request) => {
 
         const vendorWalletId = vendorBalance.intasend_wallet_id;
 
-        // Calculate vendor share (order total minus commission)
+        // Use the payout amount locked in at order creation (correct even
+        // if the platform commission rate has changed since); only
+        // recompute from the current rate as a fallback for legacy orders
+        // that somehow lack a stored payout_amount.
         const orderTotal = Number(order.total_ksh);
-        const commission = Math.round(orderTotal * PLATFORM_COMMISSION_RATE * 100) / 100;
-        const vendorShare = Math.round((orderTotal - commission) * 100) / 100;
+        let vendorShare = order.payout_amount != null ? Number(order.payout_amount) : null;
+        if (vendorShare === null) {
+            const fallbackRate = await getCommissionRatePercent(supabase);
+            vendorShare = Math.round(orderTotal * (1 - fallbackRate / 100) * 100) / 100;
+        }
+        const commission = Math.round((orderTotal - vendorShare) * 100) / 100;
 
         console.log(`[Transfer to Vendor] Order total: ${orderTotal}, Commission: ${commission}, Vendor share: ${vendorShare}`);
 

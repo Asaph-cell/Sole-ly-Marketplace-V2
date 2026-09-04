@@ -13,6 +13,7 @@ import { MapPin, Store, Truck } from "lucide-react";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { LocationPinMap } from "@/components/LocationPinMap";
 import { Badge } from "@/components/ui/badge";
+import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 const paymentOptions = [
   { value: "intasend", label: "Pay with M-Pesa / Card (Online)", icon: "💳", description: "Secure payment via IntaSend" },
@@ -40,7 +41,7 @@ const Checkout = () => {
   // asked for the same recipient/address info twice.
   const passedDeliveryDetails = (location.state as { deliveryDetails?: any } | null)?.deliveryDetails;
 
-  const CHECKOUT_DISABLED = false;
+  const { data: platformSettings } = usePlatformSettings();
 
   const [processing, setProcessing] = useState(false);
   const [paymentGateway, setPaymentGateway] = useState<string>("intasend");
@@ -154,7 +155,7 @@ const Checkout = () => {
     }
   }, [authLoading, user, navigate]);
 
-  if (CHECKOUT_DISABLED) {
+  if (platformSettings.checkoutDisabled) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-6 text-center px-4 bg-muted/20">
         <div className="p-6 bg-background rounded-full shadow-sm">
@@ -258,7 +259,7 @@ const Checkout = () => {
         throw new Error("This vendor's account is currently unavailable. Please contact support.");
       }
 
-      const commissionRate = 6;
+      const commissionRate = platformSettings.commissionRatePercent;
       let calculatedSubtotal = 0;
       const orderItems = items.map((cartItem) => {
         const product = products.find((p) => p.id === cartItem.productId);

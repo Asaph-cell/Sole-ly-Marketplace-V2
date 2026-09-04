@@ -6,14 +6,12 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getPlatformSetting, getPayoutFeeSchedule, resolvePayoutFee } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-const MINIMUM_AUTO_PAYOUT = 10000;
-const PAYOUT_FEE = 100;
 
 serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
@@ -45,11 +43,14 @@ serve(async (req: Request) => {
 
         console.log(`[Auto-Payout Checker] Starting payout check...`);
 
+        const minimumAutoPayout = await getPlatformSetting(supabase, 'minimum_auto_payout_ksh', 10000);
+        const payoutFeeSchedule = await getPayoutFeeSchedule(supabase);
+
         // Find all vendors with balance >= minimum payout threshold
         const { data: eligibleVendors, error: vendorsError } = await supabase
             .from('vendor_balances')
             .select('vendor_id, pending_balance, total_paid_out')
-            .gte('pending_balance', MINIMUM_AUTO_PAYOUT);
+            .gte('pending_balance', minimumAutoPayout);
 
         if (vendorsError) {
             console.error('[Auto-Payout Checker] Error fetching vendor balances:', vendorsError);
@@ -100,7 +101,7 @@ serve(async (req: Request) => {
                     normalizedPhone = '254' + normalizedPhone;
                 }
 
-                const netPayout = balance - PAYOUT_FEE; // Deduct the KES 100 fee form the balance
+                const netPayout = balance - resolvePayoutFee(payoutFeeSchedule, balance);
 
                 // Atomically claim this balance before paying out, so two
                 // overlapping runs (or a retried/duplicate invocation) can
