@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { AlertTriangle, DollarSign, ToggleLeft, Clock, Save, ShieldCheck, UserPlus, X } from "lucide-react";
-import { edgeErrorMessage } from "@/lib/edgeError";
+import { invokeAdminAction } from "@/lib/edgeError";
 
 type SettingsMap = Record<string, any>;
 
@@ -164,10 +164,9 @@ function AdminsSection({ maxAdmins, onMaxAdminsChange }: { maxAdmins: number; on
     if (!email.trim() || !reason.trim()) return;
     setSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-action", {
-        body: { action: "promote_to_admin", email: email.trim(), reason: reason.trim() },
+      const data = await invokeAdminAction({
+        action: "promote_to_admin", email: email.trim(), reason: reason.trim(),
       });
-      if (error) throw new Error(await edgeErrorMessage(error, "Could not add admin"));
       toast({ title: "Admin added", description: data?.message || `${email} can now access the admin dashboard.` });
       setEmail("");
       setReason("");
@@ -190,10 +189,9 @@ function AdminsSection({ maxAdmins, onMaxAdminsChange }: { maxAdmins: number; on
     if (!a.email || !removeReason.trim()) return;
     setRemoving(true);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-action", {
-        body: { action: "revoke_admin", email: a.email, reason: removeReason.trim() },
+      const data = await invokeAdminAction({
+        action: "revoke_admin", email: a.email, reason: removeReason.trim(),
       });
-      if (error) throw new Error(await edgeErrorMessage(error, "Could not remove admin"));
       toast({ title: "Admin removed", description: data?.message || `${a.email} no longer has admin access.` });
       setRemovingId(null);
       loadAdmins();
@@ -406,10 +404,9 @@ const AdminSettings = () => {
     setSaving(true);
     try {
       for (const key of changedKeys) {
-        const { error } = await supabase.functions.invoke("admin-action", {
-          body: { action: "update_platform_setting", key, value: settings[key], reason: reason.trim() },
+        await invokeAdminAction({
+          action: "update_platform_setting", key, value: settings[key], reason: reason.trim(),
         });
-        if (error) throw new Error(await edgeErrorMessage(error, `Could not update ${key}`));
       }
       toast({ title: "Saved", description: `${changedKeys.length} setting${changedKeys.length === 1 ? "" : "s"} updated.` });
       setOriginal(settings);

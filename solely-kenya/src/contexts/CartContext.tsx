@@ -8,10 +8,14 @@ export type CartItem = {
   priceKsh: number;
   imageUrl?: string | null;
   quantity: number;
-  size?: string; // Selected shoe size (EU format)
+  size?: string; // Selected size, in whatever system this product uses
   availableSizes?: string[]; // Sizes available for this product
   color?: string; // Selected product color
   availableColors?: string[]; // Colors available for this product
+  // Needed so the cart can tell a shoe (EU numeric sizing, conversion chart)
+  // from a shirt (S/M/L) - without it the cart offered EU shoe numbers for
+  // every sized product, including ones that could never match.
+  category?: string;
 };
 
 interface CartContextValue {

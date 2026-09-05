@@ -133,6 +133,7 @@ const ProductCard = ({
       name,
       priceKsh: price,
       imageUrl: image,
+      category,
     });
     toast.success("Added to cart", { description: name, duration: 2000 });
   };

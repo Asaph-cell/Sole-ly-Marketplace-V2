@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { ShoeSizeSelector } from "@/components/ShoeSizeSelector";
-import { AlertTriangle, ExternalLink, Store } from "lucide-react";
+import { ShoeSizeChart } from "@/components/ShoeSizeChart";
+import { ClothingSizeChart, clothingChartKind } from "@/components/ClothingSizeChart";
+import { Store } from "lucide-react";
 import { CartSuggestions } from "@/components/CartSuggestions";
 
 const Cart = () => {
@@ -65,7 +65,7 @@ const Cart = () => {
     );
 
     if (missingSizes) {
-      toast.error("Please select a shoe size for all items before checkout");
+      toast.error("Please select a size for all items before checkout");
       return;
     }
 
@@ -183,43 +183,56 @@ const Cart = () => {
                               </Button>
                             </div>
                             <div className="pt-2 border-t space-y-2">
-                              {item.availableSizes && item.availableSizes.length > 0 && (
-                                <div className="text-xs text-muted-foreground">
-                                  <span className="font-medium">Available sizes: </span>
-                                  {item.availableSizes.join(", ")}
-                                </div>
-                              )}
                               {item.color && (
-                                <div className="text-xs text-muted-foreground mt-1">
+                                <div className="text-xs text-muted-foreground">
                                   <span className="font-medium">Color: </span>
                                   {item.color}
                                 </div>
                               )}
                               {!item.color && item.availableColors && item.availableColors.length > 0 && (
-                                <p className="text-xs text-destructive mt-1">⚠️ Color required before checkout</p>
+                                <p className="text-xs text-destructive">⚠️ Color required before checkout</p>
                               )}
-                              <ShoeSizeSelector
-                                selectedSize={item.size}
-                                onSizeChange={(size) => updateSize(item.productId, size, item.size, item.color)}
-                              />
-                              {!item.size && item.availableSizes && item.availableSizes.length > 0 && (
-                                <p className="text-xs text-destructive">⚠️ Size required for shoes before checkout</p>
-                              )}
-                              {item.size && item.availableSizes && item.availableSizes.length > 0 && !item.availableSizes.includes(item.size) && (
-                                <Alert variant="destructive" className="py-2 px-3">
-                                  <AlertTriangle size={16} strokeWidth={1.5}  />
-                                  <AlertTitle className="text-sm font-medium">Size {item.size} not available</AlertTitle>
-                                  <AlertDescription className="text-xs space-y-2">
-                                    <p>This shoe is not available in size {item.size}.</p>
-                                    <p><strong>Available sizes:</strong> {item.availableSizes.join(", ")}</p>
-                                    <Link
-                                      to={`/shop?size=${item.size}`}
-                                      className="inline-flex items-center gap-1 text-primary-foreground underline hover:no-underline font-medium"
-                                    >
-                                      Find size {item.size} in other shops <ExternalLink strokeWidth={1.5} className="h-3 w-3" />
-                                    </Link>
-                                  </AlertDescription>
-                                </Alert>
+
+                              {/* Only the sizes this product actually sells, in
+                                  its own system - S/M/L for clothing, EU numbers
+                                  for shoes. Offering a fixed shoe chart to every
+                                  product let buyers pick a size that could never
+                                  match, then blocked their own checkout. */}
+                              {item.availableSizes && item.availableSizes.length > 0 && (
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-medium">Size</span>
+                                    {item.category === "shoes" ? (
+                                      <ShoeSizeChart selectedSize={item.size} availableSizes={item.availableSizes} />
+                                    ) : (
+                                      (() => {
+                                        const kind = clothingChartKind(item.category, item.availableSizes);
+                                        return kind ? (
+                                          <ClothingSizeChart kind={kind} selectedSize={item.size} availableSizes={item.availableSizes} />
+                                        ) : null;
+                                      })()
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {item.availableSizes.map((s) => (
+                                      <button
+                                        key={s}
+                                        type="button"
+                                        onClick={() => updateSize(item.productId, s, item.size, item.color)}
+                                        className={`min-w-[2.75rem] rounded-md border px-2.5 py-1 text-xs transition-colors ${
+                                          item.size === s
+                                            ? "border-primary bg-primary text-primary-foreground font-medium"
+                                            : "border-border hover:border-primary/60 hover:bg-muted"
+                                        }`}
+                                      >
+                                        {item.category === "shoes" ? `EU ${s}` : s}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  {!item.size && (
+                                    <p className="text-xs text-destructive">⚠️ Select a size before checkout</p>
+                                  )}
+                                </div>
                               )}
                             </div>
                           </div>

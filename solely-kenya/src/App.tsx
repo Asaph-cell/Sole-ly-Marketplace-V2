@@ -59,8 +59,6 @@ const Terms = lazyRetry(() => import("./pages/Terms"), "Terms");
 const PrivacyPolicy = lazyRetry(() => import("./pages/PrivacyPolicy"), "PrivacyPolicy");
 const VendorDashboard = lazyRetry(() => import("./pages/vendor/VendorDashboard"), "VendorDashboard");
 const VendorProducts = lazyRetry(() => import("./pages/vendor/VendorProducts"), "VendorProducts");
-const VendorAddProduct = lazyRetry(() => import("./pages/vendor/VendorAddProduct"), "VendorAddProduct");
-const VendorAddAccessory = lazyRetry(() => import("./pages/vendor/VendorAddAccessory"), "VendorAddAccessory");
 const VendorListItem = lazyRetry(() => import("./pages/vendor/VendorListItem"), "VendorListItem");
 const VendorEditProduct = lazyRetry(() => import("./pages/vendor/VendorEditProduct"), "VendorEditProduct");
 const VendorEditAccessory = lazyRetry(() => import("./pages/vendor/VendorEditAccessory"), "VendorEditAccessory");
@@ -189,7 +187,7 @@ const AnimatedRoutes = () => {
   );
 };
 
-const Maintenance = lazyRetry(() => import("./pages/Maintenance"));
+const Maintenance = lazyRetry(() => import("./pages/Maintenance"), "Maintenance");
 
 const AppLayout = () => {
   const location = useLocation();

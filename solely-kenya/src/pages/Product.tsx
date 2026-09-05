@@ -14,6 +14,7 @@ import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { SEO } from "@/components/SEO";
 import { trackProductView, trackCartAddition } from "@/lib/userInterests";
 import { ShoeSizeChart } from "@/components/ShoeSizeChart";
+import { ClothingSizeChart, clothingChartKind } from "@/components/ClothingSizeChart";
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import ProductCard from "@/components/ProductCard";
@@ -307,6 +308,7 @@ const Product = () => {
         availableSizes: product.sizes || [],
         color: selectedColor,
         availableColors: product.colors || [],
+        category: product.category,
       },
       1
     );
@@ -694,7 +696,16 @@ const Product = () => {
                       ? "Select Size (EU)"
                       : "Select Size"}
                   </label>
-                  {product.category === "shoes" && <ShoeSizeChart selectedSize={selectedSize} availableSizes={product.sizes} />}
+                  {product.category === "shoes" ? (
+                    <ShoeSizeChart selectedSize={selectedSize} availableSizes={product.sizes} />
+                  ) : (
+                    (() => {
+                      const kind = clothingChartKind(product.category, product.sizes);
+                      return kind ? (
+                        <ClothingSizeChart kind={kind} selectedSize={selectedSize} availableSizes={product.sizes} />
+                      ) : null;
+                    })()
+                  )}
                 </div>
                 <Select value={selectedSize} onValueChange={setSelectedSize}>
                   <SelectTrigger className="w-full">

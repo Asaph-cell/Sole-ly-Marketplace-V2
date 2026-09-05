@@ -13,7 +13,7 @@ import { saveSearch } from "@/lib/searchHistory";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 const Navbar = () => {
-  const { user, isVendor } = useAuth();
+  const { user, isVendor, isAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const isVendorPage = location.pathname.startsWith('/vendor');
@@ -106,6 +106,7 @@ const Navbar = () => {
             <AuthButtons
               user={user}
               isVendor={isVendor}
+              isAdmin={isAdmin}
               isVendorPage={isVendorPage}
               onLogout={handleLogout}
             />
@@ -117,6 +118,7 @@ const Navbar = () => {
               navLinks={navLinks}
               user={user}
               isVendor={isVendor}
+              isAdmin={isAdmin}
               isVendorPage={isVendorPage}
               onLogout={handleLogout}
               cartCount={totalQuantity}

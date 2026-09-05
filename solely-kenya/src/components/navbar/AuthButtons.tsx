@@ -1,15 +1,16 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Mail, LogOut, LayoutDashboard, ShoppingBag } from "lucide-react";
+import { Mail, LogOut, LayoutDashboard, ShoppingBag, Shield } from "lucide-react";
 
 interface AuthButtonsProps {
   user: any;
   isVendor: boolean;
+  isAdmin: boolean;
   isVendorPage: boolean;
   onLogout: () => void | Promise<void>;
 }
 
-export const AuthButtons = ({ user, isVendor, isVendorPage, onLogout }: AuthButtonsProps) => {
+export const AuthButtons = ({ user, isVendor, isAdmin, isVendorPage, onLogout }: AuthButtonsProps) => {
   const supportEmail = "contact@solelymarketplace.com";
   const location = useLocation();
   return (
@@ -19,6 +20,20 @@ export const AuthButtons = ({ user, isVendor, isVendorPage, onLogout }: AuthButt
           <Mail size={16} strokeWidth={1.5}  />
         </a>
       </Button>
+
+      {/* Sits outside the vendor/customer branches below so an admin who is
+          not a vendor still gets a way in - until now the only admin link in
+          the app lived in the vendor dashboard header. isAdmin defaults to
+          false in useAuth and only flips once the roles query returns, so a
+          regular user never renders this, not even briefly. */}
+      {isAdmin && (
+        <Button size="sm" variant="outline" asChild title="Admin dashboard">
+          <Link to="/admin">
+            <Shield size={16} strokeWidth={1.5} className=" mr-2" />
+            Admin
+          </Link>
+        </Button>
+      )}
 
       {!user ? (
         <>

@@ -67,8 +67,12 @@ serve(async (req) => {
             const deliveryFee = paymentLink.delivery_fee_ksh || 0;
             const total = itemPrice + deliveryFee;
             const commissionRate = await getCommissionRatePercent(supabaseClient);
-            const commissionAmount = total * (commissionRate / 100);
-            const payoutAmount = total - commissionAmount;
+            // Commission on the product price ONLY - the vendor keeps the
+            // delivery fee in full. Same rule as Checkout and
+            // DeliveryNegotiation; this branch predated it and was charging
+            // commission on the delivery fee too.
+            const commissionAmount = Number((itemPrice * (commissionRate / 100)).toFixed(2));
+            const payoutAmount = Number((total - commissionAmount).toFixed(2));
 
             // 1. Insert order
             const { data: newOrder, error: newOrderError } = await supabaseClient

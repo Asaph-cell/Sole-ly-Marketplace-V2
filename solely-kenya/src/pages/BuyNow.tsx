@@ -95,6 +95,7 @@ const BuyNow = () => {
       availableSizes: product.sizes ?? [],
       color: selectedColor,
       availableColors: product.colors ?? [],
+      category: product.category,
     }, 1);
 
     navigate(`/delivery-details?vendorId=${product.vendor_id}`);

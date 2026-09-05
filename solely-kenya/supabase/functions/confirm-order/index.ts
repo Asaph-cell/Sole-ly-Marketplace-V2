@@ -94,9 +94,15 @@ serve(async (req: Request) => {
         // Prefer the amounts locked in at order creation; only recompute
         // from the current platform rate as a fallback for legacy rows
         // that somehow lack a stored payout/commission amount.
+        // Commission is charged on the product subtotal only - the vendor
+        // keeps the delivery fee in full - so the fallback must not bill
+        // against total_ksh, which includes shipping.
         const currentRate = order.commission_rate ?? await getCommissionRatePercent(supabase);
-        const payoutAmount = order.payout_amount ?? (order.total_ksh * (1 - currentRate / 100));
-        const commissionAmount = order.commission_amount ?? (order.total_ksh * (currentRate / 100));
+        const commissionBase = order.subtotal_ksh ?? order.total_ksh;
+        const commissionAmount =
+            order.commission_amount ?? Number((commissionBase * (currentRate / 100)).toFixed(2));
+        const payoutAmount =
+            order.payout_amount ?? Number((order.total_ksh - commissionAmount).toFixed(2));
 
         console.log(`Creating payout: vendor=${order.vendor_id}, order=${orderId}, amount=${payoutAmount}, commission=${commissionAmount}`);
 

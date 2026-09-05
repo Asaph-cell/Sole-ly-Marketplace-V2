@@ -437,10 +437,16 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error("Error in admin-action:", error);
-    
+
     // Supabase errors are objects with a message property, not necessarily instances of Error
     const errorMessage = error?.message || (typeof error === "string" ? error : "Unknown error");
-    
+
+    // An expired session and a genuinely bad request are very different
+    // problems for the caller - one needs a re-login, the other needs the
+    // input fixed. Returning 400 for both left the UI unable to tell them
+    // apart, so an expired token surfaced as an unexplained failure.
+    const isAuthFailure = /^(no authorization header|unauthorized|admin access required)$/i.test(errorMessage);
+
     return new Response(
       JSON.stringify({
         success: false,
@@ -448,7 +454,7 @@ serve(async (req) => {
         details: error
       }),
       {
-        status: 400,
+        status: isAuthFailure ? 401 : 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );

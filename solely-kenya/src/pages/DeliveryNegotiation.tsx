@@ -9,7 +9,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import type { User } from "@supabase/supabase-js";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useCart } from "@/contexts/CartContext";
+import { useCart, type CartItem } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,7 +83,7 @@ const DeliveryNegotiation = () => {
   const agreementId = searchParams.get("agreementId");
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { removeItemsByVendor } = useCart();
+  const { items: cartItems, removeItemsByVendor } = useCart();
 
   const [agreement, setAgreement] = useState<DeliveryAgreement | null>(null);
   const [messages, setMessages] = useState<NegMessage[]>([]);
@@ -456,21 +456,33 @@ const DeliveryNegotiation = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {products.map(product => (
-                  <div key={product.id} className="flex gap-2 items-center">
-                    <div className="w-10 h-10 rounded border overflow-hidden flex-shrink-0">
-                      <img
-                        src={product.images?.[0] || "/placeholder.svg"}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
+                {products.map(product => {
+                  // Same cart-derived numbers the checkout charges on, so
+                  // this list can't disagree with the total below it.
+                  const { size, color, quantity } = selectionFromCart(cartItems, product.id);
+                  return (
+                    <div key={product.id} className="flex gap-2 items-center">
+                      <div className="w-10 h-10 rounded border overflow-hidden flex-shrink-0">
+                        <img
+                          src={product.images?.[0] || "/placeholder.svg"}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {quantity > 1 && <span>{quantity} × </span>}
+                          {product.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          KES {product.price_ksh?.toLocaleString()}
+                          {size && <span> · Size {size}</span>}
+                          {color && <span> · {color}</span>}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">KES {product.price_ksh?.toLocaleString()}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </CardContent>
             </Card>
 
@@ -757,6 +769,33 @@ const MessageBubble = ({
   );
 };
 
+// A delivery agreement stores product_ids and nothing else - no quantity,
+// no size, no colour - so the cart is the only record of what the buyer
+// actually chose. Both the itemisation shown here and the order written at
+// checkout read through this, so the buyer is charged for exactly what the
+// vendor is told to ship.
+//
+// quantity 0 means the product is no longer in the cart and the order can't
+// be reconstructed; callers must treat that as "can't check out" rather
+// than shipping a guess.
+const selectionFromCart = (cartItems: CartItem[], productId: string) => {
+    const lines = cartItems.filter((i) => i.productId === productId);
+    const distinct = (values: (string | undefined)[]) => [
+        ...new Set(values.filter((v): v is string => Boolean(v))),
+    ];
+    // One product can sit in the cart as several lines (the same shirt in M
+    // and L). This path collapses them into a single order row, so sum the
+    // quantities and list every pick rather than keeping the first and
+    // silently dropping the rest.
+    const sizes = distinct(lines.map((l) => l.size));
+    const colors = distinct(lines.map((l) => l.color));
+    return {
+        size: sizes.length ? sizes.join(", ") : null,
+        color: colors.length ? colors.join(", ") : null,
+        quantity: lines.reduce((sum, l) => sum + (l.quantity || 0), 0),
+    };
+};
+
 // ── InlineCheckout Component ──────────────────────────────────────────
 // Shown to the buyer once the delivery fee is agreed. Creates the order
 // and redirects to IntaSend without needing to go through /checkout.
@@ -780,12 +819,30 @@ const InlineCheckout = ({
   removeItemsByVendor: (vendorId: string) => void;
   navigate: ReturnType<typeof import("react-router-dom").useNavigate>;
 }) => {
-  const subtotal = products.reduce((sum, p) => sum + (p.price_ksh || 0), 0);
-  const total = subtotal + agreement.delivery_fee_ksh;
   const { data: platformSettings } = usePlatformSettings();
+  const { items: cartItems } = useCart();
+
+  // Read the cart before it is cleared for this vendor, which happens at
+  // the very end of handleCheckout.
+  const lines = products.map((p) => ({ product: p, ...selectionFromCart(cartItems, p.id) }));
+
+  // Anything the buyer has since removed from their cart - or a checkout
+  // resumed on another device, where the cart never existed. We can't know
+  // how many they wanted, and quietly billing for one is how this path used
+  // to undercharge, so block instead of guessing.
+  const unresolved = lines.filter((l) => l.quantity < 1);
+
+  const subtotal = lines.reduce((sum, l) => sum + (l.product.price_ksh || 0) * l.quantity, 0);
+  const total = subtotal + agreement.delivery_fee_ksh;
 
   const handleCheckout = async () => {
     if (processing) return;
+    if (unresolved.length > 0) {
+      toast.error(
+        `${unresolved.map((l) => l.product.name).join(", ")} is no longer in your cart, so we can't confirm how many you want. Add it back to your cart, then reopen this page.`
+      );
+      return;
+    }
     setProcessing(true);
     try {
       const commissionRate = platformSettings.commissionRatePercent;
@@ -814,15 +871,20 @@ const InlineCheckout = ({
 
       if (orderError || !order) throw new Error(orderError?.message || "Failed to create order");
 
-      // 2. Insert order items (one per product, quantity 1)
-      const orderItems = products.map((p) => ({
+      // 2. Insert order items (one row per product, carrying the buyer's
+      //    cart quantity - line totals here must add up to subtotal_ksh
+      //    above, which is what the buyer is actually charged)
+      const orderItems = lines.map(({ product, size, color, quantity }) => ({
         order_id: order.id,
-        product_id: p.id,
-        product_name: p.name,
-        product_snapshot: { images: p.images, price_ksh: p.price_ksh },
-        quantity: 1,
-        unit_price_ksh: Number(p.price_ksh),
-        line_total_ksh: Number(p.price_ksh),
+        product_id: product.id,
+        product_name: product.name,
+        // size has no column of its own on order_items, so it rides in the
+        // snapshot - which is where VendorOrders already looks for it.
+        product_snapshot: { images: product.images, price_ksh: product.price_ksh, size, color },
+        color,
+        quantity,
+        unit_price_ksh: Number(product.price_ksh),
+        line_total_ksh: Number((Number(product.price_ksh) * quantity).toFixed(2)),
       }));
 
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
@@ -938,10 +1000,16 @@ const InlineCheckout = ({
           Delivering to <strong>{agreement.buyer_name}</strong> · {agreement.buyer_address},{" "}
           {agreement.buyer_city}
         </p>
+        {unresolved.length > 0 && (
+          <p className="text-xs text-destructive">
+            {unresolved.map((l) => l.product.name).join(", ")} is no longer in your cart, so we
+            can't confirm how many you want. Add it back to your cart, then reopen this page.
+          </p>
+        )}
         <Button
           className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
           onClick={handleCheckout}
-          disabled={processing}
+          disabled={processing || unresolved.length > 0}
         >
           {processing ? (
             <Loader2 size={16} strokeWidth={1.5} className="animate-spin" />
