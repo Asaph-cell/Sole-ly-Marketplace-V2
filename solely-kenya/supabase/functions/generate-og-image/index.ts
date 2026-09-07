@@ -55,6 +55,27 @@ function formatPrice(price: number): string {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
+/**
+ * Satori embeds the photo as a data URI and Resvg rasterises it, and that
+ * pipeline only decodes JPEG and PNG. A WebP (or anything else) doesn't
+ * degrade - it throws, and the whole card falls back to the generic image.
+ * So sniff the real bytes rather than trusting the stored content-type,
+ * which is inferred from the filename and can lie.
+ */
+function detectImageMime(bytes: Uint8Array): string | null {
+    if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+        return 'image/jpeg'
+    }
+    if (
+        bytes.length >= 8 &&
+        bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 &&
+        bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a
+    ) {
+        return 'image/png'
+    }
+    return null
+}
+
 function uint8ArrayToBase64(bytes: Uint8Array): string {
     let binary = ''
     const chunkSize = 8192
@@ -574,9 +595,19 @@ Deno.serve(async (req) => {
                     const imgBuf = await imgRes.arrayBuffer()
                     // Skip embedding if image is too large (>3MB)
                     if (imgBuf.byteLength < 3 * 1024 * 1024) {
-                        const base64 = uint8ArrayToBase64(new Uint8Array(imgBuf))
-                        const contentType = imgRes.headers.get('content-type') || 'image/jpeg'
-                        imageDataUri = `data:${contentType};base64,${base64}`
+                        const bytes = new Uint8Array(imgBuf)
+                        // Trust the bytes, not the header. A WebP passed to
+                        // Satori throws and takes the whole card down with it;
+                        // a card without a photo is worth far more than no
+                        // card at all.
+                        const mime = detectImageMime(bytes)
+                        if (mime) {
+                            imageDataUri = `data:${mime};base64,${uint8ArrayToBase64(bytes)}`
+                        } else {
+                            console.warn(
+                                `Unsupported image format for ${productId}, rendering card without photo`
+                            )
+                        }
                     }
                 }
             } catch (e) {

@@ -9,6 +9,11 @@ const MAX_HEIGHT = 1920;
 const QUALITY = 0.8; // JPEG quality (0-1)
 const MAX_FILE_SIZE_MB = 5;
 
+// What the share-card/OG renderer (Satori + Resvg) can actually decode.
+// Anything else has to be converted at upload time or the product simply
+// has no shareable image.
+const RENDERABLE_TYPES = new Set(["image/jpeg", "image/png"]);
+
 export function isFileTooLarge(file: File): boolean {
     return file.size > MAX_FILE_SIZE_MB * 1024 * 1024;
 }
@@ -61,9 +66,25 @@ export async function compressImage(file: File): Promise<File> {
                                 return;
                             }
 
-                            // Only use compressed version if it's actually smaller
-                            if (blob.size < file.size) {
-                                const compressedFile = new File([blob], file.name, {
+                            // Keep the JPEG if it saved space, or if the source
+                            // format can't be rendered downstream.
+                            //
+                            // WebP is already well compressed, so a re-encoded
+                            // JPEG is usually LARGER and the size check alone
+                            // sent the original straight through. That broke
+                            // share cards and link previews: the Satori/Resvg
+                            // renderer behind generate-og-image only decodes
+                            // JPEG and PNG, so a WebP product photo failed the
+                            // whole image.
+                            const mustConvert = !RENDERABLE_TYPES.has(file.type);
+
+                            if (blob.size < file.size || mustConvert) {
+                                // Rename to .jpg too - Supabase infers the
+                                // stored content-type from the extension, so
+                                // keeping a .webp name would mislabel JPEG
+                                // bytes and reintroduce the same failure.
+                                const jpegName = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+                                const compressedFile = new File([blob], jpegName, {
                                     type: "image/jpeg",
                                     lastModified: Date.now(),
                                 });
