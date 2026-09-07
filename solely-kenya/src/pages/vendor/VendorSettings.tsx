@@ -22,6 +22,7 @@ const VendorSettings = () => {
     full_name: "",
     whatsapp_number: "",
     mpesa_number: "",
+    store_phone: "",
     store_name: "",
     store_description: "",
     vendor_city: "",
@@ -95,6 +96,7 @@ const VendorSettings = () => {
         full_name: data.full_name || "",
         whatsapp_number: data.whatsapp_number || "",
         mpesa_number: data.mpesa_number || "",
+        store_phone: data.store_phone || "",
         store_name: data.store_name || "",
         store_description: data.store_description || "",
         vendor_city: data.vendor_city || "",
@@ -122,6 +124,18 @@ const VendorSettings = () => {
         }
         // Store cleaned number
         formData.whatsapp_number = cleanNumber;
+      }
+
+      // Optional: a blank store_phone just means no call button, so only
+      // validate when the vendor actually entered something.
+      if (formData.store_phone) {
+        const cleanStorePhone = formData.store_phone.replace(/\D/g, "");
+        if (cleanStorePhone.length < 9 || cleanStorePhone.length > 15) {
+          toast.error("Please enter a valid store phone number (9-15 digits)");
+          setSaving(false);
+          return;
+        }
+        formData.store_phone = cleanStorePhone;
       }
 
       const { error } = await supabase
@@ -270,6 +284,27 @@ const VendorSettings = () => {
                       rows={4}
                       className="resize-none"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="store_phone">
+                      Store Phone Number <span className="text-muted-foreground font-normal">(optional)</span>
+                    </Label>
+                    <div className="relative">
+                      <Phone size={16} strokeWidth={1.5} className="absolute left-3 top-3 text-muted-foreground" />
+                      <Input
+                        id="store_phone"
+                        type="tel"
+                        className="pl-9"
+                        placeholder="0712345678"
+                        value={formData.store_phone}
+                        onChange={(e) => setFormData({ ...formData, store_phone: e.target.value })}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Shown publicly on your storefront so shoppers can call you before buying.
+                      Leave blank to keep it private — this is separate from your WhatsApp number,
+                      which is only shared with buyers who already have an order.
+                    </p>
                   </div>
                 </CardContent>
               </Card>

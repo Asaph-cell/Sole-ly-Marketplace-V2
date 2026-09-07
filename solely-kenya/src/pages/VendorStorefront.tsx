@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO } from "@/components/SEO";
 import ProductCard from "@/components/ProductCard";
-import { Store, MapPin, Star, AlertTriangle, ShieldCheck, Package } from "lucide-react";
+import { Store, MapPin, Star, AlertTriangle, ShieldCheck, Package, Phone } from "lucide-react";
 
 const VendorStorefront = () => {
   const { vendorId, storeLink } = useParams();
@@ -133,6 +133,16 @@ const VendorStorefront = () => {
                 <span className="flex items-center gap-1.5">
                   <Package size={16} /> {products.length} Products
                 </span>
+                {/* Only when the vendor opted in by filling it on their
+                    settings page - a blank one simply shows nothing. */}
+                {vendor.store_phone && (
+                  <a
+                    href={`tel:${vendor.store_phone}`}
+                    className="flex items-center gap-1.5 text-primary hover:underline"
+                  >
+                    <Phone size={16} /> {vendor.store_phone}
+                  </a>
+                )}
                 {stats.reviews > 0 && (
                   <span className="flex items-center gap-1.5 text-amber-600">
                     <Star size={16} fill="currentColor" /> {stats.rating.toFixed(1)} ({stats.reviews})

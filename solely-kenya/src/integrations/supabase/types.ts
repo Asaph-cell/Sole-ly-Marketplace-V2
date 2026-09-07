@@ -1506,6 +1506,7 @@ export type Database = {
           store_link: string | null
           store_logo_url: string | null
           store_name: string | null
+          store_phone: string | null
           updated_at: string | null
           vendor_address_line1: string | null
           vendor_address_line2: string | null
@@ -1532,6 +1533,7 @@ export type Database = {
           store_link?: string | null
           store_logo_url?: string | null
           store_name?: string | null
+          store_phone?: string | null
           updated_at?: string | null
           vendor_address_line1?: string | null
           vendor_address_line2?: string | null
@@ -1558,6 +1560,7 @@ export type Database = {
           store_link?: string | null
           store_logo_url?: string | null
           store_name?: string | null
+          store_phone?: string | null
           updated_at?: string | null
           vendor_address_line1?: string | null
           vendor_address_line2?: string | null
@@ -1847,6 +1850,7 @@ export type Database = {
           store_link: string | null
           store_logo_url: string | null
           store_name: string | null
+          store_phone: string | null
           vendor_city: string | null
           vendor_county: string | null
           whatsapp_number: string | null
@@ -1860,6 +1864,7 @@ export type Database = {
           store_link?: string | null
           store_logo_url?: string | null
           store_name?: string | null
+          store_phone?: string | null
           vendor_city?: string | null
           vendor_county?: string | null
           whatsapp_number?: string | null
@@ -1873,6 +1878,7 @@ export type Database = {
           store_link?: string | null
           store_logo_url?: string | null
           store_name?: string | null
+          store_phone?: string | null
           vendor_city?: string | null
           vendor_county?: string | null
           whatsapp_number?: string | null
