@@ -89,12 +89,21 @@ const Cart = () => {
     // address/GPS-pin info itself, so that page would just be a redundant
     // extra step. Delivery-details is still needed for paid-delivery items,
     // since the fee has to be negotiated with the vendor before checkout.
-    const productIds = vendorItems.map((item) => item.productId);
+    // Deduped: the same product can sit in the cart twice under different
+    // sizes, and `.in()` returns one row per product either way.
+    const productIds = [...new Set(vendorItems.map((item) => item.productId))];
     const { data: products } = await supabase
       .from("products")
       .select("id, free_delivery")
       .in("id", productIds);
-    const allFreeDelivery = products?.every((p) => p.free_delivery === true) ?? false;
+    // Every requested product must come back AND be marked free. A short or
+    // empty result means an item was deleted or unpublished after it was
+    // added to the cart — and `[].every()` is true, so without the length
+    // check that would silently grant free delivery and skip fee negotiation.
+    const allFreeDelivery =
+      !!products &&
+      products.length === productIds.length &&
+      products.every((p) => p.free_delivery === true);
 
     const nextPath = allFreeDelivery
       ? `/checkout?vendorId=${vendorId}`

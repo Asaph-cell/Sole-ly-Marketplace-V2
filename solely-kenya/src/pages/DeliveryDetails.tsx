@@ -89,7 +89,9 @@ const DeliveryDetails = () => {
       if (items.length === 0) return;
       setCheckingDelivery(true);
       try {
-        const productIds = items.map(i => i.productId);
+        // Deduped: the same product can appear twice under different sizes,
+        // and `.in()` returns one row per product either way.
+        const productIds = [...new Set(items.map(i => i.productId))];
         const { data: products, error } = await supabase
           .from("products")
           .select("id, free_delivery, vendor_id")
@@ -97,7 +99,14 @@ const DeliveryDetails = () => {
 
         if (error) throw error;
 
-        const allFree = products?.every(p => p.free_delivery === true) ?? false;
+        // Every requested product must come back AND be marked free. A short
+        // or empty result means an item was deleted or unpublished after it
+        // was added to the cart — and `[].every()` is true, so without the
+        // length check that would silently skip delivery fee negotiation.
+        const allFree =
+          !!products &&
+          products.length === productIds.length &&
+          products.every(p => p.free_delivery === true);
         setAllFreeDelivery(allFree);
 
         // Fetch vendor profile
