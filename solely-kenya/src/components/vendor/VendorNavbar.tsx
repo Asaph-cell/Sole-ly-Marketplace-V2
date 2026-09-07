@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { PendingOrdersBanner } from "./PendingOrdersBanner";
+import { DeliveryInquiryBanner } from "./DeliveryInquiryBanner";
 import { VendorSidebar } from "./VendorSidebar";
 
 export const VendorNavbar = () => {
@@ -116,6 +117,10 @@ export const VendorNavbar = () => {
 
       {/* Pending Orders Notification Banner */}
       <PendingOrdersBanner />
+
+      {/* Buyers waiting in a delivery chat - not orders yet, so the banner
+          above never sees them */}
+      <DeliveryInquiryBanner />
     </>
   );
 };

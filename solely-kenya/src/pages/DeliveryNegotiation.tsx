@@ -6,7 +6,9 @@
  */
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import type { User } from "@supabase/supabase-js";
+// Aliased: lucide-react also exports a `User` (the avatar icon used below),
+// and the bare name resolved to this type instead of the component.
+import type { User as AuthUser } from "@supabase/supabase-js";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart, type CartItem } from "@/contexts/CartContext";
@@ -68,13 +70,18 @@ interface NegMessage {
   is_read: boolean;
 }
 
+// Collecting it yourself has no delivery fee by definition, so the amount
+// field is meaningless here - asking for one made buyers type a nonsense
+// number before they could send anything.
+const PICKUP_METHOD = "Pick Up";
+
 const DELIVERY_METHODS = [
   "Boda Boda",
   "G4S",
   "Personal Delivery",
   "Matatu/Bus Parcel",
   "Courier Service",
-  "Pick Up",
+  PICKUP_METHOD,
   "Other",
 ];
 
@@ -255,7 +262,9 @@ const DeliveryNegotiation = () => {
 
   // Send a delivery fee proposal
   const handleSendProposal = async () => {
-    const fee = parseFloat(proposedFee);
+    const isPickup = proposedMethod === PICKUP_METHOD;
+    // Pickup is always free - don't make the buyer invent a number.
+    const fee = isPickup ? 0 : parseFloat(proposedFee);
     if (isNaN(fee) || fee < 0) {
       toast.error("Please enter a valid delivery fee");
       return;
@@ -271,7 +280,9 @@ const DeliveryNegotiation = () => {
         conversation_id: agreement.conversation_id,
         sender_id: user.id,
         sender_role: isVendor ? "vendor" : "user",
-        message: `Proposed delivery fee: KES ${fee.toLocaleString()}${proposedMethod ? ` via ${proposedMethod}` : ""}`,
+        message: isPickup
+          ? "Proposed pick up — no delivery fee"
+          : `Proposed delivery fee: KES ${fee.toLocaleString()}${proposedMethod ? ` via ${proposedMethod}` : ""}`,
         message_type: "delivery_proposal",
         metadata: {
           delivery_fee: fee,
@@ -559,16 +570,23 @@ const DeliveryNegotiation = () => {
                     </Button>
                   </div>
                   <div className="flex gap-2">
-                    <div className="flex-1">
-                      <Input
-                        type="number"
-                        min="0"
-                        value={proposedFee}
-                        onChange={e => setProposedFee(e.target.value)}
-                        placeholder="Amount in KES"
-                        className="text-base"
-                      />
-                    </div>
+                    {proposedMethod !== PICKUP_METHOD && (
+                      <div className="flex-1">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={proposedFee}
+                          onChange={e => setProposedFee(e.target.value)}
+                          placeholder="Amount in KES"
+                          className="text-base"
+                        />
+                      </div>
+                    )}
+                    {proposedMethod === PICKUP_METHOD && (
+                      <div className="flex-1 flex items-center px-3 rounded-md border border-border bg-muted/50 text-sm text-muted-foreground">
+                        No delivery fee
+                      </div>
+                    )}
                     <Select value={proposedMethod} onValueChange={setProposedMethod}>
                       <SelectTrigger className="w-[160px]">
                         <SelectValue placeholder="Method" />
@@ -582,7 +600,7 @@ const DeliveryNegotiation = () => {
                   </div>
                   <Button
                     onClick={handleSendProposal}
-                    disabled={sending || !proposedFee}
+                    disabled={sending || (proposedMethod !== PICKUP_METHOD && !proposedFee)}
                     className="w-full gap-2"
                   >
                     {sending ? (
@@ -812,7 +830,7 @@ const InlineCheckout = ({
 }: {
   agreement: DeliveryAgreement;
   products: any[];
-  user: User;
+  user: AuthUser;
   vendorName: string;
   processing: boolean;
   setProcessing: (v: boolean) => void;
