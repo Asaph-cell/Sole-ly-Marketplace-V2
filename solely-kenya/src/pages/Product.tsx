@@ -34,6 +34,7 @@ import 'swiper/css';
 import 'swiper/css/free-mode';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
+import { recordProductView } from "@/lib/productViews";
 
 // Condition labels for display - with footwear and accessory-specific descriptions
 const conditionLabels: Record<string, { label: string; color: string; footwearDesc: string; accessoryDesc: string }> = {
@@ -137,10 +138,9 @@ const Product = () => {
         setReviewStats({ count, average });
       }
 
-      // Increment product views
-      await supabase
-        .from("product_views")
-        .insert({ product_id: id });
+      // Increment product views (de-duplicated per visitor, tagged with where
+      // the visit came from)
+      await recordProductView(id, "product_page");
 
     } catch (error) {
       console.error("Error fetching product:", error);

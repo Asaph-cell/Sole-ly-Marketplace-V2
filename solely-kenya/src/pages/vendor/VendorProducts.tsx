@@ -6,7 +6,7 @@ import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import {
   Edit, Trash2, CheckCircle, Package, ShoppingBag,
   Plus, AlertTriangle, ChevronLeft, Share2, Copy,
-  X, Check, ExternalLink,
+  X, Check, ExternalLink, ImageDown, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getAccessoryTypeName } from "@/lib/accessoryTypes";
@@ -25,8 +25,61 @@ type Filter = "all" | "active" | "draft" | "low_stock";
 // ── Pay Link Share Modal ──────────────────────────────────────────────
 const ShareModal = ({ product, onClose }: { product: any; onClose: () => void }) => {
   const [copied, setCopied] = useState(false);
+  const [cardBusy, setCardBusy] = useState(false);
   const qrRef = useRef<HTMLCanvasElement>(null);
-  const payLink = `${window.location.origin}/buy/${product.id}`;
+  // short_code keeps this short enough for an Instagram bio or a printed
+  // poster; the uuid is only a fallback for a product created before codes
+  // existed, and /buy still accepts both.
+  const payLink = `${window.location.origin}/buy/${product.short_code || product.id}`;
+
+  // Story-shaped card rendered server-side, carrying the product, the price
+  // and the escrow promise.
+  const storyCardUrl =
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-og-image` +
+    `?id=${product.id}&format=story`;
+
+  const handleStoryCard = async () => {
+    if (cardBusy) return;
+    setCardBusy(true);
+    try {
+      // Fetched as a blob rather than linked directly: the image comes from
+      // the Supabase domain, and browsers ignore the `download` attribute on
+      // a cross-origin href - it would navigate away instead of saving.
+      const res = await fetch(storyCardUrl);
+      if (!res.ok) throw new Error(`Card service returned ${res.status}`);
+      const blob = await res.blob();
+      const fileName = `solely-${(product.name || "product")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 40)}.png`;
+      const file = new File([blob], fileName, { type: "image/png" });
+
+      // On a phone this opens the OS share sheet, so the vendor can post
+      // straight to Instagram or WhatsApp. Everywhere else, save the file.
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          text: `${product.name} — KES ${product.price_ksh?.toLocaleString()}`,
+        });
+      } else {
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = objectUrl;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(objectUrl);
+        toast.success("Share card saved");
+      }
+    } catch (err) {
+      // A cancelled share sheet rejects with AbortError - not a failure.
+      if ((err as Error)?.name === "AbortError") return;
+      console.error("Share card failed:", err);
+      toast.error("Couldn't build the share card. Please try again.");
+    } finally {
+      setCardBusy(false);
+    }
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(payLink);
@@ -96,6 +149,21 @@ const ShareModal = ({ product, onClose }: { product: any; onClose: () => void })
             WhatsApp
           </button>
         </div>
+
+        {/* Story card */}
+        <button
+          onClick={handleStoryCard}
+          disabled={cardBusy}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+        >
+          {cardBusy
+            ? <Loader2 size={16} strokeWidth={1.5} className="animate-spin" />
+            : <ImageDown size={16} strokeWidth={1.5} />}
+          {cardBusy ? "Building card..." : "Share Card for Stories"}
+        </button>
+        <p className="text-[10px] text-muted-foreground text-center -mt-2">
+          A ready-to-post image with your product, price and the escrow badge
+        </p>
 
         {/* QR Code */}
         <div className="flex flex-col items-center gap-3 pt-1">

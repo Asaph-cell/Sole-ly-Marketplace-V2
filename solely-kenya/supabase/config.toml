@@ -3,6 +3,15 @@ project_id = "ktoodrjfytteppnpyhvi"
 [functions.intasend-webhook]
 verify_jwt = false
 
+# Must be public. Its URL is handed straight to third-party crawlers as the
+# og:image meta tag (see public/_worker.js), and WhatsApp/Facebook/Twitter
+# never send an Authorization header - with JWT verification on they all got
+# a 401 and fell back to no preview image at all. Only reads public product
+# fields and returns a PNG, so there is nothing here to protect; responses
+# are cached for a day to blunt any abuse.
+[functions.generate-og-image]
+verify_jwt = false
+
 [functions.verify-package-pin]
 verify_jwt = true
 

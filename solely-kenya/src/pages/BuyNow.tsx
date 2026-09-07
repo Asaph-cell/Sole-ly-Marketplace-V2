@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SEO } from "@/components/SEO";
+import { recordProductView } from "@/lib/productViews";
 
 const BuyNow = () => {
   const { productId } = useParams();
@@ -30,15 +31,42 @@ const BuyNow = () => {
 
   const fetchProduct = async () => {
     try {
+      // The URL carries either a short_code (what vendors share - short enough
+      // for a bio or a poster) or the raw uuid, which older links still use.
+      // A uuid is 36 chars with hyphens; a short code is 7 uppercase
+      // alphanumerics, so the two can't be confused.
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        productId || ""
+      );
+
+      // Resolve a short code to an id first, then run the original lookup
+      // untouched. Building the select("*") query conditionally - either by
+      // reassigning the builder or by a ternary over two awaited queries -
+      // blows the generated Supabase types' instantiation depth.
+      let resolvedId = productId;
+      if (!isUuid) {
+        const { data: match } = await supabase
+          .from("products")
+          .select("id")
+          .eq("short_code", (productId || "").toUpperCase())
+          .maybeSingle();
+        if (!match) { setLoading(false); return; }
+        resolvedId = match.id;
+      }
+
       const { data: p, error } = await supabase
         .from("products")
         .select("*")
-        .eq("id", productId)
+        .eq("id", resolvedId)
         .eq("status", "active")
         .single();
 
       if (error || !p) { setLoading(false); return; }
       setProduct(p);
+
+      // Attribute the visit to the shared link, so the vendor can tell traffic
+      // they drove from traffic that found them by browsing.
+      recordProductView(p.id, "buy_link");
 
       // Vendor profile
       const { data: prof } = await supabase
@@ -48,11 +76,18 @@ const BuyNow = () => {
         .single();
       setVendor(prof);
 
-      // Vendor stats — rating + completed sales
-      const { data: reviews } = await supabase
-        .from("reviews")
-        .select("rating")
-        .eq("vendor_id", p.vendor_id);
+      // Vendor stats — rating + completed sales.
+      // `reviews` is per-product and has no vendor_id, so the query that used
+      // to live here always failed with "column reviews.vendor_id does not
+      // exist" and the seller silently showed 0 reviews on every shared link -
+      // on the one page where a stranger is deciding whether to trust them.
+      // Vendor-level ratings live in vendor_ratings, pre-aggregated by the
+      // vendor_rating_stats view that the admin dashboard already uses.
+      const { data: ratingStats } = await supabase
+        .from("vendor_rating_stats")
+        .select("avg_rating, rating_count")
+        .eq("vendor_id", p.vendor_id)
+        .maybeSingle();
 
       const { count: salesCount } = await supabase
         .from("orders")
@@ -60,12 +95,11 @@ const BuyNow = () => {
         .eq("vendor_id", p.vendor_id)
         .eq("status", "completed");
 
-      const reviewCount = reviews?.length ?? 0;
-      const avg = reviewCount > 0
-        ? (reviews!.reduce((s, r) => s + r.rating, 0) / reviewCount)
-        : 0;
-
-      setVendorStats({ rating: avg, sales: salesCount ?? 0, reviews: reviewCount });
+      setVendorStats({
+        rating: Number(ratingStats?.avg_rating ?? 0),
+        sales: salesCount ?? 0,
+        reviews: ratingStats?.rating_count ?? 0,
+      });
     } catch (e) {
       console.error(e);
     } finally {
@@ -287,11 +321,15 @@ const BuyNow = () => {
           {/* ── Seller card ── */}
           <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-muted/60 border border-border">
             <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary shrink-0">
-              {vendor?.full_name?.[0]?.toUpperCase() ?? "S"}
+              {(vendor?.store_name || vendor?.full_name)?.[0]?.toUpperCase() ?? "S"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate flex items-center gap-1">
-                {vendor?.full_name ?? "Solely Vendor"}
+                {/* The shop, not the person. This is the page a stranger lands
+                    on from a shared link - they are deciding whether to trust
+                    a brand, and the seller did not choose to publish their own
+                    name here. */}
+                {vendor?.store_name || vendor?.full_name || "Solely Vendor"}
                 {vendor?.kyc_status === 'approved' && <CheckCircle size={14} strokeWidth={1.5} className=" text-primary shrink-0" />}
               </p>
               <div className="flex items-center gap-3 mt-0.5">

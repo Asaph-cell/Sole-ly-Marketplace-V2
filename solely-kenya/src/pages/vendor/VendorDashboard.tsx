@@ -6,6 +6,7 @@ import { VendorNavbar } from "@/components/vendor/VendorNavbar";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import { VendorBalanceCard } from "@/components/vendor/VendorBalanceCard";
 import { PayoutHistory } from "@/components/vendor/PayoutHistory";
+import { VendorInsights } from "@/components/vendor/VendorInsights";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -351,6 +352,13 @@ const VendorDashboard = () => {
                 <VendorBalanceCard vendorId={user?.id!} />
                 <PayoutHistory vendorId={user?.id!} />
               </div>
+
+              {/* ── Insights: what the view counter never answered ── */}
+              {user?.id && (
+                <div className="mb-4">
+                  <VendorInsights vendorId={user.id} />
+                </div>
+              )}
 
               {/* ── Chart + Sidebar (alerts & recent orders) ── */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

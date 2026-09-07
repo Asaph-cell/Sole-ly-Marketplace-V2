@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -1368,17 +1368,23 @@ export type Database = {
         Row: {
           id: string
           product_id: string
+          source: string | null
           viewed_at: string | null
+          visitor_id: string | null
         }
         Insert: {
           id?: string
           product_id: string
+          source?: string | null
           viewed_at?: string | null
+          visitor_id?: string | null
         }
         Update: {
           id?: string
           product_id?: string
+          source?: string | null
           viewed_at?: string | null
+          visitor_id?: string | null
         }
         Relationships: [
           {
@@ -1414,6 +1420,7 @@ export type Database = {
           key_features: string[] | null
           name: string
           price_ksh: number
+          short_code: string | null
           sizes: string[] | null
           specs: Json | null
           status: Database["public"]["Enums"]["product_status"] | null
@@ -1440,6 +1447,7 @@ export type Database = {
           key_features?: string[] | null
           name: string
           price_ksh: number
+          short_code?: string | null
           sizes?: string[] | null
           specs?: Json | null
           status?: Database["public"]["Enums"]["product_status"] | null
@@ -1466,6 +1474,7 @@ export type Database = {
           key_features?: string[] | null
           name?: string
           price_ksh?: number
+          short_code?: string | null
           sizes?: string[] | null
           specs?: Json | null
           status?: Database["public"]["Enums"]["product_status"] | null
@@ -1697,48 +1706,6 @@ export type Database = {
           },
         ]
       }
-      subscriptions: {
-        Row: {
-          created_at: string | null
-          end_date: string
-          id: string
-          is_active: boolean | null
-          payment_reference: string | null
-          plan: Database["public"]["Enums"]["subscription_plan"]
-          price_ksh: number
-          product_limit: number | null
-          start_date: string | null
-          updated_at: string | null
-          vendor_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          end_date: string
-          id?: string
-          is_active?: boolean | null
-          payment_reference?: string | null
-          plan: Database["public"]["Enums"]["subscription_plan"]
-          price_ksh: number
-          product_limit?: number | null
-          start_date?: string | null
-          updated_at?: string | null
-          vendor_id: string
-        }
-        Update: {
-          created_at?: string | null
-          end_date?: string
-          id?: string
-          is_active?: boolean | null
-          payment_reference?: string | null
-          plan?: Database["public"]["Enums"]["subscription_plan"]
-          price_ksh?: number
-          product_limit?: number | null
-          start_date?: string | null
-          updated_at?: string | null
-          vendor_id?: string
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1929,6 +1896,7 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: undefined
       }
+      generate_product_short_code: { Args: never; Returns: string }
       generate_store_link: {
         Args: { name: string; p_id: string }
         Returns: string
@@ -1949,6 +1917,7 @@ export type Database = {
         Returns: undefined
       }
       register_as_vendor: { Args: never; Returns: undefined }
+      store_link_base: { Args: { name: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "vendor" | "user" | "revoked_vendor"
