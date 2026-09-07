@@ -59,28 +59,50 @@ alter table public.products
   add column if not exists free_delivery boolean;
 
 -- ─────────────────────────────────────────────────────────────
+-- 0b. Immutable array_to_string wrapper
+-- ─────────────────────────────────────────────────────────────
+-- A STORED generated column requires every function in its expression to be
+-- IMMUTABLE, and pg_catalog.array_to_string is declared STABLE: for a general
+-- anyarray its result depends on the element type's output function, which
+-- Postgres cannot assume is immutable. For text[] specifically it is (textout
+-- is immutable), so this typed wrapper is safe to declare immutable and is the
+-- standard workaround.
+--
+-- Note the dependency direction: the generated column below depends on this
+-- function, so the column must be dropped before this function can be changed.
+
+create or replace function public.immutable_array_to_string(arr text[], sep text)
+returns text
+language sql
+immutable
+parallel safe
+as $$ select pg_catalog.array_to_string(arr, sep) $$;
+
+-- ─────────────────────────────────────────────────────────────
 -- 1. Weighted search vector
 -- ─────────────────────────────────────────────────────────────
 -- Weights: A = name/brand (what people actually type), B = taxonomy,
 -- C = concrete attributes they filter on out loud ("black", "size 42"),
 -- D = description prose.
 --
--- 'english' gives stemming (shoes -> shoe, running -> run). Every
--- function used here is IMMUTABLE, which a STORED generated column
--- requires. jsonb spec columns are deliberately left out — casting
--- jsonb to text would index the keys and punctuation as search terms.
+-- 'english' gives stemming (shoes -> shoe, running -> run). The regconfig
+-- is cast explicitly so overload resolution always picks the two-argument
+-- to_tsvector, which is IMMUTABLE; the one-argument form reads
+-- default_text_search_config and is only STABLE. jsonb spec columns are
+-- deliberately left out, since casting jsonb to text would index the keys
+-- and punctuation as search terms.
 
 alter table public.products
   add column if not exists search_vector tsvector
   generated always as (
-    setweight(to_tsvector('english', coalesce(name, '')),        'A') ||
-    setweight(to_tsvector('english', coalesce(brand, '')),       'A') ||
-    setweight(to_tsvector('english', coalesce(subcategory, '')), 'B') ||
-    setweight(to_tsvector('english', coalesce(category, '')),    'B') ||
-    setweight(to_tsvector('english', array_to_string(coalesce(key_features, '{}'::text[]), ' ')), 'C') ||
-    setweight(to_tsvector('english', array_to_string(coalesce(colors,       '{}'::text[]), ' ')), 'C') ||
-    setweight(to_tsvector('english', array_to_string(coalesce(sizes,        '{}'::text[]), ' ')), 'C') ||
-    setweight(to_tsvector('english', coalesce(description, '')), 'D')
+    setweight(to_tsvector('english'::regconfig, coalesce(name, '')),        'A') ||
+    setweight(to_tsvector('english'::regconfig, coalesce(brand, '')),       'A') ||
+    setweight(to_tsvector('english'::regconfig, coalesce(subcategory, '')), 'B') ||
+    setweight(to_tsvector('english'::regconfig, coalesce(category, '')),    'B') ||
+    setweight(to_tsvector('english'::regconfig, public.immutable_array_to_string(coalesce(key_features, '{}'::text[]), ' ')), 'C') ||
+    setweight(to_tsvector('english'::regconfig, public.immutable_array_to_string(coalesce(colors,       '{}'::text[]), ' ')), 'C') ||
+    setweight(to_tsvector('english'::regconfig, public.immutable_array_to_string(coalesce(sizes,        '{}'::text[]), ' ')), 'C') ||
+    setweight(to_tsvector('english'::regconfig, coalesce(description, '')), 'D')
   ) stored;
 
 -- ─────────────────────────────────────────────────────────────
@@ -151,7 +173,7 @@ begin
   end if;
 
   v_joined := array_to_string(v_words, ' | ');
-  return to_tsquery('english', v_joined);
+  return to_tsquery('english'::regconfig, v_joined);
 end;
 $$;
 
@@ -342,6 +364,7 @@ $$;
 -- Shop is browsable logged-out, so anon needs execute. RLS still gates
 -- the rows because these are SECURITY INVOKER.
 
+grant execute on function public.immutable_array_to_string(text[], text)  to anon, authenticated;
 grant execute on function public.build_product_tsquery(text)              to anon, authenticated;
 grant execute on function public.product_brands(text)                     to anon, authenticated;
 grant execute on function public.search_products(
