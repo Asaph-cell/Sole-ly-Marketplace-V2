@@ -212,6 +212,9 @@ const Footer = () => {
               <a href="https://solelymarketplace.com/privacy-policy" className="block hover:text-primary transition-colors">
                 Privacy Policy
               </a>
+              <Link to="/report-listing" className="block hover:text-primary transition-colors">
+                Report a Listing
+              </Link>
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Store, Scale, Package, Megaphone, Mail, History,
-  ClipboardList, Settings, Menu, Search, TrendingUp,
+  ClipboardList, Settings, Menu, Search, TrendingUp, ShieldAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,7 @@ interface NavGroup {
 
 function useNavGroups(): NavGroup[] {
   const [openDisputeCount, setOpenDisputeCount] = useState(0);
+  const [newReportCount, setNewReportCount] = useState(0);
 
   useEffect(() => {
     const fetchDisputeCount = async () => {
@@ -44,6 +45,28 @@ function useNavGroups(): NavGroup[] {
     };
   }, []);
 
+  // Infringement reports need to be visible the moment they land: a
+  // takedown route nobody notices is the same as not having one.
+  useEffect(() => {
+    const fetchReportCount = async () => {
+      const { count } = await supabase
+        .from("listing_reports")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "new");
+      setNewReportCount(count ?? 0);
+    };
+    fetchReportCount();
+
+    const channel = supabase
+      .channel("public:listing_reports")
+      .on("postgres_changes", { event: "*", schema: "public", table: "listing_reports" }, fetchReportCount)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   return [
     {
       label: "Marketplace",
@@ -53,6 +76,7 @@ function useNavGroups(): NavGroup[] {
         { label: "Disputes", icon: Scale, href: "/admin/disputes", badge: openDisputeCount },
         { label: "Vendors", icon: Store, href: "/admin/vendors" },
         { label: "Products", icon: Package, href: "/admin/products" },
+        { label: "Reports", icon: ShieldAlert, href: "/admin/reports", badge: newReportCount },
         { label: "Growth", icon: TrendingUp, href: "/admin/growth" },
       ],
     },

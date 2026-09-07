@@ -57,6 +57,7 @@ const Checkout = lazyRetry(() => import("./pages/Checkout"), "Checkout");
 const Orders = lazyRetry(() => import("./pages/Orders"), "Orders");
 const Terms = lazyRetry(() => import("./pages/Terms"), "Terms");
 const PrivacyPolicy = lazyRetry(() => import("./pages/PrivacyPolicy"), "PrivacyPolicy");
+const ReportListing = lazyRetry(() => import("./pages/ReportListing"), "ReportListing");
 const VendorDashboard = lazyRetry(() => import("./pages/vendor/VendorDashboard"), "VendorDashboard");
 const VendorProducts = lazyRetry(() => import("./pages/vendor/VendorProducts"), "VendorProducts");
 const VendorListItem = lazyRetry(() => import("./pages/vendor/VendorListItem"), "VendorListItem");
@@ -79,6 +80,7 @@ const AdminSettings = lazyRetry(() => import("./pages/admin/AdminSettings"), "Ad
 const AdminGrowth = lazyRetry(() => import("./pages/admin/AdminGrowth"), "AdminGrowth");
 const AdminOrders = lazyRetry(() => import("./pages/admin/AdminOrders"), "AdminOrders");
 const AdminVendorDetail = lazyRetry(() => import("./pages/admin/AdminVendorDetail"), "AdminVendorDetail");
+const AdminReports = lazyRetry(() => import("./pages/admin/AdminReports"), "AdminReports");
 const Blog = lazyRetry(() => import("./pages/Blog"), "Blog");
 const BlogPost = lazyRetry(() => import("./pages/BlogPost"), "BlogPost");
 const HowItWorks = lazyRetry(() => import("./pages/HowItWorks"), "HowItWorks");
@@ -142,6 +144,8 @@ const AnimatedRoutes = () => {
       <Route path="/orders/:orderId" element={<PageWrapper><MainLayout><Orders /></MainLayout></PageWrapper>} />
       <Route path="/terms" element={<PageWrapper><MainLayout><Terms /></MainLayout></PageWrapper>} />
       <Route path="/privacy-policy" element={<PageWrapper><MainLayout><PrivacyPolicy /></MainLayout></PageWrapper>} />
+      {/* Public on purpose: a rights holder filing a notice will not have an account. */}
+      <Route path="/report-listing" element={<PageWrapper><MainLayout><ReportListing /></MainLayout></PageWrapper>} />
       <Route path="/blog" element={<PageWrapper><MainLayout><Blog /></MainLayout></PageWrapper>} />
       <Route path="/blog/:id" element={<PageWrapper><MainLayout><BlogPost /></MainLayout></PageWrapper>} />
       <Route path="/how-it-works" element={<PageWrapper><MainLayout><HowItWorks /></MainLayout></PageWrapper>} />
@@ -169,6 +173,7 @@ const AnimatedRoutes = () => {
       <Route path="/admin/disputes" element={<PageWrapper><AdminGuard><AdminDisputes /></AdminGuard></PageWrapper>} />
       <Route path="/admin/vendors" element={<PageWrapper><AdminGuard><AdminVendors /></AdminGuard></PageWrapper>} />
       <Route path="/admin/products" element={<PageWrapper><AdminGuard><AdminProducts /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/reports" element={<PageWrapper><AdminGuard><AdminReports /></AdminGuard></PageWrapper>} />
       <Route path="/admin/comms" element={<PageWrapper><AdminGuard><AdminComms /></AdminGuard></PageWrapper>} />
       <Route path="/admin/mailing-list" element={<PageWrapper><AdminGuard><AdminMailingList /></AdminGuard></PageWrapper>} />
       <Route path="/admin/activity" element={<PageWrapper><AdminGuard><AdminActivity /></AdminGuard></PageWrapper>} />

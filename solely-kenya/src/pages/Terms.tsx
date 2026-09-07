@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Shield, ShoppingBag, Store, AlertTriangle, CreditCard, Star, Scale, Truck, KeyRound, Database } from "lucide-react";
+import { ArrowLeft, Shield, ShoppingBag, Store, AlertTriangle, CreditCard, Star, Scale, Truck, KeyRound, Database, ShieldAlert } from "lucide-react";
 
 const Terms = () => {
     return (
@@ -180,7 +180,7 @@ const Terms = () => {
                                     Our admin team will review disputes within <strong>3–5 business days</strong>. Refunds are processed to your original payment method when approved. Where a dispute is resolved in your favour, the delivery fee is refunded along with the product price.
                                 </p>
                                 <p className="text-muted-foreground mt-3">
-                                    <strong>Stolen goods:</strong> If you believe an item you received or saw listed is stolen, report it through the Platform. We may suspend the listing and vendor and share relevant records with law enforcement or the lawful owner.
+                                    <strong>Stolen goods:</strong> If you believe an item you received or saw listed is stolen, tell us using the <Link to="/report-listing" className="text-primary underline">Report a Listing</Link> form. We may suspend the listing and vendor and share relevant records with law enforcement or the lawful owner.
                                 </p>
                             </section>
 
@@ -460,6 +460,35 @@ const Terms = () => {
                 {/* GENERAL TERMS */}
                 <Card className="p-6 md:p-8 mt-6 space-y-6">
                     <h2 className="text-2xl font-bold">General Terms</h2>
+
+                    <section>
+                        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                            <ShieldAlert size={18} strokeWidth={1.5} className="text-amber-600" />
+                            Reporting Counterfeits and Infringement
+                        </h3>
+                        <p className="text-muted-foreground mb-3">
+                            Sole-ly does not permit listings that infringe anyone's copyright, trademark, right of publicity, or other proprietary rights, and we do not permit counterfeit goods. If you own such a right, represent someone who does, or are simply a buyer who has spotted a problem, tell us.
+                        </p>
+                        <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg mb-3">
+                            <p className="text-sm text-muted-foreground mb-2">
+                                <strong>How to report:</strong> Use the <Link to="/report-listing" className="text-primary underline font-semibold">Report a Listing</Link> form. You do not need an account. Every product page also carries a "Report this listing" link, which fills in the listing for you. If you would rather write to us, email{" "}
+                                <a href="mailto:contact@solelymarketplace.com" className="text-primary underline">contact@solelymarketplace.com</a> with the listing link, what right is affected, how it is infringed, and your contact details.
+                            </p>
+                        </div>
+                        <p className="text-muted-foreground mb-3"><strong>What happens next:</strong></p>
+                        <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-3">
+                            <li>We aim to review every report within <strong>2 business days</strong></li>
+                            <li>Where a listing breaches these terms we remove or suspend it, and we notify the vendor with the substance of the report so they can respond</li>
+                            <li>Where money for an affected order is still held in escrow, we can withhold it pending the outcome</li>
+                            <li>We keep a record of every report and what was decided</li>
+                        </ul>
+                        <p className="text-muted-foreground mb-3">
+                            <strong>Repeat infringers:</strong> A vendor who repeatedly lists infringing or counterfeit items will have their selling privileges revoked and their account terminated. As set out in the Vendor Agreement, we may withhold funds in their escrow balance to refund affected buyers.
+                        </p>
+                        <p className="text-muted-foreground">
+                            Knowingly filing a false report is itself a breach of these terms. Nothing here limits any other legal remedy available to a rights owner.
+                        </p>
+                    </section>
 
                     <section>
                         <h3 className="text-lg font-semibold mb-2">Privacy</h3>

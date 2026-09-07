@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -582,6 +582,91 @@ export type Database = {
             columns: ["payment_id"]
             isOneToOne: false
             referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_reports: {
+        Row: {
+          accuracy_declaration: boolean
+          admin_notes: string | null
+          created_at: string
+          description: string
+          evidence_url: string | null
+          good_faith: boolean
+          id: string
+          listing_url: string | null
+          product_id: string | null
+          product_short_code: string | null
+          report_type: string
+          reporter_email: string
+          reporter_name: string
+          reporter_organization: string | null
+          reporter_role: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          accuracy_declaration?: boolean
+          admin_notes?: string | null
+          created_at?: string
+          description: string
+          evidence_url?: string | null
+          good_faith?: boolean
+          id?: string
+          listing_url?: string | null
+          product_id?: string | null
+          product_short_code?: string | null
+          report_type: string
+          reporter_email: string
+          reporter_name: string
+          reporter_organization?: string | null
+          reporter_role: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          accuracy_declaration?: boolean
+          admin_notes?: string | null
+          created_at?: string
+          description?: string
+          evidence_url?: string | null
+          good_faith?: boolean
+          id?: string
+          listing_url?: string | null
+          product_id?: string | null
+          product_short_code?: string | null
+          report_type?: string
+          reporter_email?: string
+          reporter_name?: string
+          reporter_organization?: string | null
+          reporter_role?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_reports_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_reports_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "public_vendor_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1420,6 +1505,7 @@ export type Database = {
           key_features: string[] | null
           name: string
           price_ksh: number
+          search_vector: unknown
           short_code: string | null
           sizes: string[] | null
           specs: Json | null
@@ -1447,6 +1533,7 @@ export type Database = {
           key_features?: string[] | null
           name: string
           price_ksh: number
+          search_vector?: unknown
           short_code?: string | null
           sizes?: string[] | null
           specs?: Json | null
@@ -1474,6 +1561,7 @@ export type Database = {
           key_features?: string[] | null
           name?: string
           price_ksh?: number
+          search_vector?: unknown
           short_code?: string | null
           sizes?: string[] | null
           specs?: Json | null
@@ -1896,6 +1984,7 @@ export type Database = {
     }
     Functions: {
       assign_admin_role: { Args: { _user_email: string }; Returns: undefined }
+      build_product_tsquery: { Args: { p_search: string }; Returns: unknown }
       check_price_drop_alerts: { Args: never; Returns: undefined }
       check_subscription_expiry: { Args: never; Returns: undefined }
       deduct_order_items_stock: {
@@ -1918,11 +2007,63 @@ export type Database = {
         }
         Returns: boolean
       }
+      immutable_array_to_string: {
+        Args: { arr: string[]; sep: string }
+        Returns: string
+      }
+      product_brands: {
+        Args: { p_category?: string }
+        Returns: {
+          brand: string
+          product_count: number
+        }[]
+      }
       publish_product: {
         Args: { product_id_to_publish: string }
         Returns: undefined
       }
       register_as_vendor: { Args: never; Returns: undefined }
+      search_products: {
+        Args: {
+          p_boost_brands?: string[]
+          p_boost_categories?: string[]
+          p_brand?: string
+          p_category?: string
+          p_condition?: string
+          p_limit?: number
+          p_max_price?: number
+          p_min_price?: number
+          p_offset?: number
+          p_search?: string
+          p_sort?: string
+          p_subcategory?: string
+        }
+        Returns: {
+          average_rating: number
+          brand: string
+          category: string
+          colors: string[]
+          condition: string
+          created_at: string
+          description: string
+          free_delivery: boolean
+          id: string
+          images: string[]
+          name: string
+          price_ksh: number
+          relevance: number
+          review_count: number
+          short_code: string
+          sizes: string[]
+          stock: number
+          subcategory: string
+          total_count: number
+          vendor_id: string
+          video_url: string
+        }[]
+      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       store_link_base: { Args: { name: string }; Returns: string }
     }
     Enums: {

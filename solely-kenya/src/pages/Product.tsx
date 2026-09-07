@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Shield, ArrowLeft, Bell, BellOff, X, ChevronLeft, ChevronRight, Share2, Copy, BarChart2 } from "lucide-react";
+import { Star, Shield, ArrowLeft, Bell, BellOff, X, ChevronLeft, ChevronRight, Share2, Copy, BarChart2, Flag } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -865,6 +865,18 @@ const Product = () => {
                 </div>
               </div>
             </div>
+
+            {/* Deliberately understated, but present on every listing: this is
+                the route a brand owner or a buyer uses to flag a counterfeit,
+                and it carries the listing through so they don't have to
+                describe which one they mean. */}
+            <Link
+              to={`/report-listing?product=${product.short_code || product.id}`}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors mt-4"
+            >
+              <Flag size={12} strokeWidth={1.5} />
+              Report this listing
+            </Link>
           </div>
         </div>
       </div>
