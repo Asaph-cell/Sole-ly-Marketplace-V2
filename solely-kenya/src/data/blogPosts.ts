@@ -63,7 +63,7 @@ export const blogPosts: BlogPost[] = [
       <p>In the Nairobi rainy season (and even in the dust of the dry season), material choice is your first line of defense. While suede looks amazing, it's a nightmare to maintain in the CBD. We recommend high-quality leather or synthetic blends. Leather is easier to wipe down with a damp cloth after a dusty walk. Avoid mesh-heavy runners during the long rains unless you enjoy the 'wet sock' feeling all day.</p>
       
       <h3 class="font-bold text-xl mb-4">3. The 'Stiff' Factor</h3>
-      <p>Being 'stiff' in Nairobi isn't just about the price; it's about how you carry yourself. A clean pair of white Air Force 1s or classic leather boots can take you from a casual brunch to a formal office setting without missing a beat. The key is in the transition—if your shoes look like they just came out of a box, you're doing it right.</p>
+      <p>Being 'stiff' in Nairobi isn't just about the price; it's about how you carry yourself. A clean pair of white Air Force 1s or classic leather boots can take you from a casual brunch to a formal office setting without missing a beat. The key is in the transition, if your shoes look like they just came out of a box, you're doing it right.</p>
       
       <blockquote>"Style is a way to say who you are without having to speak. In Nairobi, your shoes speak first."</blockquote>
       
@@ -80,7 +80,7 @@ export const blogPosts: BlogPost[] = [
   {
     id: "escrow-explained-trust",
     title: "Escrow Explained: No More 'Character Development' While Shopping",
-    excerpt: "We've all been there—sending M-Pesa and then getting blocked. Here's how Solely makes that impossible.",
+    excerpt: "We've all been there, sending M-Pesa and then getting blocked. Here's how Solely makes that impossible.",
     author: "Trust Team",
     date: "March 24, 2026",
     image: "https://images.unsplash.com/photo-1560472355-536de3962603?auto=format&fit=crop&q=80&w=1000",
@@ -98,7 +98,7 @@ export const blogPosts: BlogPost[] = [
       }
     ],
     content: `
-      <p>Online shopping in Kenya can sometimes feel like a game of chance. We’ve all heard the stories—or experienced it ourselves—where you send M-Pesa to a seller you found on social media, only to be blocked immediately after. In Nairobi, we call that "character development."</p>
+      <p>Online shopping in Kenya can sometimes feel like a game of chance. We’ve all heard the stories, or experienced it ourselves, where you send M-Pesa to a seller you found on social media, only to be blocked immediately after. In Nairobi, we call that "character development."</p>
       
       <p>At Solely, we decided to end that cycle. Our Escrow system is built to ensure that you get exactly what you paid for, or you get your money back. No exceptions.</p>
       
@@ -154,13 +154,13 @@ export const blogPosts: BlogPost[] = [
       <p>Solely was built to give local wholesalers a nationwide digital storefront with zero upfront costs. Here is how to win in the digital space.</p>
       
       <h3 class="font-bold text-xl mb-4">1. The Secret to Online Sales: Content Quality</h3>
-      <p>The biggest difference between a stall and an online store is the photo. You don't need a professional camera; your smartphone is enough. Use natural light, a clean background, and show multiple angles. Specifically, show the sole and the stitching—that’s what trust looks like online.</p>
+      <p>The biggest difference between a stall and an online store is the photo. You don't need a professional camera; your smartphone is enough. Use natural light, a clean background, and show multiple angles. Specifically, show the sole and the stitching, that’s what trust looks like online.</p>
       
       <h3 class="font-bold text-xl mb-4">2. Inventory Management</h3>
       <p>In a physical stall, you know what you have because you see it. Online, you need to keep your "digital shelf" updated. Solely's vendor dashboard makes this easy. If you sell out in the market, one click removes it from the site to avoid disappointed customers.</p>
       
       <h3 class="font-bold text-xl mb-4">3. Managing Nationwide Shipping</h3>
-      <p>Shipping used to be a headache. Now, with Solely's integrated logistics partners, you just pack the order and we handle the pickups and drop-offs. This lets you focus on what you do best—sourcing the best shoes at the best prices from your global suppliers.</p>
+      <p>Shipping used to be a headache. Now, with Solely's integrated logistics partners, you just pack the order and we handle the pickups and drop-offs. This lets you focus on what you do best, sourcing the best shoes at the best prices from your global suppliers.</p>
       
       <h3 class="font-bold text-xl mb-4">4. Building a Brand Reputation</h3>
       <p>Online, your reviews are your most valuable asset. Fast shipping and honest descriptions will give you a 5-star rating, which puts you at the top of the search results on our platform. Scale your business from a local stall to a national brand today.</p>
@@ -198,7 +198,7 @@ export const blogPosts: BlogPost[] = [
       <p>For scuff marks or localized dirt that doesn't brush off, a simple white pencil eraser is a secret weapon used by high-end sneaker restorers. Rub the eraser gently over the stain until it disappears. This lifts the dirt without using any chemicals or moisture.</p>
       
       <h3 class="font-bold text-xl mb-4">3. Step Three: Deep Cleaning with Vinegar</h3>
-      <p>For tougher stains (like grease or heavy mud), a tiny amount of white vinegar on a clean cloth is better than soap. The acidity breaks down the dirt without saturating the leather fibers. Dab—do not rub—the area. The vinegar smell will disappear once the shoe dries.</p>
+      <p>For tougher stains (like grease or heavy mud), a tiny amount of white vinegar on a clean cloth is better than soap. The acidity breaks down the dirt without saturating the leather fibers. Dab, do not rub, the area. The vinegar smell will disappear once the shoe dries.</p>
       
       <h3 class="font-bold text-xl mb-4">4. Step Four: Restoring the Nap</h3>
       <p>After cleaning with vinegar or an eraser, the suede might look "flat." Use your brush to vigorously brush the area back and forth to lift the fibers and bring back that "stiff" factory look.</p>

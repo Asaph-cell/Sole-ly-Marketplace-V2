@@ -17,6 +17,7 @@ import { formatDistanceToNow } from "date-fns";
 
 interface Waiting {
     id: string;
+    conversationId: string | null;
     updatedAt: string;
 }
 
@@ -64,7 +65,11 @@ export const DeliveryInquiryBanner = () => {
                         const last = lastSender.get(a.conversation_id);
                         return !last || last !== user.id;
                     })
-                    .map((a) => ({ id: a.id, updatedAt: a.updated_at }))
+                    .map((a) => ({
+                        id: a.id,
+                        conversationId: a.conversation_id ?? null,
+                        updatedAt: a.updated_at,
+                    }))
             );
         } catch (error) {
             console.error("Error loading delivery inquiries:", error);
@@ -112,13 +117,23 @@ export const DeliveryInquiryBanner = () => {
                                 : `${waiting.length} buyers are waiting on you`}
                         </p>
                         <p className="text-sm opacity-90">
-                            Delivery still to agree — asked{" "}
+                            Delivery still to agree, asked{" "}
                             {formatDistanceToNow(new Date(oldest.updatedAt), { addSuffix: true })}
                         </p>
                     </div>
                 </div>
 
-                <Link to="/vendor/messages">
+                {/* Open the thread the subtext is actually describing (the
+                    oldest one waiting), not just the messages list. A
+                    negotiation that was opened before anyone spoke has no
+                    conversation yet, so that case still falls back to the list. */}
+                <Link
+                    to={
+                        oldest.conversationId
+                            ? `/vendor/messages?conversation=${oldest.conversationId}`
+                            : "/vendor/messages"
+                    }
+                >
                     <Button variant="secondary" size="sm" className="bg-white text-primary hover:bg-white/90">
                         Open chat
                     </Button>

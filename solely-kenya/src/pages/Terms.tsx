@@ -70,7 +70,7 @@ const Terms = () => {
                                     <li><strong>Security:</strong> You are responsible for maintaining the confidentiality of your account credentials. You are liable for all activities that occur under your account</li>
                                     <li><strong>Eligibility:</strong> You must be at least 18 years old to make purchases on Sole-ly</li>
                                     <li><strong>One Account:</strong> One person may only operate one buyer account. Creating duplicate accounts to abuse promotions is prohibited</li>
-                                    <li><strong>Guest orders:</strong> You may check out without an account. Your order is tracked through a private link we send you — anyone holding that link can view the order, so do not share it. We recommend creating an account so your orders, OTPs, and dispute history stay in one place</li>
+                                    <li><strong>Guest orders:</strong> You may check out without an account. Your order is tracked through a private link we send you, anyone holding that link can view the order, so do not share it. We recommend creating an account so your orders, OTPs, and dispute history stay in one place</li>
                                 </ul>
                             </section>
 
@@ -83,10 +83,10 @@ const Terms = () => {
                                     To guarantee trust, Sole-ly uses a secure Escrow System for all transactions:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li><strong>Payment:</strong> When you order, your money is held in a neutral escrow account — it is not sent directly to the vendor immediately</li>
+                                    <li><strong>Payment:</strong> When you order, your money is held in a neutral escrow account; it is not sent directly to the vendor immediately</li>
                                     <li><strong>What is held:</strong> Escrow covers both the product price and the agreed delivery fee, paid together in a single checkout</li>
                                     <li><strong>Protection:</strong> Your funds remain secured in escrow while the vendor processes and ships your order</li>
-                                    <li><strong>Release:</strong> Funds are released to the vendor after you confirm receipt — see section 4 for exactly how and when this happens</li>
+                                    <li><strong>Release:</strong> Funds are released to the vendor after you confirm receipt. See section 4 for exactly how and when this happens</li>
                                     <li><strong>Accepted Payment Methods:</strong> M-Pesa, Credit/Debit Cards, and Mobile Wallets</li>
                                 </ul>
                             </section>
@@ -112,7 +112,7 @@ const Terms = () => {
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>You agree the fee before you pay:</strong> After you enter your delivery details, you and the vendor negotiate the delivery fee in an in-app chat. Either side can propose a fee and method; the order proceeds once both sides accept</li>
                                     <li><strong>Paid in one checkout:</strong> The agreed delivery fee is added to your order total and paid in the same transaction as the product. It is held in escrow with the rest of your money</li>
-                                    <li><strong>Free Delivery:</strong> Some vendors offer free delivery — look for the "Free Delivery" badge on product listings</li>
+                                    <li><strong>Free Delivery:</strong> Some vendors offer free delivery. Look for the "Free Delivery" badge on product listings</li>
                                     <li><strong>Pickup:</strong> Where a vendor offers it, you may collect the item in person instead of paying a delivery fee</li>
                                     <li><strong>Location Sharing:</strong> During checkout, you can optionally share your GPS location pin to make it easier for the vendor to find you</li>
                                     <li><strong>Agreements expire:</strong> A delivery negotiation that neither side completes will expire, and you will need to start again. Nothing is charged for an expired negotiation</li>
@@ -129,7 +129,7 @@ const Terms = () => {
                                     4. Confirming Delivery: Package PIN and OTP (Critical)
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
-                                    Sole-ly uses a two-step handover. Read this section carefully — it determines when your money leaves escrow.
+                                    Sole-ly uses a two-step handover. Read this section carefully. It determines when your money leaves escrow.
                                 </p>
 
                                 <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
@@ -154,7 +154,7 @@ const Terms = () => {
                                 </div>
 
                                 <p className="text-muted-foreground mt-4">
-                                    <strong>Never share the Package PIN or OTP before you have the item in your hands and have inspected it.</strong> A vendor or courier who pressures you for either code before handover is breaching our Vendor Agreement — refuse, and report it to us.
+                                    <strong>Never share the Package PIN or OTP before you have the item in your hands and have inspected it.</strong> A vendor or courier who pressures you for either code before handover is breaching our Vendor Agreement, refuse, and report it to us.
                                 </p>
                             </section>
 
@@ -257,7 +257,7 @@ const Terms = () => {
                                 </h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li>Sole-ly charges a <strong>6% commission</strong> on the product price of each completed sale</li>
-                                    <li><strong>The delivery fee is never commissioned.</strong> Commission is calculated on the product subtotal only — the delivery fee you agree with the buyer is passed through to you in full</li>
+                                    <li><strong>The delivery fee is never commissioned.</strong> Commission is calculated on the product subtotal only, the delivery fee you agree with the buyer is passed through to you in full</li>
                                     <li>Payments are held in escrow until delivery is confirmed (see section 4)</li>
                                     <li><strong>Withdrawals:</strong> You can withdraw your earnings to M-Pesa at any time. A disbursement fee applies per withdrawal and is deducted from the amount sent: <strong>KES 10</strong> up to KES 100, <strong>KES 20</strong> up to KES 1,000, and <strong>KES 100</strong> above that</li>
                                     <li><strong>Auto-Payout:</strong> If your balance exceeds <strong>KES 10,000</strong>, the system may automatically process a payout to your registered M-Pesa number</li>
@@ -285,7 +285,7 @@ const Terms = () => {
                                     As a vendor, you agree to adhere to the following timelines:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                                    <li><strong>Delivery fee:</strong> Agree the delivery fee with the buyer in the in-app negotiation before the order is paid. Respond promptly — an agreement neither side completes will expire and the sale is lost</li>
+                                    <li><strong>Delivery fee:</strong> Agree the delivery fee with the buyer in the in-app negotiation before the order is paid. Respond promptly, an agreement neither side completes will expire and the sale is lost</li>
                                     <li><strong>Confirmation:</strong> Accept or reject new orders within <strong>48 hours</strong></li>
                                     <li><strong>Delivery:</strong> Arrange and deliver orders within <strong>5 days</strong> of confirmation. You are fully responsible for delivery logistics</li>
                                     <li><strong>Package PIN:</strong> Write the order's 3-digit Package PIN on the package before it goes out. The buyer needs it to confirm receipt</li>
@@ -297,7 +297,7 @@ const Terms = () => {
                                         <li>The buyer inspects the item and enters the <strong>3-digit Package PIN</strong> from the package to confirm receipt</li>
                                         <li>Sole-ly then shows the buyer a <strong>6-digit OTP</strong>. Ask them for it and enter it on your Vendor Orders page to <strong>release your funds immediately</strong></li>
                                         <li>If you never enter the OTP, escrow releases to you automatically <strong>6 hours</strong> after the buyer entered the Package PIN</li>
-                                        <li><strong>Pickup orders have no auto-release.</strong> For collections, funds move only when you enter the buyer's OTP — so always collect it at handover</li>
+                                        <li><strong>Pickup orders have no auto-release.</strong> For collections, funds move only when you enter the buyer's OTP, so always collect it at handover</li>
                                         <li><strong>Do NOT</strong> pressure buyers into entering the Package PIN or handing over the OTP before they have received and inspected the product. Doing so is grounds for suspension</li>
                                     </ul>
                                 </div>
@@ -314,7 +314,7 @@ const Terms = () => {
                                         ✅ <strong>Auto-Release (6 hours after PIN):</strong> Once the buyer enters the Package PIN, escrow releases to you automatically after 6 hours if the OTP has not been entered. This protects you from a buyer who receives the goods and then goes quiet. It does not apply to pickup orders.
                                     </p>
                                     <p className="text-sm bg-blue-50 border border-blue-200 p-3 rounded-lg text-muted-foreground mt-2">
-                                        💡 <strong>Buyer won't enter the PIN?</strong> If a buyer has received the correct item but refuses to confirm, raise a dispute. Sole-ly admin will review and release funds in your favour where the evidence supports it. If the item was genuinely wrong or damaged, take it back — the buyer will be refunded and no commission is charged.
+                                        💡 <strong>Buyer won't enter the PIN?</strong> If a buyer has received the correct item but refuses to confirm, raise a dispute. Sole-ly admin will review and release funds in your favour where the evidence supports it. If the item was genuinely wrong or damaged, take it back, the buyer will be refunded and no commission is charged.
                                     </p>
                                 </div>
                             </section>
@@ -346,7 +346,7 @@ const Terms = () => {
                                 <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                                     <h4 className="font-semibold text-foreground mb-2">Sizing, Fit, and "Change of Mind"</h4>
                                     <ul className="list-disc pl-6 space-y-2 text-sm text-muted-foreground">
-                                        <li><strong>Vendor Responsibility:</strong> You are liable for returns if you sent something other than what was ordered — for example the buyer ordered size 42 and you sent 43, or a different colour or model</li>
+                                        <li><strong>Vendor Responsibility:</strong> You are liable for returns if you sent something other than what was ordered, for example the buyer ordered size 42 and you sent 43, or a different colour or model</li>
                                         <li><strong>Buyer Responsibility:</strong> If the item matches the description and the size ordered, but simply does not suit or fit the buyer, Sole-ly does not mandate a refund. Vendors may accept such returns at their own discretion, and the buyer is responsible for the return shipping costs</li>
                                         <li><strong>Accurate sizing is your job:</strong> Where an item runs small or large relative to its stated size, say so in the listing. Repeated fit disputes on inaccurately described items will be treated as misdescription</li>
                                     </ul>

@@ -141,7 +141,7 @@ const VendorRatings = () => {
                                             <CardContent>
                                                 <div className="flex flex-col items-center text-center py-4">
                                                     <div className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-amber-400 to-orange-600 tracking-tighter mb-4 drop-shadow-sm">
-                                                        {stats.average > 0 ? stats.average : "—"}
+                                                        {stats.average > 0 ? stats.average : "-"}
                                                     </div>
                                                     <div className="flex justify-center mb-3">
                                                         {renderStars(Math.round(stats.average))}

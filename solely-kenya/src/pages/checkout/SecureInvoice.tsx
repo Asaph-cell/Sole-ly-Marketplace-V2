@@ -188,7 +188,7 @@ const SecureInvoice = () => {
     <div className={`min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 pb-8 ${isEmbed ? 'solely-embed-mode' : ''}`}>
       <SEO title={`Secure Checkout: ${title}`} description={`Pay safely for ${title} via Sole-ly.`} />
 
-      {/* Header Banner — hidden in embed mode */}
+      {/* Header Banner, hidden in embed mode */}
       {!isEmbed && (
         <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white py-2 px-4 flex items-center justify-center gap-2 shadow-md sticky top-0 z-10 print:hidden">
           <Shield className="h-4 w-4" />

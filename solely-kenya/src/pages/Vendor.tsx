@@ -10,7 +10,7 @@ const Vendor = () => {
     <div className="min-h-screen py-12">
       <SEO 
         title="Sell Online Safely in Kenya | Solely"
-        description="Stop losing sales because buyers don't trust you yet. Send them a secure Solely payment link — their money is protected until delivery. Zero fees to start. Works on WhatsApp, Instagram & TikTok."
+        description="Stop losing sales because buyers don't trust you yet. Send them a secure Solely payment link, their money is protected until delivery. Zero fees to start. Works on WhatsApp, Instagram & TikTok."
         canonical="https://solelymarketplace.com/vendor"
       />
       <div className="container mx-auto px-4">
@@ -18,12 +18,12 @@ const Vendor = () => {
         <div className="max-w-3xl mx-auto text-center mb-16">
           <img
             src={logo}
-            alt="Sole-ly — Buy & Sell Safely"
+            alt="Sole-ly - Buy & Sell Safely"
             className="h-20 w-auto mx-auto mb-6"
           />
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">Stop Losing Sales to Mistrust.</h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed mb-6 sm:mb-8">
-            Your followers want to buy — but they don't trust "send to Till." With Solely, you generate a protected payment link that tells buyers: "Your money is safe until you get what you ordered." Zero setup fees. 6% only when you sell.
+            Your followers want to buy, but they don't trust "send to Till." With Solely, you generate a protected payment link that tells buyers: "Your money is safe until you get what you ordered." Zero setup fees. 6% only when you sell.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button size="lg" asChild>
@@ -53,7 +53,7 @@ const Vendor = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  When buyers see a Sole.ly payment link, they know their money is safe. No more "I'll think about it" — convert followers into paying customers.
+                  When buyers see a Sole.ly payment link, they know their money is safe. No more "I'll think about it", convert followers into paying customers.
                 </p>
               </CardContent>
             </Card>
@@ -107,7 +107,7 @@ const Vendor = () => {
               </div>
               <h3 className="font-semibold mb-2">List Your Products</h3>
               <p className="text-sm text-muted-foreground">
-                Upload photos, set prices, and publish. Share the link on your socials — or let buyers find you on Solely's built-in shop
+                Upload photos, set prices, and publish. Share the link on your socials, or let buyers find you on Solely's built-in shop
               </p>
             </div>
             <div className="text-center">

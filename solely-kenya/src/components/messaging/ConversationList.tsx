@@ -102,7 +102,7 @@ export const ConversationList = ({
       }
 
       // Fetch conversations where user is a participant (either buyer OR vendor)
-      // The isVendor prop controls display, not filtering — users see ALL their conversations
+      // The isVendor prop controls display, not filtering, users see ALL their conversations
       const { data: convData, error } = await supabase
         .from('conversations')
         .select('*')

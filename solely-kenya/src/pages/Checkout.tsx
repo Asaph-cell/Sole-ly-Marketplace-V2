@@ -294,7 +294,7 @@ const Checkout = () => {
       const subtotalRounded = Number(calculatedSubtotal.toFixed(2));
       const actualShippingFee = deliveryAgreement?.delivery_fee_ksh ?? 0;
       const finalTotal = Number((subtotalRounded + actualShippingFee).toFixed(2));
-      // Commission on product subtotal ONLY — vendor gets full delivery fee
+      // Commission on product subtotal ONLY, vendor gets full delivery fee
       const commissionAmount = Number((subtotalRounded * (commissionRate / 100)).toFixed(2));
       const payoutAmount = Number((finalTotal - commissionAmount).toFixed(2));
 

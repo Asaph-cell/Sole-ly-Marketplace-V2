@@ -98,7 +98,7 @@ const Cart = () => {
       .in("id", productIds);
     // Every requested product must come back AND be marked free. A short or
     // empty result means an item was deleted or unpublished after it was
-    // added to the cart — and `[].every()` is true, so without the length
+    // added to the cart, and `[].every()` is true, so without the length
     // check that would silently grant free delivery and skip fee negotiation.
     const allFreeDelivery =
       !!products &&

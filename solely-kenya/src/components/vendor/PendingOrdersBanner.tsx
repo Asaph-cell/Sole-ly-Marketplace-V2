@@ -33,7 +33,7 @@ export const PendingOrdersBanner = () => {
             if (!user) return;
 
             try {
-                // Only fetch orders under 48 hours old — expired ones are already missed
+                // Only fetch orders under 48 hours old, expired ones are already missed
                 const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
                 const { data: orders, error } = await supabase
                     .from("orders")

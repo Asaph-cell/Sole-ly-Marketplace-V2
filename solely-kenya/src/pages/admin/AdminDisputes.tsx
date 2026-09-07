@@ -223,7 +223,7 @@ const AdminDisputes = () => {
                                 <EmptyState
                                     icon={Scale}
                                     title="No disputes yet"
-                                    subtitle="All clear — no open cases"
+                                    subtitle="All clear, no open cases"
                                 />
                             </div>
                         ) : (

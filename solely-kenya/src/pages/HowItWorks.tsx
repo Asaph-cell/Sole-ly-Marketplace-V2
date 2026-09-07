@@ -12,7 +12,7 @@ const steps = [
     title: "Browse & Order",
     details: [
       "Browse verified sellers across 9 categories",
-      "Add items to cart — no account needed to browse",
+      "Add items to cart, no account needed to browse",
       "Choose delivery or pickup at checkout",
       "Pay securely via M-Pesa",
     ],
@@ -33,7 +33,7 @@ const steps = [
     icon: Package,
     title: "Receive Your Package",
     details: [
-      "Vendor dispatches — a 3-digit PIN is generated",
+      "Vendor dispatches and a 3-digit PIN is generated",
       "PIN is written on your physical package",
       "You enter the PIN in the app to confirm receipt",
       "A 6-digit release code is then generated for you",
@@ -53,7 +53,7 @@ const steps = [
 ];
 
 const pickupSteps = [
-  { title: "Pay via M-Pesa — money is protected" },
+  { title: "Pay via M-Pesa, money is protected" },
   { title: "Vendor prepares your item for pickup" },
   { title: "Collect item in person" },
   { title: "App generates your 6-digit release code" },
@@ -67,7 +67,7 @@ const faqs = [
   },
   {
     q: "What if the item doesn't arrive?",
-    a: "If delivery hasn't happened and you haven't entered any PIN, your funds stay locked. You can open a dispute and we'll mediate — including a full refund if the vendor can't prove dispatch.",
+    a: "If delivery hasn't happened and you haven't entered any PIN, your funds stay locked. You can open a dispute and we'll mediate, including a full refund if the vendor can't prove dispatch.",
   },
   {
     q: "Can I file a dispute?",
@@ -87,7 +87,7 @@ const HowItWorks = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="How Sole.ly Works — Trusted Checkout for Kenya"
+        title="How Sole.ly Works - Trusted Checkout for Kenya"
         description="Learn how Sole.ly protects every transaction. Your money stays safe until delivery. No more pay-and-pray. Both buyers and sellers are protected."
         canonical="https://solelymarketplace.com/how-it-works"
       />
@@ -102,7 +102,7 @@ const HowItWorks = () => {
             Shopping Without Stress
           </h1>
           <p className="text-base sm:text-xl max-w-2xl mx-auto opacity-90">
-            Your money stays safe at every step — protected until you receive exactly what you ordered.
+            Your money stays safe at every step, protected until you receive exactly what you ordered.
           </p>
           <div className="flex flex-wrap gap-3 justify-center mt-8">
             <Button size="lg" variant="secondary" className="rounded-full font-bold" asChild>
@@ -168,7 +168,7 @@ const HowItWorks = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto text-center mb-10">
             <Badge variant="secondary" className="mb-3 text-xs font-bold uppercase tracking-widest">Pickup Orders</Badge>
-            <h2 className="text-2xl sm:text-3xl font-extrabold">Simpler — But Still Protected</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold">Simpler - But Still Protected</h2>
             <p className="text-muted-foreground mt-2">No PIN on the package needed. Just collect, confirm, release.</p>
           </div>
           <div className="relative flex flex-col gap-0 max-w-2xl mx-auto text-left">

@@ -349,7 +349,7 @@ const VendorEditProduct = () => {
                   </div>
                 </div>
 
-                {/* Condition Selector — options change based on category */}
+                {/* Condition Selector, options change based on category */}
                 <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
                   <div>
                     <Label htmlFor="condition" className="text-base font-medium">Condition *</Label>
@@ -395,7 +395,7 @@ const VendorEditProduct = () => {
                         ? "Available Sizes (e.g. XS, S, M, L, XL)"
                         : formData.category === "beauty" || formData.category === "skincare"
                         ? "Available Sizes / Volumes (comma-separated)"
-                        : "Available Sizes (EU — comma-separated)"}
+                        : "Available Sizes (EU, comma-separated)"}
                     </Label>
                     {(formData.category === "shoes" || !formData.category) && <ShoeSizeChart />}
                   </div>

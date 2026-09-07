@@ -101,7 +101,7 @@ const DeliveryDetails = () => {
 
         // Every requested product must come back AND be marked free. A short
         // or empty result means an item was deleted or unpublished after it
-        // was added to the cart — and `[].every()` is true, so without the
+        // was added to the cart, and `[].every()` is true, so without the
         // length check that would silently skip delivery fee negotiation.
         const allFree =
           !!products &&
@@ -409,7 +409,7 @@ const DeliveryDetails = () => {
                         className="w-full min-h-[52px] text-base font-semibold gap-2"
                       >
                         <ArrowRight size={20} strokeWidth={1.5} />
-                        Proceed to Checkout — Free Delivery
+                        Proceed to Checkout - Free Delivery
                       </Button>
                     ) : (
                       <Button

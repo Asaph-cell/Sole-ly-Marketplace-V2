@@ -89,11 +89,11 @@ const Auth = () => {
               await supabase.auth.signOut();
             }
           }
-          // If it IS a network error, do nothing — user stays on auth page
+          // If it IS a network error, do nothing, user stays on auth page
           // and the OfflineBanner will show them why
         }
       } catch (err) {
-        // Total network failure (fetch itself threw) — don't touch session
+        // Total network failure (fetch itself threw), don't touch session
         console.warn('Auth check failed (likely offline):', err);
       }
     };

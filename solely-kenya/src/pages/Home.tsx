@@ -91,7 +91,7 @@ const HOW_IT_WORKS = [
     step: "01",
     icon: ShoppingBag,
     title: "Pay With Confidence",
-    desc: "Checkout and pay securely via M-Pesa. Your money goes into a protected holding account — not directly to the seller.",
+    desc: "Checkout and pay securely via M-Pesa. Your money goes into a protected holding account, not directly to the seller.",
     image: "/images/how-it-works/1-order.jpg"
   },
   {
@@ -234,7 +234,7 @@ const Home = () => {
         }
       `}</style>
       <SEO
-        title="Solely — Buy & Sell Anything Online Safely | Kenya"
+        title="Kenya's Safest Way to Buy and Sell Online"
         description="Your money is protected until you get what you ordered. Sellers get paid when buyers are happy. Send secure M-Pesa payment links on WhatsApp, Instagram & TikTok. No scams. No fees to start."
         canonical="https://solelymarketplace.com/"
         isHomepage={true}
@@ -609,7 +609,7 @@ const Home = () => {
                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-inner"><MessageCircle size={18} strokeWidth={2.5} /></div>
                        <p className="font-bold text-base text-foreground">2. Drop it Anywhere</p>
                      </div>
-                     <p className="text-sm text-muted-foreground pl-14">WhatsApp, Instagram, TikTok — wherever your customers are.</p>
+                     <p className="text-sm text-muted-foreground pl-14">WhatsApp, Instagram, TikTok, wherever your customers are.</p>
                   </div>
 
                   <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[-2deg] hover:rotate-0 hover:scale-[1.03] transition-all duration-300 w-72">
@@ -631,11 +631,11 @@ const Home = () => {
           <div className="overflow-hidden whitespace-nowrap py-1.5">
             <div className="inline-block animate-[scroll_30s_linear_infinite]">
               {[
-                "🔗 Send payment links — sell on WhatsApp, IG & TikTok with buyer protection",
-                "🛡️ Buyers trust Sole.ly checkout — convert more followers into customers",
-                "💸 6% commission only when you sell — zero setup, zero monthly fees",
-                "🤝 Build trust instantly — your buyers' money is protected until delivery",
-                "📱 Not another shop — we're the safe checkout your online business needs",
+                "🔗 Send payment links: sell on WhatsApp, IG & TikTok with buyer protection",
+                "🛡️ Buyers trust Sole.ly checkout. Convert more followers into customers",
+                "💸 6% commission only when you sell, zero setup, zero monthly fees",
+                "🤝 Build trust instantly. Your buyers' money is protected until delivery",
+                "📱 Not another shop. We're the safe checkout your online business needs",
               ].map((text, i) => (
                 <span key={i} className="inline-block px-10 text-xs sm:text-sm font-medium">
                   {text}
@@ -903,12 +903,12 @@ const Home = () => {
                 <span className="text-primary">to Mistrust.</span>
               </h2>
               <p className="text-secondary-foreground/80 max-w-md mx-auto lg:mx-0 text-sm sm:text-base leading-relaxed">
-                Your followers want to buy — but they don't trust "send to Till." With Solely,
+                Your followers want to buy, but they don't trust "send to Till." With Solely,
                 you generate a protected payment link that tells buyers: "Your money is safe until you get what you ordered."
               </p>
               <ul className="mt-6 space-y-3 text-sm">
                 {[
-                  "Zero listing fees — only 6% when you sell",
+                  "Zero listing fees, only 6% when you sell",
                   "Sell shoes, fashion, electronics, beauty & more",
                   "Your own store page with reviews & ratings",
                   "Real-time order tracking & payout dashboard",

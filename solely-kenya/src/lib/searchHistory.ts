@@ -62,7 +62,7 @@ export const rankBySearchHistory = <T extends {
     const history = getSearchHistory();
 
     if (history.length === 0) {
-        // No history — just shuffle everything
+        // No history, just shuffle everything
         return shuffleArray([...products]);
     }
 

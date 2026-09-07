@@ -742,7 +742,7 @@ const VendorOrders = () => {
                 return (
                   <div key={order.id} className={`bg-card rounded-2xl border ${isPending && !isExpired ? "border-amber-300 dark:border-amber-700" : "border-border"}`}>
 
-                    {/* Collapsed header — tap to expand */}
+                    {/* Collapsed header, tap to expand */}
                     <button className="w-full text-left px-4 py-3.5 flex items-start gap-3"
                       onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}>
                       <div className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${
@@ -770,7 +770,7 @@ const VendorOrders = () => {
                     {isExpanded && (
                       <div className="px-4 pb-4 space-y-4 border-t border-border pt-4">
 
-                        {/* Items, financials & delivery — hidden for missed orders */}
+                        {/* Items, financials & delivery, hidden for missed orders */}
                         {!isExpired && (<>
 
                         {/* Top Actions */}
@@ -810,7 +810,7 @@ const VendorOrders = () => {
                         <div className="bg-muted/40 rounded-xl p-3 text-xs space-y-1">
                           <p className="font-semibold text-sm mb-1">{isPickup ? "Pickup Info" : "Delivery Info"}</p>
                           {order.status === "completed" ? (
-                            <p className="text-muted-foreground">✅ Completed — customer details hidden for privacy.</p>
+                            <p className="text-muted-foreground">✅ Completed, customer details hidden for privacy.</p>
                           ) : order.order_shipping_details ? (
                             <>
                               <p><span className="text-muted-foreground">Recipient: </span>{order.order_shipping_details.recipient_name}</p>
@@ -850,11 +850,11 @@ const VendorOrders = () => {
                         {/* PENDING: Accept / Decline / Expired */}
                         {order.status === "pending_vendor_confirmation" && (
                           isOrderExpired(order) ? (
-                            // Order is older than 48 hours — auto-refund already triggered
+                            // Order is older than 48 hours, auto-refund already triggered
                             <div className="rounded-xl border border-muted bg-muted/50 p-4 space-y-1.5">
                               <div className="flex items-center gap-2">
                                 <span className="text-base">⏰</span>
-                                <p className="text-sm font-semibold text-muted-foreground">Missed Order — Refund Processed</p>
+                                <p className="text-sm font-semibold text-muted-foreground">Missed Order - Refund Processed</p>
                               </div>
                               <p className="text-xs text-muted-foreground">
                                 This order wasn't accepted within 48 hours. The buyer has been automatically refunded and notified.

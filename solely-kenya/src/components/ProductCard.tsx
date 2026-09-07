@@ -186,7 +186,7 @@ const ProductCard = ({
           className={`img-wrap relative w-full aspect-square overflow-hidden`}
           onClick={handleMobileTap}
         >
-          {/* Condition badges — top left */}
+          {/* Condition badges, top left */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 items-start">
             {freeDelivery && (
               <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#1a5138] text-white text-[10px] font-extrabold rounded-full tracking-wide shadow-sm">
@@ -205,7 +205,7 @@ const ProductCard = ({
             )}
           </div>
 
-          {/* "New" badge — top right area, alongside video indicator */}
+          {/* "New" badge, top right area, alongside video indicator */}
           <div className="absolute top-3 right-3 flex flex-col gap-1.5 z-10 items-end">
             {isNew && (
               <span className="badge px-2 py-0.5 bg-[#c2841d] text-white text-[10px] font-bold rounded-full shadow-sm">

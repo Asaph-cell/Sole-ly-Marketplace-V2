@@ -189,7 +189,7 @@ export const ClothingSizeChart = ({ kind, selectedSize, availableSizes }: Clothi
                             ? "Measure around your natural waistline, keeping the tape snug but not tight."
                             : "Measure over light clothing, keeping the tape level and snug. If you fall between two sizes, size up."}
                     </p>
-                    <p className="mt-1">Sizing varies between brands — check the vendor's notes if you're unsure.</p>
+                    <p className="mt-1">Sizing varies between brands. Check the vendor's notes if you're unsure.</p>
                 </div>
             </DialogContent>
         </Dialog>

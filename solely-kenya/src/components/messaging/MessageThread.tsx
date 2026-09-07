@@ -235,12 +235,12 @@ export const MessageThread = ({ conversationId }: MessageThreadProps) => {
   );
 };
 
-// Issue #4: currentUserId is now passed as a prop — no more per-bubble auth calls
+// Issue #4: currentUserId is now passed as a prop, no more per-bubble auth calls
 // Issue #7: supports structured message types (delivery_proposal, delivery_accepted, etc.)
 const MessageBubble = ({ message, currentUserId }: { message: Message; currentUserId: string }) => {
   const isOwn = message.sender_id === currentUserId;
 
-  // System messages — centered info style
+  // System messages, centered info style
   if (message.message_type === "system") {
     return (
       <div className="flex justify-center">

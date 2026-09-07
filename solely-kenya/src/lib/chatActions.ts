@@ -8,8 +8,8 @@ interface TrackOrderResult {
 
 const STATUS_MAP: Record<string, { emoji: string; label: string }> = {
   pending_payment: { emoji: "⏳", label: "Awaiting payment" },
-  pending: { emoji: "📦", label: "Order placed — waiting for vendor" },
-  accepted: { emoji: "📦", label: "Vendor accepted — preparing your order" },
+  pending: { emoji: "📦", label: "Order placed, waiting for vendor" },
+  accepted: { emoji: "📦", label: "Vendor accepted, preparing your order" },
   dispatched: { emoji: "🚚", label: "On the way!" },
   shipped: { emoji: "🚚", label: "On the way!" },
   completed: { emoji: "✅", label: "Delivered" },
@@ -27,7 +27,7 @@ export async function trackOrder(orderId: string): Promise<TrackOrderResult> {
       return { found: false, message: "Please enter a valid order ID." };
     }
 
-    // Use the same RPC that GuestTracking uses — works without auth
+    // Use the same RPC that GuestTracking uses, works without auth
     const { data, error } = await supabase.rpc("get_guest_order_details", {
       target_order_id: trimmed,
     });

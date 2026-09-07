@@ -27,7 +27,7 @@ const CAT_META: Record<string, { icon: LucideIcon; from: string; to: string; tex
   home:            { icon: Home,       from: "#FB923C", to: "#FBBF24", text: "#fff" },
 };
 
-// ── Condition options — simple 2-choice per group ────────────────────────────
+// ── Condition options, simple 2-choice per group ────────────────────────────
 const CONDITIONS_GENERAL = [
   { value: "new",      label: "New",       dot: "bg-emerald-500" },
   { value: "thrifted", label: "Thrifted",  dot: "bg-purple-500" },
@@ -41,7 +41,7 @@ const CONDITIONS_ELECTRONICS = [
 const ELEC_SUBS = new Set(["phones","laptops","audio","phone-accessories","gaming","cameras","smartwatches"]);
 const isElectronics = (cat: string, sub: string) => cat === "electronics" || ELEC_SUBS.has(sub);
 
-// ── Spec fields — one entry per category / subcategory ───────────────────────
+// ── Spec fields, one entry per category / subcategory ───────────────────────
 type SpecField = { key: string; label: string; type: "text"|"select"; options?: string[]; placeholder?: string };
 
 const SPEC_FIELDS: Record<string, SpecField[]> = {
@@ -272,7 +272,7 @@ const VendorListItem = () => {
   const specFields  = category ? getSpecFields(category, subcategory) : [];
   const isElec      = isElectronics(category, subcategory);
   const conditions  = isElec ? CONDITIONS_ELECTRONICS : CONDITIONS_GENERAL;
-  // For electronics the spec fields include Brand/Model — hide the top-level brand input
+  // For electronics the spec fields include Brand/Model, hide the top-level brand input
   const showBrandField = !isElec;
 
   const setSpec = (key: string, val: string) => setSpecs(prev => ({ ...prev, [key]: val }));
@@ -328,7 +328,7 @@ const VendorListItem = () => {
         if (v && k !== "sizes" && k !== "colors") cleanSpecs[k] = v;
       });
 
-      // Sanitise condition — map form values to DB-allowed values
+      // Sanitise condition, map form values to DB-allowed values
       // DB constraint: new | like_new | good | fair
       const conditionMap: Record<string, string> = {
         thrifted:    "good",
@@ -339,7 +339,7 @@ const VendorListItem = () => {
       // For electronics brand comes from spec fields, not the top-level brand input
       const effectiveBrand = isElec ? (specs.brand || brand || null) : (brand || null);
 
-      // Core insert — only original schema columns that are guaranteed to exist
+      // Core insert, only original schema columns that are guaranteed to exist
       const { data: inserted, error: insertErr } = await supabase.from("products").insert({
         vendor_id: user?.id,
         name,
@@ -358,7 +358,7 @@ const VendorListItem = () => {
 
       if (insertErr) throw insertErr;
 
-      // Save newer columns separately — silently skipped if schema cache not yet refreshed
+      // Save newer columns separately, silently skipped if schema cache not yet refreshed
       // This means listing ALWAYS succeeds; these fields save once cache is reloaded
       try {
         const extras: Record<string, any> = {};
@@ -372,7 +372,7 @@ const VendorListItem = () => {
           await supabase.from("products").update(extras).eq("id", inserted.id);
         }
       } catch {
-        // Schema cache not yet refreshed — go to Supabase Dashboard → Settings → API → Reload Schema Cache
+        // Schema cache not yet refreshed, go to Supabase Dashboard → Settings → API → Reload Schema Cache
       }
 
       await supabase.rpc("publish_product", { product_id_to_publish: inserted.id });
@@ -408,7 +408,7 @@ const VendorListItem = () => {
             </button>
             <div className="flex-1">
               <h1 className="text-lg font-bold">List an Item</h1>
-              <p className="text-xs text-muted-foreground">Step {step} of 4 — {steps[step - 1]}</p>
+              <p className="text-xs text-muted-foreground">Step {step} of 4 - {steps[step - 1]}</p>
             </div>
           </div>
 
@@ -551,7 +551,7 @@ const VendorListItem = () => {
                 </div>
               )}
 
-              {/* Condition — 2 clean pill buttons */}
+              {/* Condition - 2 clean pill buttons */}
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Condition *</p>
                 <div className="flex gap-2">

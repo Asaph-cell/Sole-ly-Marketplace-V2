@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { VendorNavbar } from "@/components/vendor/VendorNavbar";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
@@ -10,7 +10,20 @@ import { MessageThread } from "@/components/messaging/MessageThread";
 const VendorMessages = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Driven by ?conversation=<id> so other surfaces can deep-link straight
+  // into a thread. The delivery inquiry banner needs this to open the chat
+  // the buyer is actually waiting in, rather than dropping the vendor on an
+  // unselected list.
+  const selectedConversationId = searchParams.get("conversation");
+
+  const setSelectedConversationId = (id: string | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (id) next.set("conversation", id);
+    else next.delete("conversation");
+    setSearchParams(next, { replace: true });
+  };
 
   useEffect(() => {
     if (!loading && !user) {

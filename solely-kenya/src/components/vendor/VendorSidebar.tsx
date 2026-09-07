@@ -145,7 +145,7 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
     if (!user) return;
 
     const fetchAlertCounts = async () => {
-      // Fetch pending orders count — only genuinely actionable ones (under 48 hours old)
+      // Fetch pending orders count, only genuinely actionable ones (under 48 hours old)
       const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
       const { count: pendingOrdersCount } = await supabase
         .from("orders")
@@ -161,7 +161,7 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
         .eq("vendor_id", user.id)
         .in("status", ["open", "under_review"]);
 
-      // Fetch unread messages count — messages sent to conversations where this vendor is a participant
+      // Fetch unread messages count, messages sent to conversations where this vendor is a participant
       // that the vendor hasn't read yet (sender_id != vendor = sent by buyer, is_read = false)
       const { data: vendorConvs } = await supabase
         .from("conversations")

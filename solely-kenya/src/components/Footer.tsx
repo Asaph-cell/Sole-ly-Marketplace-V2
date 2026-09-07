@@ -94,13 +94,13 @@ const Footer = () => {
             <Link to="/" className="flex flex-col items-start group">
               <img
                 src={logo}
-                alt="Sole-ly — Buy & Sell Safely"
+                alt="Sole-ly - Buy & Sell Safely"
                 className="h-14 w-auto transition-transform group-hover:scale-105 dark:invert"
               />
               <span className="text-[10px] text-muted-foreground tracking-wide uppercase -mt-3 pl-1">Kenya's Safest Way to Buy & Sell Online</span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Kenya's safest way to buy and sell anything online — shoes, fashion, electronics & more. Your money is always protected.
+              Kenya's safest way to buy and sell anything online: shoes, fashion, electronics & more. Your money is always protected.
             </p>
           </div>
 

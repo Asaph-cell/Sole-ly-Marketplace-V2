@@ -61,7 +61,7 @@ const Shop = () => {
   const [selectedCondition, setSelectedCond] = useState("all");
   const [sortBy, setSortBy]                   = useState("smart");
 
-  // Slider drags fire continuously — debounce before hitting the network.
+  // Slider drags fire continuously, debounce before hitting the network.
   const [debouncedPrice, setDebouncedPrice]   = useState(priceRange);
 
   const activeCategoryObj = selectedCategory !== "all" ? getCategoryByKey(selectedCategory) : null;
@@ -76,7 +76,7 @@ const Shop = () => {
 
   // ─── Sync filter state from URL params ────────────────────────────────────
   // Runs on every URL change (category nav, sub pills, search from navbar).
-  // It does NOT scroll to top — that only happens on mount above.
+  // It does NOT scroll to top, that only happens on mount above.
   useEffect(() => {
     const search   = searchParams.get("search");
     const category = searchParams.get("category") ?? "all";
@@ -88,7 +88,7 @@ const Shop = () => {
     setSelectedSub(sub);
 
     // Clamp price ceiling to the new category's max. Return the previous
-    // array unchanged when nothing moved — a fresh array reference here
+    // array unchanged when nothing moved, a fresh array reference here
     // would cascade into a second, identical query on every mount.
     const maxP = getMaxPrice(category);
     setPriceRange((prev) => {
@@ -168,7 +168,7 @@ const Shop = () => {
         p_offset: offset,
       });
 
-      // A newer request has already been issued — discard this result.
+      // A newer request has already been issued, discard this result.
       if (seq !== requestSeq.current) return;
 
       if (rpcError) {
@@ -227,7 +227,7 @@ const Shop = () => {
 
   const handleCategoryClick = (key: string) => {
     trackCategoryClick(key);
-    // Update URL — this triggers the [searchParams] effect which sets state.
+    // Update URL, this triggers the [searchParams] effect which sets state.
     // Sub is explicitly removed from URL so the effect will reset it to "all".
     const p = new URLSearchParams(searchParams);
     if (key === "all") { p.delete("category"); p.delete("sub"); }
@@ -236,7 +236,7 @@ const Shop = () => {
   };
 
   const handleSubClick = (key: string) => {
-    // Just update the URL — the [searchParams] effect will sync selectedSub.
+    // Just update the URL, the [searchParams] effect will sync selectedSub.
     const p = new URLSearchParams(searchParams);
     if (key === "all") p.delete("sub");
     else p.set("sub", key);
@@ -325,7 +325,7 @@ const Shop = () => {
         </Select>
       </div>
 
-      {/* Subcategory — only shown when a category is active */}
+      {/* Subcategory, only shown when a category is active */}
       {activeCategoryObj && activeCategoryObj.subcategories.length > 0 && (
         <div>
           <label className="text-sm font-semibold mb-2 block">Subcategory</label>
@@ -442,7 +442,7 @@ const Shop = () => {
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
             <Shield strokeWidth={1.5} className="h-3 w-3 text-primary shrink-0" />
-            {totalCount} items — every order escrow-protected
+            {totalCount} items, every order escrow-protected
           </p>
         </div>
 
@@ -469,7 +469,7 @@ const Shop = () => {
           {/* ── Main content ── */}
           <main className="lg:col-span-3 min-w-0 pb-24 lg:pb-0">
 
-            {/* ── Category pills — single scrollable row, never wraps ── */}
+            {/* ── Category pills, single scrollable row, never wraps ── */}
             <div className="flex flex-nowrap gap-2 overflow-x-auto scrollbar-hide pb-1 mb-3">
               <button
                 onClick={() => handleCategoryClick("all")}
@@ -496,7 +496,7 @@ const Shop = () => {
               ))}
             </div>
 
-            {/* ── Subcategory pills — same pattern ── */}
+            {/* ── Subcategory pills, same pattern ── */}
             {activeCategoryObj && (
               <div className="flex flex-nowrap gap-2 overflow-x-auto scrollbar-hide pb-1 mb-4">
                 <button

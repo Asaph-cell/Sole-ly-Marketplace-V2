@@ -22,7 +22,7 @@ const About = () => {
     <div className="min-h-screen py-12">
       <SEO
         title="About Us"
-        description="Solely is the safest way to buy and sell online in Kenya. We protect every transaction — your money is safe until you get what you ordered."
+        description="Solely is the safest way to buy and sell online in Kenya. We protect every transaction; your money is safe until you get what you ordered."
         canonical="https://solelymarketplace.com/about"
         breadcrumbs={[
           { name: "Home", url: "/" },
@@ -34,12 +34,12 @@ const About = () => {
         <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-16">
           <img
             src={logo}
-            alt="Solely — Buy & Sell Safely"
+            alt="Solely - Buy & Sell Safely"
             className="h-14 sm:h-20 w-auto mx-auto mb-6"
           />
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">About Sole.ly Kenya</h1>
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed font-medium">
-            Sole.ly makes online buying and selling safe in Kenya. We're not another shop — we're the checkout system that protects you when buying from Instagram, WhatsApp, and TikTok sellers.
+            Sole.ly makes online buying and selling safe in Kenya. We're not another shop. We're the checkout system that protects you when buying from Instagram, WhatsApp, and TikTok sellers.
           </p>
         </div>
 
@@ -47,14 +47,14 @@ const About = () => {
         <div className="bg-gradient-hero text-primary-foreground rounded-2xl p-8 md:p-12 mb-20 shadow-xl">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <p className="text-base sm:text-lg md:text-xl leading-relaxed opacity-95">
-              We built Sole.ly because online sellers in Kenya lose customers every day — not because their products are bad, but because buyers are afraid of being scammed. When a buyer sees a Sole.ly payment link, they know their money is protected until they receive exactly what they ordered.
+              We built Sole.ly because online sellers in Kenya lose customers every day, not because their products are bad, but because buyers are afraid of being scammed. When a buyer sees a Sole.ly payment link, they know their money is protected until they receive exactly what they ordered.
             </p>
             <p className="text-base sm:text-lg md:text-xl leading-relaxed opacity-95">
               For sellers, this means more conversions, fewer "I'll think about it" responses, and a professional checkout experience that builds trust from the first transaction. For buyers, it means shopping from social media sellers with complete peace of mind.
             </p>
             <div className="pt-4 border-t border-primary-foreground/20">
               <p className="text-lg sm:text-2xl font-bold tracking-tight">
-                At Sole.ly Kenya, trust isn't assumed — it's built into every transaction.
+                At Sole.ly Kenya, trust isn't assumed. It's built into every transaction.
               </p>
             </div>
           </div>
@@ -70,7 +70,7 @@ const About = () => {
               </div>
               <h3 className="text-xl font-bold mb-4">1. Community First</h3>
               <p className="text-muted-foreground leading-relaxed">
-                We're more than a platform — we're a community built on trust, passion, and connection. Every buyer and seller is an important part of our journey.
+                We're more than a platform. We're a community built on trust, passion, and connection. Every buyer and seller is an important part of our journey.
               </p>
             </div>
             

@@ -22,7 +22,7 @@ const ParallaxHero = ({ children }: ParallaxHeroProps) => {
                 />
             </div>
 
-            {/* Translucent overlay — soft gradient for readability without hiding the image */}
+            {/* Translucent overlay, soft gradient for readability without hiding the image */}
             <div
                 className="absolute inset-0 pointer-events-none"
                 style={{

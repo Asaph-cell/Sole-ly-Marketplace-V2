@@ -167,7 +167,7 @@ const VendorDirectory = () => {
 
   return (
     <div className="min-h-screen bg-muted/20 pb-20">
-      <SEO title="All Stores & Vendors | Sole-ly" description="Browse all verified sellers and stores on Sole-ly. Every purchase is protected — your money is safe until delivery." />
+      <SEO title="All Stores & Vendors | Sole-ly" description="Browse all verified sellers and stores on Sole-ly. Every purchase is protected, your money is safe until delivery." />
 
       {/* Header */}
       <div className="bg-primary/5 border-b border-primary/10">

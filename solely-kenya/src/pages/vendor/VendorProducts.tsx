@@ -60,7 +60,7 @@ const ShareModal = ({ product, onClose }: { product: any; onClose: () => void })
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           files: [file],
-          text: `${product.name} — KES ${product.price_ksh?.toLocaleString()}`,
+          text: `${product.name} - KES ${product.price_ksh?.toLocaleString()}`,
         });
       } else {
         const objectUrl = URL.createObjectURL(blob);
@@ -90,7 +90,7 @@ const ShareModal = ({ product, onClose }: { product: any; onClose: () => void })
 
   const handleWhatsApp = () => {
     const msg = encodeURIComponent(
-      `Hey! I'm selling *${product.name}* for KES ${product.price_ksh?.toLocaleString()} 🛍️\n\nPay safely through Solely escrow — your money is held until you confirm delivery 🔒\n\n👉 ${payLink}`
+      `Hey! I'm selling *${product.name}* for KES ${product.price_ksh?.toLocaleString()} 🛍️\n\nPay safely through Solely escrow, your money is held until you confirm delivery 🔒\n\n👉 ${payLink}`
     );
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
@@ -436,7 +436,7 @@ const VendorProducts = () => {
         </main>
       </div>
 
-      {/* ── Single FAB — sits above WhatsApp widget ── */}
+      {/* ── Single FAB, sits above WhatsApp widget ── */}
       <div className="fixed bottom-28 right-4 z-40">
         <button
           onClick={() => navigate("/vendor/list-item")}

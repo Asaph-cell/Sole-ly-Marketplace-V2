@@ -76,7 +76,7 @@ const BuyNow = () => {
         .single();
       setVendor(prof);
 
-      // Vendor stats — rating + completed sales.
+      // Vendor stats, rating + completed sales.
       // `reviews` is per-product and has no vendor_id, so the query that used
       // to live here always failed with "column reviews.vendor_id does not
       // exist" and the seller silently showed 0 reviews on every shared link -
@@ -144,7 +144,7 @@ const BuyNow = () => {
   const handleWhatsAppShare = () => {
     if (!product) return;
     const msg = encodeURIComponent(
-      `Hey! Check out *${product.name}* for KES ${product.price_ksh.toLocaleString()} 🛍️\n\nPay safely through Solely's escrow — your money is protected until you confirm delivery 🔒\n\n👉 ${window.location.href}`
+      `Hey! Check out *${product.name}* for KES ${product.price_ksh.toLocaleString()} 🛍️\n\nPay safely through Solely's escrow. Your money is protected until you confirm delivery 🔒\n\n👉 ${window.location.href}`
     );
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
@@ -196,7 +196,7 @@ const BuyNow = () => {
     <div className="min-h-screen bg-background">
       {product && (
         <SEO
-          title={`Buy ${product.name} — KES ${product.price_ksh.toLocaleString()} | Solely`}
+          title={`Buy ${product.name} - KES ${product.price_ksh.toLocaleString()} | Solely`}
           description={`${product.name} for KES ${product.price_ksh.toLocaleString()}. Pay safely through Solely escrow. Funds released only when you confirm delivery.`}
           image={images[0]}
           type="product"
@@ -207,7 +207,7 @@ const BuyNow = () => {
       {/* ── Trust top bar ── */}
       <div className="bg-primary text-primary-foreground text-center py-2 px-4 text-xs font-semibold flex items-center justify-center gap-2">
         <Lock strokeWidth={1.5} className="h-3 w-3" />
-        Solely Escrow — Your money is protected until you confirm delivery
+        Solely Escrow - Your money is protected until you confirm delivery
       </div>
 
       {/* ── Minimal header ── */}
@@ -413,7 +413,7 @@ const BuyNow = () => {
             </div>
             <div className="space-y-3">
               {[
-                { icon: Lock, title: "You pay securely", desc: "Your payment goes into Solely escrow — not to the seller yet" },
+                { icon: Lock, title: "You pay securely", desc: "Your payment goes into Solely escrow, not to the seller yet" },
                 { icon: Truck, title: "Seller delivers", desc: "Seller ships or hands over the item. You receive a Package PIN" },
                 { icon: ThumbsUp, title: "You confirm & release", desc: "Happy with the item? Enter your PIN. Seller gets paid instantly." },
               ].map(({ icon: Icon, title, desc }, i) => (
@@ -463,7 +463,7 @@ const BuyNow = () => {
             className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-base hover:bg-primary/90 disabled:opacity-50 transition-colors shadow-lg"
           >
             <Lock size={16} strokeWidth={1.5}  />
-            Buy Securely — KES {product.price_ksh.toLocaleString()}
+            Buy Securely - KES {product.price_ksh.toLocaleString()}
           </button>
           <p className="text-center text-[11px] text-muted-foreground">
             🔒 Funds held in escrow · Released only when you confirm delivery

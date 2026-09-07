@@ -32,7 +32,7 @@ const PrivacyPolicy = () => {
                             Welcome to Sole-ly ("we", "our", or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our marketplace at solelymarketplace.com, our Android app, and any Sole-ly checkout or payment link hosted on another website (together, the "Platform").
                         </p>
                         <p className="text-muted-foreground leading-relaxed mb-4">
-                            Sole-ly is the <strong>data controller</strong> for the personal data described in this policy, and we process it in accordance with the <strong>Kenya Data Protection Act, 2019</strong>. Vendors who receive your delivery details act as independent controllers for the purpose of fulfilling your order — see <em>Information Sharing</em> below.
+                            Sole-ly is the <strong>data controller</strong> for the personal data described in this policy, and we process it in accordance with the <strong>Kenya Data Protection Act, 2019</strong>. Vendors who receive your delivery details act as independent controllers for the purpose of fulfilling your order, see <em>Information Sharing</em> below.
                         </p>
                         <p className="text-muted-foreground leading-relaxed">
                             Please read this policy carefully. If you do not agree with our practices, please do not use the Platform.
@@ -54,7 +54,7 @@ const PrivacyPolicy = () => {
                             <li><strong>Register an account:</strong> Full name, email address, password</li>
                             <li><strong>Complete your profile:</strong> Phone number, profile photo</li>
                             <li><strong>Make a purchase:</strong> Delivery address, town/city, county, phone number, delivery notes</li>
-                            <li><strong>Check out as a guest:</strong> Name, phone number, email and delivery address, collected without an account. Guest orders are looked up using the order link we give you — treat that link as private</li>
+                            <li><strong>Check out as a guest:</strong> Name, phone number, email and delivery address, collected without an account. Guest orders are looked up using the order link we give you, treat that link as private</li>
                             <li><strong>Register as a vendor:</strong> Business name, M-Pesa number, store phone number, store location, business description</li>
                             <li><strong>Negotiate delivery:</strong> The messages you exchange with the other party in the in-app delivery chat, and the delivery fee and method you agree on</li>
                             <li><strong>Contact us or use the help bot:</strong> Any information you include in messages to our support team</li>
@@ -274,7 +274,7 @@ const PrivacyPolicy = () => {
                             <li><strong>Essential cookies:</strong> Keep you logged in and remember your preferences</li>
                             <li><strong>Authentication tokens:</strong> Securely identify you during your session</li>
                             <li><strong>Shopping cart and browsing interests:</strong> Remember items in your cart and the categories you browse, stored locally in your own browser</li>
-                            <li><strong>Analytics cookies:</strong> We use <strong>Google Analytics</strong> to understand how visitors use the Platform in aggregate — which pages are popular, where visitors arrive from, and where they drop off. Google sets its own cookies for this purpose and processes the data as an independent controller</li>
+                            <li><strong>Analytics cookies:</strong> We use <strong>Google Analytics</strong> to understand how visitors use the Platform in aggregate, which pages are popular, where visitors arrive from, and where they drop off. Google sets its own cookies for this purpose and processes the data as an independent controller</li>
                         </ul>
                         <p className="text-muted-foreground mb-3">
                             We do <strong>not</strong> use advertising cookies, and we do not run ad retargeting.
@@ -294,7 +294,7 @@ const PrivacyPolicy = () => {
                             Under the Data Protection Act, 2019 you have the following rights regarding your personal data:
                         </p>
                         <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
-                            <li><strong>To be informed:</strong> Know how your data is being used — that is what this policy is for</li>
+                            <li><strong>To be informed:</strong> Know how your data is being used; that is what this policy is for</li>
                             <li><strong>Access:</strong> Request a copy of the personal data we hold about you</li>
                             <li><strong>Correction:</strong> Update or correct inaccurate information in your account settings or by asking us</li>
                             <li><strong>Deletion:</strong> Request deletion of your account and associated data</li>
@@ -339,7 +339,7 @@ const PrivacyPolicy = () => {
                     <section>
                         <h2 className="text-2xl font-bold mb-4">International Users and Data Transfers</h2>
                         <p className="text-muted-foreground">
-                            Our Platform is operated from Kenya and serves the Kenyan market. Some of our service providers — including our database, hosting, email, and analytics providers — process data on servers outside Kenya. Where that happens, we rely on those providers' contractual data protection commitments to keep your data protected to the standard required by the Data Protection Act, 2019.
+                            Our Platform is operated from Kenya and serves the Kenyan market. Some of our service providers, including our database, hosting, email, and analytics providers, process data on servers outside Kenya. Where that happens, we rely on those providers' contractual data protection commitments to keep your data protected to the standard required by the Data Protection Act, 2019.
                         </p>
                     </section>
 

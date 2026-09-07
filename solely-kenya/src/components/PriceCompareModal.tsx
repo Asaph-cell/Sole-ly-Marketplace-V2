@@ -152,9 +152,8 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                     </SheetTitle>
                     <p className="text-xs text-muted-foreground">
                         {currentProduct.brand
-                            ? `Other ${currentProduct.brand} listings on Sole-ly`
-                            : "Similar listings on Sole-ly"}{" "}
-                        — sorted by lowest price
+                            ? `Other ${currentProduct.brand} listings on Sole-ly, sorted by lowest price`
+                            : "Similar listings on Sole-ly, sorted by lowest price"}
                     </p>
                 </SheetHeader>
 

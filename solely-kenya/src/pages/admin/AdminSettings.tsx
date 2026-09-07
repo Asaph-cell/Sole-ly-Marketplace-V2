@@ -206,7 +206,7 @@ function AdminsSection({ maxAdmins, onMaxAdminsChange }: { maxAdmins: number; on
     <Section
       icon={ShieldCheck}
       title="Admins"
-      description={`Grant admin access by email — they're notified immediately. ${admins.length}/${maxAdmins} admins.`}
+      description={`Grant admin access by email, they're notified immediately. ${admins.length}/${maxAdmins} admins.`}
     >
       <div className="flex flex-col divide-y divide-border">
         {loadingAdmins ? (
@@ -302,7 +302,7 @@ function AdminsSection({ maxAdmins, onMaxAdminsChange }: { maxAdmins: number; on
       <div className="pt-4 border-t border-border flex flex-col gap-3">
         {atCap && (
           <p className="text-[11px] text-muted-foreground">
-            At the {maxAdmins}-admin limit — remove one before adding another.
+            At the {maxAdmins}-admin limit, remove one before adding another.
           </p>
         )}
         <div className="flex flex-col sm:flex-row gap-3">
@@ -398,7 +398,7 @@ const AdminSettings = () => {
   const handleSave = async () => {
     if (changedKeys.length === 0) return;
     if (!reason.trim()) {
-      toast({ title: "Reason required", description: "Explain why you're changing these settings — it's recorded in the audit log.", variant: "destructive" });
+      toast({ title: "Reason required", description: "Explain why you're changing these settings, it's recorded in the audit log.", variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -456,7 +456,7 @@ const AdminSettings = () => {
             />
             <NumberRow
               label="Escrow release backstop"
-              hint="Funds normally release the moment the vendor enters the buyer's 6-digit code. This only fires if they never do — delivery orders only, pickup never auto-releases."
+              hint="Funds normally release the moment the vendor enters the buyer's 6-digit code. This only fires if they never do, delivery orders only, pickup never auto-releases."
               value={settings.pin_release_hours ?? 6}
               onChange={(v) => setField("pin_release_hours", v)}
               suffix="hours"
@@ -467,7 +467,7 @@ const AdminSettings = () => {
         {/* Money, and the switches that take the site down */}
         <div className="flex flex-col gap-4">
 
-          <Section icon={DollarSign} title="Financial" description="Commission and payout parameters — every order and vendor payout going forward uses these.">
+          <Section icon={DollarSign} title="Financial" description="Commission and payout parameters, every order and vendor payout going forward uses these.">
             <NumberRow
               label="Commission rate"
               hint="Percentage taken from each order"
@@ -523,7 +523,7 @@ const AdminSettings = () => {
           >
             <ToggleRow
               label="Maintenance mode"
-              hint="Extreme option — locks out every visitor with a full-page maintenance screen"
+              hint="Extreme option, locks out every visitor with a full-page maintenance screen"
               checked={!!settings.maintenance_mode}
               onChange={(v) => setField("maintenance_mode", v)}
               danger
@@ -541,7 +541,7 @@ const AdminSettings = () => {
             <div className="pt-3 border-t border-white/10">
               <ToggleRow
                 label="Maintenance banner"
-                hint="Gentle option — a dismissible heads-up banner, site stays fully usable"
+                hint="Gentle option, a dismissible heads-up banner, site stays fully usable"
                 checked={!!settings.maintenance_banner_enabled}
                 onChange={(v) => setField("maintenance_banner_enabled", v)}
                 dark
@@ -565,7 +565,7 @@ const AdminSettings = () => {
             <div className="flex items-start gap-2 mb-3 text-[11px] text-muted-foreground">
               <AlertTriangle size={13} strokeWidth={2} className="text-primary flex-shrink-0 mt-0.5" />
               <span>
-                {changedKeys.length} unsaved change{changedKeys.length === 1 ? "" : "s"}. A reason is required — it's stored in the admin activity log.
+                {changedKeys.length} unsaved change{changedKeys.length === 1 ? "" : "s"}. A reason is required, it's stored in the admin activity log.
               </span>
             </div>
             <div className="flex flex-col sm:flex-row gap-2">

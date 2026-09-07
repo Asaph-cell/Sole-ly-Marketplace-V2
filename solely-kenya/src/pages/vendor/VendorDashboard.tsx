@@ -292,7 +292,7 @@ const VendorDashboard = () => {
                     </div>
                   </div>
                   <p className="text-2xl font-bold">
-                    {stats.averageRating > 0 ? stats.averageRating : "—"}
+                    {stats.averageRating > 0 ? stats.averageRating : "-"}
                   </p>
                   <span className="text-[11px] text-muted-foreground">
                     {stats.averageRating > 0 ? "out of 5 ★" : "No ratings yet"}

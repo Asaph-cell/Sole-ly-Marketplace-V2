@@ -10,7 +10,7 @@ interface NetworkStatus {
 }
 
 /**
- * Detects real internet connectivity — not just navigator.onLine (which only
+ * Detects real internet connectivity, not just navigator.onLine (which only
  * checks if you're connected to a network, not if that network has internet).
  *
  * Uses a lightweight HEAD request to a known-good endpoint to confirm actual
@@ -27,7 +27,7 @@ export const useNetworkStatus = () => {
   // Ping a tiny, fast endpoint to verify real connectivity
   const checkConnectivity = useCallback(async (): Promise<boolean> => {
     try {
-      // Use a tiny favicon from a reliable CDN — fast and doesn't cost bandwidth
+      // Use a tiny favicon from a reliable CDN, fast and doesn't cost bandwidth
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
 

@@ -17,7 +17,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
 
-  // Subscribe to auth changes directly — no Router context needed
+  // Subscribe to auth changes directly, no Router context needed
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -49,7 +49,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   }, [user]);
 
   const toggle = async (productId: string) => {
-    if (!user) return; // callers must guard — redirect handled in ProductCard
+    if (!user) return; // callers must guard, redirect handled in ProductCard
 
     const wished = wishlistIds.has(productId);
 

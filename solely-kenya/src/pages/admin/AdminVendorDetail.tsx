@@ -148,7 +148,7 @@ const AdminVendorDetail = () => {
         </div>
         <div className="text-right flex-shrink-0">
           <p className="text-2xl font-medium bg-clip-text text-transparent bg-gradient-to-br from-primary to-amber-600">
-            {ratingStats ? Number(ratingStats.avg_rating).toFixed(1) : "—"}
+            {ratingStats ? Number(ratingStats.avg_rating).toFixed(1) : "-"}
           </p>
           <p className="text-[10px] text-muted-foreground flex items-center gap-1 justify-end">
             <Star size={9} className="fill-primary text-primary" />

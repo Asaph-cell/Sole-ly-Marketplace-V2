@@ -302,7 +302,7 @@ const VendorSettings = () => {
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Shown publicly on your storefront so shoppers can call you before buying.
-                      Leave blank to keep it private — this is separate from your WhatsApp number,
+                      Leave blank to keep it private, this is separate from your WhatsApp number,
                       which is only shared with buyers who already have an order.
                     </p>
                   </div>

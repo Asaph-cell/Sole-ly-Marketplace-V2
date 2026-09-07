@@ -1,7 +1,7 @@
 /**
  * DeliveryNegotiation Page
  * 
- * The core negotiation UI — buyer and vendor chat to agree on a delivery fee.
+ * The core negotiation UI, buyer and vendor chat to agree on a delivery fee.
  * Shows delivery details summary + chat thread with structured proposal cards.
  */
 
@@ -281,7 +281,7 @@ const DeliveryNegotiation = () => {
         sender_id: user.id,
         sender_role: isVendor ? "vendor" : "user",
         message: isPickup
-          ? "Proposed pick up — no delivery fee"
+          ? "Proposed pick up, no delivery fee"
           : `Proposed delivery fee: KES ${fee.toLocaleString()}${proposedMethod ? ` via ${proposedMethod}` : ""}`,
         message_type: "delivery_proposal",
         metadata: {
@@ -394,12 +394,12 @@ const DeliveryNegotiation = () => {
           </div>
           {isAgreed && (
             <Badge className="bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 text-sm px-3 py-1">
-              ✅ Agreed — KES {agreement.delivery_fee_ksh.toLocaleString()}
+              ✅ Agreed - KES {agreement.delivery_fee_ksh.toLocaleString()}
             </Badge>
           )}
         </div>
 
-        {/* Inline Checkout Section — replaces the old "Proceed to Checkout" button */}
+        {/* Inline Checkout Section, replaces the old "Proceed to Checkout" button */}
         {isAgreed && isBuyer && (
           <InlineCheckout
             agreement={agreement}
@@ -994,7 +994,7 @@ const InlineCheckout = ({
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2 text-green-700 dark:text-green-400">
           <ShieldCheck size={18} strokeWidth={1.5} />
-          Ready to Pay — Delivery Agreed!
+          Ready to Pay - Delivery Agreed!
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">

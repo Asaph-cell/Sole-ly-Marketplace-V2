@@ -193,7 +193,7 @@ export const VendorInsights = ({ vendorId }: { vendorId: string }) => {
                 {stat("Real people", String(totals.visitors), `Last ${RANGE_DAYS} days, repeat visits merged`, Users)}
                 {stat(
                     "Look-to-buy rate",
-                    totals.visitors > 0 ? `${conversion.toFixed(1)}%` : "—",
+                    totals.visitors > 0 ? `${conversion.toFixed(1)}%` : "-",
                     totals.visitors > 0 ? `${totals.orders} bought of ${totals.visitors} who looked` : "No visitors yet",
                     Target
                 )}
@@ -257,10 +257,10 @@ export const VendorInsights = ({ vendorId }: { vendorId: string }) => {
                                                     <td className="py-2.5 px-2 text-right tabular-nums">{r.visitors}</td>
                                                     <td className="py-2.5 px-2 text-right tabular-nums">{r.orders}</td>
                                                     <td className="py-2.5 px-2 text-right tabular-nums text-muted-foreground">
-                                                        {rate === null ? "—" : `${rate.toFixed(0)}%`}
+                                                        {rate === null ? "-" : `${rate.toFixed(0)}%`}
                                                     </td>
                                                     <td className="py-2.5 text-right tabular-nums font-medium">
-                                                        {r.revenue > 0 ? `KES ${r.revenue.toLocaleString()}` : "—"}
+                                                        {r.revenue > 0 ? `KES ${r.revenue.toLocaleString()}` : "-"}
                                                     </td>
                                                 </tr>
                                             );

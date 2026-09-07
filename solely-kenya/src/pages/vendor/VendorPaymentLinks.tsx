@@ -147,7 +147,7 @@ const VendorPaymentLinks = () => {
     if (error) {
       toast.error("Failed to delete link");
     } else if (count === 0) {
-      toast.error("Could not delete link — please try again or refresh.");
+      toast.error("Could not delete link, please try again or refresh.");
       fetchLinks(); // Re-sync with DB
     } else {
       toast.success("Link deleted successfully");
@@ -413,7 +413,7 @@ const VendorPaymentLinks = () => {
           <div className="space-y-4 pt-2">
             <p className="text-sm text-muted-foreground leading-relaxed">
               Paste this code on your website, blog, or link-in-bio page. A <strong>"Buy Safely on Solely"</strong> button 
-              will appear that opens a secure checkout modal — your buyer never leaves your site.
+              will appear that opens a secure checkout modal, your buyer never leaves your site.
             </p>
 
             {/* Theme selector */}
@@ -465,9 +465,9 @@ const VendorPaymentLinks = () => {
             <div className="bg-amber-50 dark:bg-amber-950/30 rounded-xl p-4 border border-amber-200 dark:border-amber-900">
               <p className="text-xs text-amber-800 dark:text-amber-200 font-semibold mb-2">💡 Customization Options</p>
               <ul className="text-[11px] text-amber-700 dark:text-amber-300 space-y-1.5">
-                <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">data-solely-theme</code> — <code>"dark"</code>, <code>"amber"</code>, or <code>"light"</code></li>
-                <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">data-solely-text</code> — Custom button text, e.g. <code>"Buy Now"</code></li>
-                <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">data-solely-size</code> — <code>"sm"</code>, <code>"md"</code>, or <code>"lg"</code></li>
+                <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">data-solely-theme</code> - <code>"dark"</code>, <code>"amber"</code>, or <code>"light"</code></li>
+                <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">data-solely-text</code> - Custom button text, e.g. <code>"Buy Now"</code></li>
+                <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">data-solely-size</code> - <code>"sm"</code>, <code>"md"</code>, or <code>"lg"</code></li>
               </ul>
             </div>
           </div>

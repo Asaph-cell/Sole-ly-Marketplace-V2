@@ -35,7 +35,7 @@ const Contact = () => {
     <div className="min-h-screen py-12">
       <SEO
         title="Contact Us"
-        description="Got a question or complaint? Contact Solely — we respond within 24 hours. Email us at contact@solelymarketplace.com."
+        description="Got a question or complaint? Contact Solely. We respond within 24 hours. Email us at contact@solelymarketplace.com."
         canonical="https://solelymarketplace.com/contact"
         breadcrumbs={[
           { name: "Home", url: "/" },

@@ -49,7 +49,7 @@ const writeEvents = (key: string, events: InterestEvent[]) => {
   try {
     localStorage.setItem(key, JSON.stringify(events.slice(0, MAX_EVENTS)));
   } catch {
-    // private browsing / storage full — silently ignore
+    // private browsing / storage full, silently ignore
   }
 };
 

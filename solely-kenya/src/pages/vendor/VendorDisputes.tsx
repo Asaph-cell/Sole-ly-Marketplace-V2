@@ -314,7 +314,7 @@ const VendorDisputes = () => {
                                 </div>
                                 <div>
                                     <h3 className="font-semibold text-red-700 dark:text-red-300">
-                                        Action Required — {openCount} open dispute{openCount > 1 ? "s" : ""}
+                                        Action Required - {openCount} open dispute{openCount > 1 ? "s" : ""}
                                     </h3>
                                     <p className="text-sm text-red-600/80 dark:text-red-400/80 mt-1">
                                         Please respond with your side of the story and any evidence you have. Unresponded disputes may be resolved in the buyer's favor.
