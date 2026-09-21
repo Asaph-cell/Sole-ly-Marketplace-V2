@@ -46,6 +46,7 @@ const Shop = lazyRetry(() => import("./pages/Shop"), "Shop");
 const Product = lazyRetry(() => import("./pages/Product"), "Product");
 const About = lazyRetry(() => import("./pages/About"), "About");
 const Contact = lazyRetry(() => import("./pages/Contact"), "Contact");
+const Feedback = lazyRetry(() => import("./pages/Feedback"), "Feedback");
 const Vendor = lazyRetry(() => import("./pages/Vendor"), "Vendor");
 const VendorStorefront = lazyRetry(() => import("./pages/VendorStorefront"), "VendorStorefront");
 const VendorDirectory = lazyRetry(() => import("./pages/VendorDirectory"), "VendorDirectory");
@@ -129,6 +130,7 @@ const AnimatedRoutes = () => {
       <Route path="/product/:id" element={<PageWrapper><MainLayout><Product /></MainLayout></PageWrapper>} />
       <Route path="/about" element={<PageWrapper><MainLayout><About /></MainLayout></PageWrapper>} />
       <Route path="/contact" element={<PageWrapper><MainLayout><Contact /></MainLayout></PageWrapper>} />
+      <Route path="/feedback" element={<PageWrapper><MainLayout><Feedback /></MainLayout></PageWrapper>} />
       <Route path="/vendors" element={<PageWrapper><MainLayout><VendorDirectory /></MainLayout></PageWrapper>} />
       <Route path="/vendor" element={<PageWrapper><MainLayout><Vendor /></MainLayout></PageWrapper>} />
       {/* New Vanity URL Route */}

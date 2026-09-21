@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
-import { Instagram, Facebook, ChevronDown } from "lucide-react";
+import { Instagram, Facebook, ChevronDown, Share2 } from "lucide-react";
 import logo from "@/assets/solely-logo.svg";
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
+import { toast } from "sonner";
 
 // TikTok icon component (not in lucide-react)
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -41,6 +42,30 @@ const faqs = [
 
 const Footer = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const handleShare = async () => {
+    const shareData = {
+      title: "Sole-ly - Kenya's Safest Way to Buy & Sell Online",
+      text: "Check out Sole-ly, Kenya's safest way to buy and sell shoes, fashion, electronics & more online.",
+      url: "https://solelymarketplace.com",
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // User dismissed the native share sheet, nothing to do.
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareData.url);
+      toast.success("Link copied! Share Sole-ly with your friends.");
+    } catch {
+      toast.error(`Couldn't copy automatically, here's the link: ${shareData.url}`);
+    }
+  };
 
   // Build FAQPage JSON-LD for Google rich results
   const faqSchema = {
@@ -134,6 +159,11 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/feedback" className="text-sm hover:text-primary transition-colors">
+                  Share Feedback
+                </Link>
+              </li>
+              <li>
                 <Link to="/blog" className="text-sm hover:text-primary transition-colors">
                   Blog
                 </Link>
@@ -200,6 +230,13 @@ const Footer = () => {
                 <Facebook size={24} strokeWidth={1.5}  />
               </a>
             </div>
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-2 text-sm mb-4 hover:text-primary transition-colors"
+            >
+              <Share2 size={16} strokeWidth={1.5} />
+              Share Sole-ly
+            </button>
             <div className="space-y-2 text-sm">
               <p>
                 <a href="mailto:contact@solelymarketplace.com" className="hover:text-primary transition-colors">

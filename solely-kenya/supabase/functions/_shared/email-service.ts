@@ -102,7 +102,56 @@ function escapeHtml(value: unknown): string {
     .replace(/'/g, '&#39;');
 }
 
+// Converts an admin's plain-text newlines into real HTML paragraph/line
+// breaks so a composed announcement keeps the spacing they typed, instead of
+// an email client collapsing raw "\n" characters into one run-on paragraph.
+// Skipped when the admin already wrote block-level HTML themselves, so
+// hand-authored markup isn't double-wrapped.
+function formatPlainTextBody(html: string): string {
+  if (/<(p|div|br|ul|ol|li|table|h[1-6])[\s/>]/i.test(html)) {
+    return html;
+  }
+  return html
+    .trim()
+    .split(/\n{2,}/)
+    .map(paragraph => `<p>${paragraph.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
 // Email templates
+
+// Same three accounts linked from the site footer (src/components/Footer.tsx),
+// rendered as inline SVG (not <img>) so the icons still show up in clients
+// that block remote images by default.
+const socialIconsHtml = `
+<table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto;">
+  <tr>
+    <td style="padding: 0 5px;">
+      <a class="social-icon" href="https://instagram.com/solely.kenya" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a327" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
+          <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+          <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
+        </svg>
+      </a>
+    </td>
+    <td style="padding: 0 5px;">
+      <a class="social-icon" href="https://www.tiktok.com/@solely.kenya" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#d4a327" style="vertical-align: middle;">
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"></path>
+        </svg>
+      </a>
+    </td>
+    <td style="padding: 0 5px;">
+      <a class="social-icon" href="https://facebook.com/solely.kenya" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a327" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
+          <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+        </svg>
+      </a>
+    </td>
+  </tr>
+</table>
+`;
 
 export const baseEmailLayout = (title: string, content: string, titleColor: string = '#1a1a1a') => `
 <!DOCTYPE html>
@@ -123,8 +172,8 @@ export const baseEmailLayout = (title: string, content: string, titleColor: stri
       -webkit-font-smoothing: antialiased;
     }
     .wrapper {
-      max-width: 600px; 
-      margin: 0 auto; 
+      max-width: 600px;
+      margin: 0 auto;
     }
     .brand-header {
       text-align: center;
@@ -140,33 +189,38 @@ export const baseEmailLayout = (title: string, content: string, titleColor: stri
     .brand-header span {
       color: #d4a327; /* Golden Yellow */
     }
-    .container { 
-      background: #ffffff; 
-      border-radius: 16px; 
-      overflow: hidden; 
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+    .container {
+      background: #ffffff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
       border: 1px solid #eaeaea;
     }
-    .header { 
-      padding: 40px 32px 24px; 
-      text-align: center; 
+    .accent-bar {
+      height: 5px;
+      background: linear-gradient(90deg, #d4a327 0%, #f3d17e 50%, #d4a327 100%);
+    }
+    .header {
+      padding: 40px 32px 24px;
+      text-align: center;
       background: linear-gradient(to bottom, #ffffff, #fafafa);
-      border-bottom: 1px solid #f0f0f0; 
+      border-bottom: 1px solid #f0f0f0;
     }
-    .header h1 { 
-      margin: 0; 
-      font-size: 26px; 
-      font-weight: 700; 
-      color: ${titleColor}; 
-      letter-spacing: -0.5px; 
+    .header h1 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 700;
+      color: ${titleColor};
+      letter-spacing: -0.5px;
     }
-    .content { 
-      padding: 32px; 
+    .content {
+      padding: 36px 32px;
     }
-    .content p { 
-      margin: 0 0 20px; 
-      font-size: 16px; 
-      color: #4b5563; 
+    .content p {
+      margin: 0 0 20px;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #4b5563;
     }
     .order-details { 
       background: #fafafa; 
@@ -216,20 +270,36 @@ export const baseEmailLayout = (title: string, content: string, titleColor: stri
     .error-box { background: #fef2f2; border-left: 4px solid #ef4444; padding: 16px 20px; border-radius: 4px 8px 8px 4px; margin: 24px 0; }
     .error-box p { margin: 0; font-size: 15px; color: #991b1b; }
     
-    .footer { 
-      text-align: center; 
-      padding: 32px; 
-      background: #fafafa; 
-      border-top: 1px solid #eaeaea; 
+    .footer {
+      text-align: center;
+      padding: 32px;
+      background: #fafafa;
+      border-top: 1px solid #eaeaea;
     }
-    .footer p { 
-      margin: 0 0 8px; 
-      font-size: 13px; 
-      color: #9ca3af; 
+    .footer p {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #9ca3af;
     }
-    .footer a { 
-      color: #6b7280; 
-      text-decoration: underline; 
+    .footer a {
+      color: #6b7280;
+      text-decoration: underline;
+    }
+    .footer-tagline {
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280 !important;
+      margin: 0 0 16px !important;
+    }
+    .social-icon {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #1a1a1a;
+      text-align: center;
+      line-height: 36px;
+      text-decoration: none;
     }
     .status-badge { 
       display: inline-block; 
@@ -276,6 +346,7 @@ export const baseEmailLayout = (title: string, content: string, titleColor: stri
       <h2>Sole<span>-ly</span></h2>
     </div>
     <div class="container">
+      <div class="accent-bar"></div>
       <div class="header">
         <h1>${title}</h1>
       </div>
@@ -283,6 +354,9 @@ export const baseEmailLayout = (title: string, content: string, titleColor: stri
         ${content}
       </div>
       <div class="footer">
+        <p class="footer-tagline">Follow us for drops, restocks &amp; vendor tips</p>
+        ${socialIconsHtml}
+        <div class="divider" style="margin: 20px 0;"></div>
         <p>This is an automated message from Sole-ly</p>
         <p>Do not reply to this email. For support, visit <a href="https://solelymarketplace.com/contact">solelymarketplace.com/contact</a></p>
       </div>
@@ -301,7 +375,17 @@ export const emailTemplates = {
     // bodyHtml is intentionally left unescaped: it's admin-composed rich
     // content from an authenticated, server-verified admin, not public
     // user input. subject is a plain title, so it's still escaped.
-    baseEmailLayout(escapeHtml(data.subject), data.bodyHtml),
+    // These announcements go out from a no-reply address, so a feedback
+    // button is baked into every one - the only way for a recipient to
+    // actually talk back to us.
+    baseEmailLayout(escapeHtml(data.subject), `
+      ${formatPlainTextBody(data.bodyHtml)}
+      <div class="divider"></div>
+      <div class="cta-container">
+        <a href="https://solelymarketplace.com/feedback?source=announcement" class="cta-button">Share Your Feedback</a>
+      </div>
+      <p style="text-align: center; font-size: 13px; color: #9ca3af; margin-top: -8px;">This inbox isn't monitored, tap the button above to reach us directly.</p>
+    `),
 
   adminGranted: (data: {
     recipientName: string;
