@@ -13,6 +13,7 @@ interface MailingUser {
   id: string;
   email: string | null;
   full_name: string | null;
+  store_name: string | null;
   role: "vendor" | "customer";
   created_at: string;
 }
@@ -46,7 +47,7 @@ const AdminMailingList = () => {
 
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, email, full_name, created_at")
+        .select("id, email, full_name, store_name, created_at")
         .order("created_at", { ascending: false });
 
       if (profilesError) throw profilesError;
@@ -102,22 +103,16 @@ const AdminMailingList = () => {
     
     setSending(true);
     try {
-      const targetEmails = users
+      const targetRecipients = users
         .filter(u => selectedIds.has(u.id) && u.email)
-        .map(u => u.email);
+        .map(u => ({ email: u.email as string, name: u.full_name, store: u.store_name }));
 
-      // We call our send-announcement edge function but pass 'custom' and a list of emails?
-      // Wait, send-announcement currently only supports 'all', 'vendors', 'customers'.
-      // We should update it to support 'custom' with an array of emails, or we can just iterate client side.
-      // But iterating client-side might expose the resend key? No, edge function handles resend.
-      // Let's invoke the function. We will need to update send-announcement to accept 'customEmails'.
-      
       const response = await supabase.functions.invoke("send-announcement", {
-        body: { 
-          subject: subject, 
-          htmlContent: message, 
+        body: {
+          subject: subject,
+          htmlContent: message,
           targetAudience: "custom",
-          customEmails: targetEmails
+          customRecipients: targetRecipients
         },
       });
 
@@ -222,6 +217,7 @@ const AdminMailingList = () => {
           />
           <p className="text-[10px] text-muted-foreground mb-3">
             Subject and message are all you need - the header, footer, and styling are added automatically so every email looks the same.
+            Use <code className="px-1 py-0.5 rounded bg-muted-foreground/10 font-mono">{"{{name}}"}</code> or <code className="px-1 py-0.5 rounded bg-muted-foreground/10 font-mono">{"{{store}}"}</code> anywhere in the subject or message to auto-insert each recipient's name or store name.
           </p>
 
           <div className="flex justify-end gap-2">
