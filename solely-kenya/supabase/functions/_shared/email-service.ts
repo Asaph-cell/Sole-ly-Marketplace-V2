@@ -120,34 +120,23 @@ function formatPlainTextBody(html: string): string {
 
 // Email templates
 
-// Same three accounts linked from the site footer (src/components/Footer.tsx),
-// rendered as inline SVG (not <img>) so the icons still show up in clients
-// that block remote images by default.
+// Same three accounts linked from the site footer (src/components/Footer.tsx).
+// Rendered as plain-text monograms rather than inline <svg> or hosted <img>
+// icons: Gmail strips <svg> outright (confirmed - the circle shows but the
+// icon inside is blank) and remote images are blocked by default in most
+// clients until the recipient clicks "show images", so text is what actually
+// survives everywhere.
 const socialIconsHtml = `
 <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto;">
   <tr>
     <td style="padding: 0 5px;">
-      <a class="social-icon" href="https://instagram.com/solely.kenya" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a327" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
-          <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
-          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-          <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
-        </svg>
-      </a>
+      <a class="social-icon" href="https://instagram.com/solely.kenya" target="_blank" rel="noopener noreferrer" aria-label="Instagram">IG</a>
     </td>
     <td style="padding: 0 5px;">
-      <a class="social-icon" href="https://www.tiktok.com/@solely.kenya" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="#d4a327" style="vertical-align: middle;">
-          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"></path>
-        </svg>
-      </a>
+      <a class="social-icon" href="https://www.tiktok.com/@solely.kenya" target="_blank" rel="noopener noreferrer" aria-label="TikTok">TT</a>
     </td>
     <td style="padding: 0 5px;">
-      <a class="social-icon" href="https://facebook.com/solely.kenya" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a327" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
-          <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-        </svg>
-      </a>
+      <a class="social-icon" href="https://facebook.com/solely.kenya" target="_blank" rel="noopener noreferrer" aria-label="Facebook">FB</a>
     </td>
   </tr>
 </table>
@@ -299,7 +288,11 @@ export const baseEmailLayout = (title: string, content: string, titleColor: stri
       background: #1a1a1a;
       text-align: center;
       line-height: 36px;
-      text-decoration: none;
+      text-decoration: none !important;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #d4a327 !important;
     }
     .status-badge { 
       display: inline-block; 

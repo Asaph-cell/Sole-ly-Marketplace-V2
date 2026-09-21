@@ -21,13 +21,20 @@ interface AnnouncementRequest {
     customRecipients?: Recipient[];
 }
 
-// Swaps {{name}} / {{store}} tokens in admin-written subject/body for each
-// recipient's own name/store, so one composed message reads as personal mail
-// instead of an identical blast.
+const NAME_ALIASES = new Set(["name", "vendorname", "fullname", "firstname", "vendor"]);
+const STORE_ALIASES = new Set(["store", "storename", "shop", "shopname", "businessname"]);
+
+// Swaps {{...}} tokens in admin-written subject/body for each recipient's own
+// name/store, so one composed message reads as personal mail instead of an
+// identical blast. Tolerant of casing/spacing/underscores (e.g. "{{Vendor
+// Name}}", "{{store_name}}") since admins won't always type the exact token.
 function personalize(text: string, recipient: Recipient): string {
-    return text
-        .replace(/\{\{\s*name\s*\}\}/gi, recipient.name?.trim() || "there")
-        .replace(/\{\{\s*store\s*\}\}/gi, recipient.store?.trim() || "your store");
+    return text.replace(/\{\{\s*([a-zA-Z_ ]+?)\s*\}\}/g, (match, rawKey) => {
+        const key = rawKey.toLowerCase().replace(/[\s_]/g, "");
+        if (NAME_ALIASES.has(key)) return recipient.name?.trim() || "there";
+        if (STORE_ALIASES.has(key)) return recipient.store?.trim() || "your store";
+        return match;
+    });
 }
 
 serve(async (req) => {
