@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
+import { ListSkeleton } from "@/components/skeletons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { ConversationList } from "@/components/messaging/ConversationList";
 import { MessageThread } from "@/components/messaging/MessageThread";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 
 const Messages = () => {
   const { user, loading } = useAuth();
@@ -16,7 +16,7 @@ const Messages = () => {
   }, [user, loading, navigate]);
 
   if (loading) {
-    return <SneakerLoader message="Loading messages..." />;
+    return <div className="container mx-auto p-4 sm:p-6"><ListSkeleton rows={7} /></div>;
   }
 
   return (

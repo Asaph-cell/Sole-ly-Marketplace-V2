@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState, useMemo } from "react";
+import { usePersistentState, readDraft, writeDraft, clearDraft } from "@/hooks/usePersistentState";
 import { useSearchParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { MapPin, Store, Truck } from "lucide-react";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { LocationPinMap } from "@/components/LocationPinMap";
@@ -46,7 +47,10 @@ const Checkout = () => {
   const [processing, setProcessing] = useState(false);
   const [paymentGateway, setPaymentGateway] = useState<string>("intasend");
   const [vendorProfile, setVendorProfile] = useState<any>(null);
-  const [shipping, setShipping] = useState({
+  // Details handed over from the delivery step win; otherwise restore what
+  // the buyer had typed before an interruption.
+  const savedShipping = passedDeliveryDetails ? undefined : readDraft<Record<string, unknown>>("checkout-shipping");
+  const [shipping, setShipping] = useState(() => ({
     recipientName: passedDeliveryDetails?.recipientName || user?.user_metadata?.full_name || "",
     phone: passedDeliveryDetails?.phone || "",
     email: passedDeliveryDetails?.email || user?.email || "",
@@ -59,7 +63,13 @@ const Checkout = () => {
     gps_latitude: passedDeliveryDetails?.gpsLat ?? (null as number | null),
     gps_longitude: passedDeliveryDetails?.gpsLng ?? (null as number | null),
     google_maps_link: null as string | null,
-  });
+    ...(savedShipping as object),
+  }));
+
+  useEffect(() => {
+    const t = setTimeout(() => writeDraft("checkout-shipping", shipping), 250);
+    return () => clearTimeout(t);
+  }, [shipping]);
 
   const [deliveryAgreement, setDeliveryAgreement] = useState<any>(null);
   const [agreementLoading, setAgreementLoading] = useState(!!agreementIdParam);

@@ -16,6 +16,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { rateLimit } from "../_shared/rate-limit.ts";
 import { getPlatformSetting } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
@@ -50,6 +51,9 @@ serve(async (req: Request) => {
         if (!userId) throw new Error("Invalid user token");
 
         const { orderId, pin } = await req.json();
+        const limited = await rateLimit(req, corsHeaders, { name: "pin", max: 5, windowSeconds: 900, identity: `${userId}:${orderId}`, failClosed: true })
+            ?? await rateLimit(req, corsHeaders, { name: "pin-user", max: 20, windowSeconds: 3600, identity: userId, failClosed: true });
+        if (limited) return limited;
         if (!orderId) throw new Error("Missing orderId");
         if (!pin) throw new Error("Missing pin");
 

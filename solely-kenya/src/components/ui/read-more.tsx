@@ -35,7 +35,7 @@ export function ReadMore({
             <div
                 ref={contentRef}
                 className={cn(
-                    "overflow-hidden transition-all duration-300 ease-in-out",
+                    "overflow-hidden transition duration-300 ease-in-out",
                     !isExpanded && "relative"
                 )}
                 style={{

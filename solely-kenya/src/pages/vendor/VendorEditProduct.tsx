@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FormSkeleton } from "@/components/skeletons";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { ShoeSizeChart } from "@/components/ShoeSizeChart";
 import { VideoUploader } from "@/components/VideoUploader";
 import { PricingCalculator } from "@/components/vendor/PricingCalculator";
@@ -212,7 +213,7 @@ const VendorEditProduct = () => {
   };
 
   if (loading || loadingProduct) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return <FormSkeleton fields={7} />;
   }
 
   return (

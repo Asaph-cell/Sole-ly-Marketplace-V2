@@ -34,7 +34,7 @@ export function DynamicHeroText({
     return (
         <span
             className={cn(
-                "inline-block transition-all duration-1000 ease-in-out transform",
+                "inline-block transition duration-1000 ease-in-out transform",
                 isVisible
                     ? "opacity-100 translate-y-0 blur-0 scale-100"
                     : "opacity-0 translate-y-8 blur-sm scale-95",

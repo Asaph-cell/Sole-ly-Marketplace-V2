@@ -13,7 +13,7 @@ const WhatsAppButton = () => {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className={`fixed ${bottomClass} right-6 z-50 flex items-center justify-center w-14 h-14 bg-[#25D366] rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110`}
+            className={`fixed ${bottomClass} right-6 z-50 flex items-center justify-center w-14 h-14 bg-[#25D366] rounded-full shadow-lg hover:shadow-xl transition hover:scale-110`}
             aria-label="Chat on WhatsApp"
         >
             {/* WhatsApp Icon */}

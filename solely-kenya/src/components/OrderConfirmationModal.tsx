@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { celebrate } from "@/components/Celebration";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,7 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Star, CheckCircle, AlertTriangle, Upload } from "lucide-react";
 
 interface OrderItem {
@@ -175,7 +176,10 @@ export const OrderConfirmationModal = ({
                 console.warn("Order update warning:", orderError);
             }
 
-            toast.success("Thank you for your review! Your feedback helps the community.");
+            celebrate({
+                title: "Order complete",
+                subtitle: "Thanks for confirming and for your review. It helps other shoppers buy with confidence.",
+            });
             onSuccess();
             handleClose();
         } catch (error: any) {

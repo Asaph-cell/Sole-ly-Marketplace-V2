@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
+import { rateLimit } from "../_shared/rate-limit.ts";
 import { emailTemplates, sendEmail } from "../_shared/email-service.ts";
 
 const corsHeaders = {
@@ -11,6 +12,10 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+
+  // Open endpoint (called server-to-server too), so cap per IP to stop email/push spam.
+  const limited = await rateLimit(req, corsHeaders, { name: "notify-vendor-delivery-inquiry", max: 120, windowSeconds: 60 });
+  if (limited) return limited;
 
   try {
     const supabaseClient = createClient(

@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { rateLimit } from "../_shared/rate-limit.ts";
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
 
 const corsHeaders = {
@@ -15,6 +16,8 @@ serve(async (req) => {
 
   try {
     const { orderId, amountKsh } = await req.json();
+    const limited = await rateLimit(req, corsHeaders, { name: "stripe-intent", max: 10, windowSeconds: 600 });
+    if (limited) return limited;
 
     if (!orderId || !amountKsh) {
       return new Response(

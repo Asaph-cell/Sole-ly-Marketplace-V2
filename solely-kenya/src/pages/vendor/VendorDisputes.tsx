@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ListSkeleton } from "@/components/skeletons";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,7 +24,7 @@ import {
     ShieldAlert, CheckCircle2, CircleDot, ArrowRight, ImageIcon,
     FileText, X, Sparkles, Scale
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 interface Dispute {
     id: string;
@@ -76,7 +77,7 @@ const DisputeTimeline = ({ dispute }: { dispute: Dispute }) => {
                         <div className="flex flex-col items-center gap-1.5">
                             <div
                                 className={`
-                                    w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
+                                    w-10 h-10 rounded-full flex items-center justify-center transition duration-300
                                     ${step.done
                                         ? "bg-green-500/15 text-green-600 dark:text-green-400 ring-2 ring-green-500/30"
                                         : isActive
@@ -92,7 +93,7 @@ const DisputeTimeline = ({ dispute }: { dispute: Dispute }) => {
                             </span>
                         </div>
                         {idx < steps.length - 1 && (
-                            <div className={`flex-1 h-[2px] mx-2 mt-[-18px] rounded-full transition-all duration-500 ${steps[idx + 1].done || (isActive && idx === steps.findIndex(s => !s.done) - 1) ? "bg-green-500/40" : "bg-border"}`} />
+                            <div className={`flex-1 h-[2px] mx-2 mt-[-18px] rounded-full transition duration-500 ${steps[idx + 1].done || (isActive && idx === steps.findIndex(s => !s.done) - 1) ? "bg-green-500/40" : "bg-border"}`} />
                         )}
                     </div>
                 );
@@ -137,7 +138,7 @@ const EvidenceLightbox = ({ urls, onClose }: { urls: string[]; onClose: () => vo
                                 <button
                                     key={i}
                                     onClick={() => setCurrent(i)}
-                                    className={`w-2.5 h-2.5 rounded-full transition-all ${i === current ? "bg-white scale-125" : "bg-white/40 hover:bg-white/60"}`}
+                                    className={`w-2.5 h-2.5 rounded-full transition ${i === current ? "bg-white scale-125" : "bg-white/40 hover:bg-white/60"}`}
                                 />
                             ))}
                         </div>
@@ -276,7 +277,7 @@ const VendorDisputes = () => {
     const resolvedCount = disputes.filter((d) => d.status.startsWith("resolved")).length;
 
     if (loading) {
-        return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+        return <div className="container mx-auto p-4 sm:p-6"><ListSkeleton rows={5} /></div>;
     }
 
     return (
@@ -393,7 +394,7 @@ const VendorDisputes = () => {
                                         return (
                                             <Card
                                                 key={dispute.id}
-                                                className={`group hover:shadow-md transition-all duration-200 border ${dispute.status === "open" ? "border-red-500/20 bg-red-500/[0.02]" : ""}`}
+                                                className={`group hover:shadow-md transition duration-200 border ${dispute.status === "open" ? "border-red-500/20 bg-red-500/[0.02]" : ""}`}
                                             >
                                                 <CardContent className="p-4 md:p-5">
                                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -565,7 +566,7 @@ const VendorDisputes = () => {
                                                     <button
                                                         key={idx}
                                                         onClick={() => setLightboxUrls(selectedDispute.vendor_evidence_urls)}
-                                                        className="relative aspect-square rounded-lg overflow-hidden border hover:ring-2 ring-primary/50 transition-all group"
+                                                        className="relative aspect-square rounded-lg overflow-hidden border hover:ring-2 ring-primary/50 transition group"
                                                     >
                                                         {/\.(jpg|jpeg|png|gif|webp)/i.test(url) ? (
                                                             <img src={url} alt={`Evidence ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />

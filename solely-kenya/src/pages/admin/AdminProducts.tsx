@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
+import { ListSkeleton } from "@/components/skeletons";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SearchBar, ActionButton, StatusPill, EmptyState } from "@/components/admin/AdminShared";
 import { Package, Image as ImageIcon, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminAction } from "@/hooks/useAdminAction";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -111,7 +111,7 @@ const AdminProducts = () => {
       />
 
       {loadingData ? (
-        <SneakerLoader message="Loading..." fullScreen={false} />
+        <ListSkeleton rows={8} />
       ) : filteredProducts.length === 0 ? (
         <div className="rounded-xl border border-border bg-card shadow-soft">
           <EmptyState 

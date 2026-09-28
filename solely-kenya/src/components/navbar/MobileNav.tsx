@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CountBadge } from "@/components/CountBadge";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -61,11 +62,10 @@ export const MobileNav = ({
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Menu strokeWidth={1.5} size={24} className="text-foreground" />
-          {cartCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center px-0.5">
-              {cartCount}
-            </span>
-          )}
+          <CountBadge
+            count={cartCount}
+            className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center px-0.5"
+          />
         </Button>
       </SheetTrigger>
 

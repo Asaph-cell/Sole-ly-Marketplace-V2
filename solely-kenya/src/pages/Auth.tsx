@@ -7,13 +7,25 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Mail, CheckCircle2, ArrowLeft, KeyRound } from "lucide-react";
 import logo from "@/assets/solely-logo.svg";
 import { getAttributionSource } from "@/lib/attribution";
 
 // Production URL for email verification redirect
 const SITE_URL = "https://solelymarketplace.com";
+
+
+/** Offer the entered credentials to the browser's password manager (Chrome/Android). */
+function rememberCredentials(id: string, password: string) {
+  try {
+    const w = window as unknown as { PasswordCredential?: new (data: { id: string; password: string; name?: string }) => Credential };
+    if (!w.PasswordCredential || !navigator.credentials?.store) return;
+    void navigator.credentials.store(new w.PasswordCredential({ id, password })).catch(() => {});
+  } catch {
+    // Unsupported browser: the autocomplete attributes still let it offer to save.
+  }
+}
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -136,6 +148,8 @@ const Auth = () => {
           signup_source: getAttributionSource(),
         });
 
+        rememberCredentials(email, password);
+
         // Show prominent email verification message
         setRegisteredEmail(email);
         setShowEmailSent(true);
@@ -175,6 +189,10 @@ const Auth = () => {
       });
 
       if (error) throw error;
+
+      // Ask the browser/Android password manager to save these, so next time
+      // it's one tap. SPA logins don't always trigger the save prompt on their own.
+      rememberCredentials(email, password);
 
       toast.success("Welcome back!");
       navigate(redirectTo);
@@ -295,7 +313,12 @@ const Auth = () => {
                 <Label htmlFor="reset-email">Email</Label>
                 <Input
                   id="reset-email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email address"
@@ -400,7 +423,12 @@ const Auth = () => {
                   <Label htmlFor="signin-email">Email</Label>
                   <Input
                     id="signin-email"
+                    name="email"
                     type="email"
+                    autoComplete="username"
+                    inputMode="email"
+                    autoCapitalize="none"
+                    spellCheck={false}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -410,7 +438,9 @@ const Auth = () => {
                   <Label htmlFor="signin-password">Password</Label>
                   <Input
                     id="signin-password"
+                    name="password"
                     type="password"
+                    autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -463,7 +493,10 @@ const Auth = () => {
                   <Label htmlFor="fullname">Full Name</Label>
                   <Input
                     id="fullname"
+                    name="name"
                     type="text"
+                    autoComplete="name"
+                    autoCapitalize="words"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
@@ -473,7 +506,12 @@ const Auth = () => {
                   <Label htmlFor="signup-email">Email</Label>
                   <Input
                     id="signup-email"
+                    name="email"
                     type="email"
+                    autoComplete="username"
+                    inputMode="email"
+                    autoCapitalize="none"
+                    spellCheck={false}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -483,7 +521,9 @@ const Auth = () => {
                   <Label htmlFor="signup-password">Password</Label>
                   <Input
                     id="signup-password"
+                    name="new-password"
                     type="password"
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required

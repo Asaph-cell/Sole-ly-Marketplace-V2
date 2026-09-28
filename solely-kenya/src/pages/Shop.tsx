@@ -1,4 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { usePersistentState } from "@/hooks/usePersistentState";
+import { ShopSkeleton } from "@/components/skeletons";
+import { ErrorState } from "@/components/ErrorState";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import ProductCard from "@/components/ProductCard";
@@ -6,9 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Filter, Shield, X, Loader2 } from "lucide-react";
+import { Filter, Shield, Loader2 } from "lucide-react";
 import { ALL_CATEGORIES, getCategoryByKey, getCategoryName } from "@/lib/categories";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { SEO } from "@/components/SEO";
 
 import { saveSearch } from "@/lib/searchHistory";
@@ -44,6 +46,8 @@ const topKeys = (scores: Record<string, number>, n = 5) =>
     .slice(0, n)
     .map(([key]) => key.toLowerCase());
 
+const FILTER_TTL = { ttlMs: 24 * 60 * 60 * 1000 };
+
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -54,12 +58,13 @@ const Shop = () => {
   const [loading, setLoading]                 = useState(true);
   const [loadingMore, setLoadingMore]         = useState(false);
   const [error, setError]                     = useState<string | null>(null);
-  const [priceRange, setPriceRange]           = useState([0, MAX_PRICE_BY_CATEGORY.default]);
-  const [selectedBrand, setSelectedBrand]     = useState("all");
+  // Filters survive leaving the page or the app being closed (for a day).
+  const [priceRange, setPriceRange]           = usePersistentState("shop:price", [0, MAX_PRICE_BY_CATEGORY.default], FILTER_TTL);
+  const [selectedBrand, setSelectedBrand]     = usePersistentState("shop:brand", "all", FILTER_TTL);
   const [selectedCategory, setSelectedCat]   = useState("all");
   const [selectedSub, setSelectedSub]         = useState("all");
-  const [selectedCondition, setSelectedCond] = useState("all");
-  const [sortBy, setSortBy]                   = useState("smart");
+  const [selectedCondition, setSelectedCond] = usePersistentState("shop:condition", "all", FILTER_TTL);
+  const [sortBy, setSortBy]                   = usePersistentState("shop:sort", "smart", FILTER_TTL);
 
   // Slider drags fire continuously, debounce before hitting the network.
   const [debouncedPrice, setDebouncedPrice]   = useState(priceRange);
@@ -273,21 +278,10 @@ const Shop = () => {
     priceRange[0] > 0 || priceRange[1] < getMaxPrice(selectedCategory),
   ].filter(Boolean).length;
 
-  if (loading) return <SneakerLoader message="Loading products..." />;
+  if (loading) return <ShopSkeleton />;
 
   if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-          <X className="w-8 h-8 text-red-500" />
-        </div>
-        <h2 className="text-xl font-bold mb-2">Oops! Something went wrong</h2>
-        <p className="text-muted-foreground mb-6 max-w-md">{error}</p>
-        <Button onClick={() => fetchPage(0, false)} size="lg">
-          Try Again
-        </Button>
-      </div>
-    );
+    return <ErrorState error={error} onRetry={() => fetchPage(0, false)} />;
   }
 
   // ─── Shared filter content (used in sidebar + mobile sheet) ───────────────
@@ -473,7 +467,7 @@ const Shop = () => {
             <div className="flex flex-nowrap gap-2 overflow-x-auto scrollbar-hide pb-1 mb-3">
               <button
                 onClick={() => handleCategoryClick("all")}
-                className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 whitespace-nowrap
+                className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition duration-150 whitespace-nowrap
                   ${selectedCategory === "all"
                     ? "bg-foreground text-background border-foreground"
                     : "bg-background text-foreground border-border hover:border-foreground/40"
@@ -485,7 +479,7 @@ const Shop = () => {
                 <button
                   key={cat.key}
                   onClick={() => handleCategoryClick(cat.key)}
-                  className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-150 whitespace-nowrap
+                  className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition duration-150 whitespace-nowrap
                     ${selectedCategory === cat.key
                       ? "bg-foreground text-background border-foreground"
                       : "bg-background text-foreground border-border hover:border-foreground/40"
@@ -501,7 +495,7 @@ const Shop = () => {
               <div className="flex flex-nowrap gap-2 overflow-x-auto scrollbar-hide pb-1 mb-4">
                 <button
                   onClick={() => handleSubClick("all")}
-                  className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all whitespace-nowrap
+                  className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition whitespace-nowrap
                     ${selectedSub === "all"
                       ? "bg-primary text-primary-foreground border-primary"
                       : "border-border text-muted-foreground hover:text-primary hover:border-primary/40"
@@ -513,7 +507,7 @@ const Shop = () => {
                   <button
                     key={sub.key}
                     onClick={() => handleSubClick(sub.key)}
-                    className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all whitespace-nowrap
+                    className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition whitespace-nowrap
                       ${selectedSub === sub.key
                         ? "bg-primary text-primary-foreground border-primary"
                         : "border-border text-muted-foreground hover:text-primary hover:border-primary/40"

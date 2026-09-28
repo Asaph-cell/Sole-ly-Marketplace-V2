@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { ListSkeleton } from "@/components/skeletons";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -20,7 +21,6 @@ import { SearchBar, ActionButton, StatusPill, EmptyState } from "@/components/ad
 import { ShieldAlert, ExternalLink, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminAction } from "@/hooks/useAdminAction";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -158,7 +158,7 @@ const AdminReports = () => {
                         key={f}
                         onClick={() => setFilter(f)}
                         className={cn(
-                            "px-3 py-1 rounded-full text-xs font-semibold border transition-all capitalize",
+                            "px-3 py-1 rounded-full text-xs font-semibold border transition capitalize",
                             filter === f
                                 ? "bg-foreground text-background border-foreground"
                                 : "bg-background text-foreground border-border hover:border-foreground/40"
@@ -177,7 +177,7 @@ const AdminReports = () => {
             />
 
             {loading ? (
-                <SneakerLoader message="Loading reports..." />
+                <ListSkeleton rows={6} />
             ) : visible.length === 0 ? (
                 <EmptyState
                     icon={ShieldAlert}

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Tables } from "@/integrations/supabase/types";
 
 type OrderRecord = Tables<"orders"> & {

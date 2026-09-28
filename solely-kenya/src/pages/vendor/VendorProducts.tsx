@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { DashboardSkeleton } from "@/components/skeletons";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +9,7 @@ import {
   Plus, AlertTriangle, ChevronLeft, Share2, Copy,
   X, Check, ExternalLink, ImageDown, Loader2,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { getAccessoryTypeName } from "@/lib/accessoryTypes";
 import { QRCodeCanvas } from "qrcode.react";
 
@@ -237,9 +238,7 @@ const VendorProducts = () => {
     return true;
   });
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen text-muted-foreground text-sm">Loading…</div>
-  );
+  if (loading) return <DashboardSkeleton />;
 
   /* ── Product card ────────────────────────────────────────────────── */
   const ProductCard = ({ product }: { product: any }) => {
@@ -248,7 +247,7 @@ const VendorProducts = () => {
     const isAccessory = product.category === "accessories";
 
     return (
-      <div className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-md transition-all duration-200">
+      <div className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-md transition duration-200">
         {/* Image */}
         <div className="relative h-40 bg-muted">
           {(product.images?.[0] || product.image_url) ? (
@@ -440,7 +439,7 @@ const VendorProducts = () => {
       <div className="fixed bottom-28 right-4 z-40">
         <button
           onClick={() => navigate("/vendor/list-item")}
-          className="flex items-center gap-2 pl-4 pr-5 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold shadow-xl hover:bg-primary/90 transition-all"
+          className="flex items-center gap-2 pl-4 pr-5 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold shadow-xl hover:bg-primary/90 transition"
         >
           <Plus size={16} strokeWidth={1.5}  /> List Item
         </button>

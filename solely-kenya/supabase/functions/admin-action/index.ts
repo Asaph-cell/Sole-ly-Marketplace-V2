@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { rateLimit } from "../_shared/rate-limit.ts";
 import { sendEmail, emailTemplates } from "../_shared/email-service.ts";
 import { getPlatformSetting } from "../_shared/platform-settings.ts";
 
@@ -67,6 +68,9 @@ serve(async (req) => {
     if (!adminRole) {
       throw new Error("Admin access required");
     }
+
+    const limited = await rateLimit(req, corsHeaders, { name: "admin-action", max: 120, windowSeconds: 60, identity: user.id });
+    if (limited) return limited;
 
     // Parse request
     const { action, targetId, key, value, email, reason }: AdminActionRequest = await req.json();

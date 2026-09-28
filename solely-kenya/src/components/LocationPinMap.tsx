@@ -6,6 +6,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { friendlyError } from "@/lib/friendlyError";
 import L from "leaflet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -304,7 +305,7 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
 
             {error && (
                 <div className="flex items-center gap-2">
-                    <p className="text-sm text-destructive flex-1">{error}</p>
+                    <p className="text-sm text-destructive flex-1">{friendlyError(error)}</p>
                     <Button
                         type="button"
                         variant="outline"

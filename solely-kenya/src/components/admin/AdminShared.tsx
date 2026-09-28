@@ -27,7 +27,7 @@ export function StatBar({ label, value, hint, progress, alert, icon: Icon, delay
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay }}
-      className="rounded-2xl px-4 py-4 shadow-soft hover:shadow-hover hover:-translate-y-0.5 transition-all text-white"
+      className="rounded-2xl px-4 py-4 shadow-soft hover:shadow-hover hover:-translate-y-0.5 transition text-white"
       style={{ background: alert ? "hsl(var(--destructive))" : "hsl(var(--admin-stat))" }}
     >
       <div className="flex items-center justify-between gap-2">
@@ -42,7 +42,7 @@ export function StatBar({ label, value, hint, progress, alert, icon: Icon, delay
       {progress !== undefined && (
         <div className="h-[3px] rounded-full bg-white/20 mt-2">
           <div
-            className="h-full rounded-full bg-white transition-all"
+            className="h-full rounded-full bg-white transition"
             style={{ width: `${progress}%` }}
           />
         </div>

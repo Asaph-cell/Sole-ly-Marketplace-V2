@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { ProductGridSkeleton } from "@/components/skeletons";
+import { ErrorState } from "@/components/ErrorState";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import ProductCard from "@/components/ProductCard";
@@ -218,12 +220,9 @@ const Home = () => {
     : null;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, filter: "brightness(0.3)" }}
-      animate={{ opacity: 1, filter: "brightness(1)" }}
-      transition={{ duration: 1.2, ease: "easeOut" }}
-      className="min-h-screen overflow-x-clip bg-background"
-    >
+    // The route wrapper already fades the page in; a second 1.2s full-page
+    // brightness filter here only delayed first paint and cost GPU time.
+    <div className="min-h-screen overflow-x-clip bg-background">
       <style>{`
         @keyframes sweep {
           0% { transform: translateX(-100%); }
@@ -258,7 +257,7 @@ const Home = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
+          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage:
@@ -270,7 +269,7 @@ const Home = () => {
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 2, delay: 0.5 }}
+          transition={{ duration: 1, delay: 0.2 }}
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] sm:w-[800px] sm:h-[800px] bg-primary/20 blur-[100px] sm:blur-[120px] rounded-full pointer-events-none z-0" 
         />
 
@@ -278,7 +277,7 @@ const Home = () => {
         <motion.div
           initial={{ opacity: 0, x: -40, y: 10 }}
           animate={{ opacity: 1, x: 0, y: [0, -10, 0] }}
-          transition={{ opacity: { duration: 0.8, delay: 1 }, y: { repeat: Infinity, duration: 4, ease: "easeInOut" } }}
+          transition={{ opacity: { duration: 0.6, delay: 0.5 }, y: { repeat: Infinity, duration: 4, ease: "easeInOut" } }}
           className="hidden 2xl:flex absolute top-[30%] left-[5%] 2xl:left-[10%] bg-white/10 backdrop-blur-md border border-white/20 p-3.5 pr-6 rounded-2xl shadow-2xl items-center gap-4 z-20 pointer-events-none"
         >
           <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
@@ -294,7 +293,7 @@ const Home = () => {
         <motion.div
           initial={{ opacity: 0, x: 40, y: -10 }}
           animate={{ opacity: 1, x: 0, y: [0, 10, 0] }}
-          transition={{ opacity: { duration: 0.8, delay: 1.2 }, y: { repeat: Infinity, duration: 5, ease: "easeInOut" } }}
+          transition={{ opacity: { duration: 0.6, delay: 0.6 }, y: { repeat: Infinity, duration: 5, ease: "easeInOut" } }}
           className="hidden 2xl:flex absolute bottom-[30%] right-[5%] 2xl:right-[10%] bg-white/10 backdrop-blur-md border border-white/20 p-3.5 pr-6 rounded-2xl shadow-2xl items-center gap-4 z-20 pointer-events-none"
         >
           <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
@@ -310,9 +309,9 @@ const Home = () => {
           
           {/* Trust Badge */}
           <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+            initial={{ opacity: 0, transform: "translateY(-8px)" }}
+            animate={{ opacity: 1, transform: "translateY(0px)" }}
+            transition={{ duration: 0.5, delay: 0.05, ease: [0.23, 1, 0.32, 1] }}
             className="mb-8"
           >
             <Badge className="bg-primary/90 text-primary-foreground border-0 text-[10px] sm:text-xs font-bold uppercase tracking-widest px-3 py-1.5 shadow-lg">
@@ -323,9 +322,9 @@ const Home = () => {
 
           {/* Headline */}
           <motion.h1 
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.4, type: "spring", stiffness: 100 }}
+            initial={{ opacity: 0, transform: "translateY(12px) scale(0.97)" }}
+            animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
             className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-[1.15] text-white"
           >
             Sell and Shop on Social Media<br className="hidden sm:block" /> with{" "}
@@ -336,9 +335,9 @@ const Home = () => {
 
           {/* Subheadline */}
           <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
+            initial={{ opacity: 0, transform: "translateY(12px)" }}
+            animate={{ opacity: 1, transform: "translateY(0px)" }}
+            transition={{ duration: 0.5, delay: 0.18, ease: [0.23, 1, 0.32, 1] }}
             className="text-lg md:text-xl text-slate-200 max-w-2xl mb-8 leading-relaxed"
           >
             Zero upfront fees. No scams. Just secure M-Pesa payments that protect both the buyer and the seller.
@@ -346,9 +345,9 @@ const Home = () => {
 
           {/* Dual-Path CTAs */}
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
+            initial={{ opacity: 0, transform: "translateY(12px)" }}
+            animate={{ opacity: 1, transform: "translateY(0px)" }}
+            transition={{ duration: 0.5, delay: 0.25, ease: [0.23, 1, 0.32, 1] }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto"
           >
             {/* Seller Path */}
@@ -377,7 +376,7 @@ const Home = () => {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1.2 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
             className="flex flex-wrap justify-center items-center gap-6 mt-12 text-sm text-slate-300 font-medium"
           >
             <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> Your money is protected until delivery</span>
@@ -492,7 +491,7 @@ const Home = () => {
                 <button 
                   key={idx}
                   onClick={() => setActiveStep(idx)}
-                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${activeStep === idx ? 'bg-slate-800 dark:bg-slate-200 w-6' : 'bg-slate-300 dark:bg-slate-700'}`}
+                  className={`w-2.5 h-2.5 rounded-full transition duration-300 ${activeStep === idx ? 'bg-slate-800 dark:bg-slate-200 w-6' : 'bg-slate-300 dark:bg-slate-700'}`}
                 />
               ))}
             </div>
@@ -511,7 +510,7 @@ const Home = () => {
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.5, delay: idx * 0.15 }}
                   onMouseEnter={() => setActiveStep(idx)}
-                  className={`group relative overflow-hidden rounded-[2rem] flex flex-col justify-between p-6 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer ${
+                  className={`group relative overflow-hidden rounded-[2rem] flex flex-col justify-between p-6 transition duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer ${
                     isActive 
                       ? 'flex-[2.5] bg-white dark:bg-slate-900 shadow-xl border border-border/50' 
                       : 'flex-[1] bg-slate-200 dark:bg-slate-800/70 hover:bg-slate-300 dark:hover:bg-slate-700 border border-transparent'
@@ -519,7 +518,7 @@ const Home = () => {
                 >
                   <div className="flex flex-col h-full z-20">
                     <div className="flex items-center justify-between shrink-0">
-                      <h3 className={`font-bold transition-all duration-300 ${isActive ? 'text-2xl' : 'text-lg whitespace-nowrap'}`}>
+                      <h3 className={`font-bold transition duration-300 ${isActive ? 'text-2xl' : 'text-lg whitespace-nowrap'}`}>
                         {isActive ? step.title : step.title.split(' ')[0]}
                       </h3>
                       {!isActive && (
@@ -544,7 +543,7 @@ const Home = () => {
                       </div>
                       
                       {/* Inactive Big Number */}
-                      <div className={`transition-all duration-500 ${isActive ? 'h-0 opacity-0 overflow-hidden' : 'opacity-100 block'}`}>
+                      <div className={`transition duration-500 ${isActive ? 'h-0 opacity-0 overflow-hidden' : 'opacity-100 block'}`}>
                         <span className="font-black text-5xl tracking-tighter text-slate-300 dark:text-slate-600">
                           .{step.step}
                         </span>
@@ -585,7 +584,7 @@ const Home = () => {
                 <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
                   Stop losing customers who are afraid to pay upfront. Send them a secure Solely <strong className="text-foreground">Payment Link</strong> in their DMs. Your cash is secured, their delivery is tracked, and everyone is protected.
                 </p>
-                <Button size="lg" className="rounded-full px-8 h-14 font-bold text-base shadow-[0_8px_30px_-4px_rgba(255,215,0,0.4)] hover:scale-105 transition-all" asChild>
+                <Button size="lg" className="rounded-full px-8 h-14 font-bold text-base shadow-[0_8px_30px_-4px_rgba(255,215,0,0.4)] hover:scale-105 transition" asChild>
                   <Link to="/vendor">Start Selling Now <ArrowRight className="ml-2" size={18} strokeWidth={2.5} /></Link>
                 </Button>
               </div>
@@ -596,7 +595,7 @@ const Home = () => {
                   {/* Decorative connecting line */}
                   <div className="absolute left-9 top-10 bottom-10 w-[2px] bg-gradient-to-b from-blue-400 via-green-400 to-primary/60 -z-10" />
 
-                  <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[-4deg] hover:rotate-0 hover:scale-[1.03] transition-all duration-300 w-72">
+                  <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[-4deg] hover:rotate-0 hover:scale-[1.03] transition duration-300 w-72">
                      <div className="flex items-center gap-4 mb-2">
                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shadow-inner"><Link2 size={18} strokeWidth={2.5} /></div>
                        <p className="font-bold text-base text-foreground">1. Create a Trusted Link</p>
@@ -604,7 +603,7 @@ const Home = () => {
                      <p className="text-sm text-muted-foreground pl-14">List your item and generate a secure checkout link.</p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[3deg] hover:rotate-0 hover:scale-[1.03] transition-all duration-300 w-72 translate-x-8">
+                  <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[3deg] hover:rotate-0 hover:scale-[1.03] transition duration-300 w-72 translate-x-8">
                      <div className="flex items-center gap-4 mb-2">
                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-inner"><MessageCircle size={18} strokeWidth={2.5} /></div>
                        <p className="font-bold text-base text-foreground">2. Drop it Anywhere</p>
@@ -612,7 +611,7 @@ const Home = () => {
                      <p className="text-sm text-muted-foreground pl-14">WhatsApp, Instagram, TikTok, wherever your customers are.</p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[-2deg] hover:rotate-0 hover:scale-[1.03] transition-all duration-300 w-72">
+                  <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[-2deg] hover:rotate-0 hover:scale-[1.03] transition duration-300 w-72">
                      <div className="flex items-center gap-4 mb-2">
                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary shadow-inner"><Shield size={18} strokeWidth={2.5} /></div>
                        <p className="font-bold text-base text-foreground">3. Get Paid When They're Happy</p>
@@ -664,7 +663,7 @@ const Home = () => {
                     navigate(`/shop?category=${cat.key}`);
                   }
                 }}
-                className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-150
+                className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition duration-150
                   ${activeTab === cat.key
                     ? "bg-foreground text-background border-foreground"
                     : "bg-background text-foreground border-border hover:border-foreground/40"
@@ -701,7 +700,7 @@ const Home = () => {
               >
                 <Link
                   to={`/shop?category=${card.key}`}
-                  className={`group relative flex overflow-hidden rounded-3xl bg-gradient-to-r ${card.gradient} border border-border/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-[130px] sm:h-[180px] lg:h-[200px]`}
+                  className={`group relative flex overflow-hidden rounded-3xl bg-gradient-to-r ${card.gradient} border border-border/40 hover:shadow-xl hover:-translate-y-1 transition duration-300 h-[130px] sm:h-[180px] lg:h-[200px]`}
                 >
                   {/* Image on the right */}
                   <div className="absolute right-0 top-0 bottom-0 w-[55%] sm:w-[60%] overflow-hidden">
@@ -722,7 +721,7 @@ const Home = () => {
                     <h3 className="text-[clamp(0.9rem,3.5vw,1.5rem)] font-extrabold text-foreground mb-2 sm:mb-4 tracking-tight leading-none break-words hyphens-auto">
                       {card.name}
                     </h3>
-                    <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-sm font-medium text-primary group-hover:gap-2 transition-all">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-sm font-medium text-primary group-hover:gap-2 transition">
                       See more <ChevronRight size={16} strokeWidth={1.5}  />
                     </span>
                   </div>
@@ -796,22 +795,14 @@ const Home = () => {
           </div>
 
           {productsLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="aspect-square rounded-2xl bg-muted animate-pulse" />
-              ))}
-            </div>
+            <ProductGridSkeleton count={12} className="xl:grid-cols-6" />
           ) : error ? (
-            <div className="flex flex-col items-center justify-center min-h-[30vh] text-center px-4 bg-background rounded-2xl border border-border p-8 shadow-sm">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <Shield className="w-8 h-8 text-red-500" />
-              </div>
-              <h2 className="text-xl font-bold mb-2">Oops! Something went wrong</h2>
-              <p className="text-muted-foreground mb-6 max-w-md">{error}</p>
-              <Button onClick={fetchProducts} size="lg">
-                Try Again
-              </Button>
-            </div>
+            <ErrorState
+              error={error}
+              onRetry={fetchProducts}
+              compact
+              className="bg-background rounded-2xl border border-border shadow-sm"
+            />
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
               <ShoppingBag strokeWidth={1.5} className="h-12 w-12 mx-auto mb-3 opacity-30" />
@@ -943,7 +934,7 @@ const Home = () => {
       </section>
 
       </div>
-    </motion.div>
+    </div>
   );
 };
 

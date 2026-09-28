@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { clearAllDrafts } from "@/hooks/usePersistentState";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
@@ -95,6 +96,7 @@ export const useAuth = () => {
       // Clear all storage
       localStorage.removeItem("solely_cart_v1");
       sessionStorage.clear();
+      clearAllDrafts(); // saved addresses/listing drafts belong to this account
       
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut();

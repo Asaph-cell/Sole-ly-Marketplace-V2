@@ -1,11 +1,12 @@
 import { Toaster } from "@/components/ui/toaster";
+import { RouteSkeleton, PageSkeleton } from "./components/skeletons";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import React from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { SneakerLoader } from "./components/ui/SneakerLoader";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { CelebrationHost } from "./components/Celebration";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { MaintenanceBanner } from "./components/MaintenanceBanner";
@@ -98,17 +99,19 @@ const DeliveryNegotiation = lazyRetry(() => import("./pages/DeliveryNegotiation"
 const SecureInvoice = lazyRetry(() => import("./pages/checkout/SecureInvoice"), "SecureInvoice");
 const GuestTracking = lazyRetry(() => import("./pages/checkout/GuestTracking"), "GuestTracking");
 
+// Route changes happen dozens of times a session, so keep this a quick fade
+// only: no travel, no delay. The fade wraps the page itself (inside Suspense),
+// so it plays when real content arrives rather than on the loader.
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3 }}
-    style={{ willChange: "opacity, transform" }}
-  >
-    <React.Suspense fallback={<SneakerLoader message="Loading..." />}>
+  <React.Suspense fallback={<RouteSkeleton />}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+    >
       {children}
-    </React.Suspense>
-  </motion.div>
+    </motion.div>
+  </React.Suspense>
 );
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => (
@@ -215,7 +218,7 @@ const AppLayout = () => {
 
   if (platformSettings.maintenanceMode && !isMaintenanceExempt) {
     return (
-      <React.Suspense fallback={<SneakerLoader message="Maintenance..." />}>
+      <React.Suspense fallback={<PageSkeleton />}>
         <Maintenance />
       </React.Suspense>
     );
@@ -226,7 +229,7 @@ const AppLayout = () => {
       <MaintenanceBanner />
       <OfflineBanner />
       <ScrollToTop />
-      <React.Suspense fallback={<SneakerLoader message="Loading..." />}>
+      <React.Suspense fallback={<RouteSkeleton />}>
         <AnimatedRoutes />
         <ChatBot />
       </React.Suspense>
@@ -241,15 +244,19 @@ const App = () => {
 
   return (
     <ErrorBoundary>
+      {/* Honour the OS "reduce motion" setting for every Framer animation. */}
+      <MotionConfig reducedMotion="user">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <CelebrationHost />
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <AppLayout />
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
+      </MotionConfig>
     </ErrorBoundary>
   );
 };

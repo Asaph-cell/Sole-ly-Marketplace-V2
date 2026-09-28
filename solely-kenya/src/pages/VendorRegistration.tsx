@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePersistentState, readDraft, writeDraft, clearDraft } from "@/hooks/usePersistentState";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import logo from "@/assets/solely-logo.svg";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,7 +19,7 @@ const VendorRegistration = () => {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = usePersistentState("vendor-registration", {
     phone: "",
     mpesaNumber: "",
     storeName: "",
@@ -48,6 +49,7 @@ const VendorRegistration = () => {
 
         if (roles && roles.length > 0) {
           toast.info("You are already registered as a vendor");
+          clearDraft("vendor-registration");
           navigate("/vendor/dashboard");
         }
       }
@@ -126,6 +128,7 @@ const VendorRegistration = () => {
       });
 
       toast.success("Vendor registration successful! You can now start selling.");
+      clearDraft("vendor-registration");
       navigate("/vendor/dashboard");
     } catch (error: any) {
       console.error("Registration error:", error);

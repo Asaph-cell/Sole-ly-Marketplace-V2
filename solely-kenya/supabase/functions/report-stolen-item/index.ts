@@ -11,6 +11,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { rateLimit } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -37,6 +38,8 @@ serve(async (req: Request) => {
         if (!userId) throw new Error("Invalid user token");
 
         const { orderId, description } = await req.json();
+        const limited = await rateLimit(req, corsHeaders, { name: "stolen-report", max: 5, windowSeconds: 3600, identity: userId });
+        if (limited) return limited;
         if (!orderId) throw new Error("Missing orderId");
 
         // Fetch order

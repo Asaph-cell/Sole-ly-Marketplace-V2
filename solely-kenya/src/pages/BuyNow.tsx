@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { FormSkeleton } from "@/components/skeletons";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   Shield, Star, CheckCircle, ChevronLeft, ChevronRight,
   Lock, Truck, ThumbsUp, AlertTriangle, Share2, Copy
@@ -150,14 +151,7 @@ const BuyNow = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading…</p>
-        </div>
-      </div>
-    );
+    return <FormSkeleton fields={5} />;
   }
 
   if (!product) {
@@ -266,7 +260,7 @@ const BuyNow = () => {
                   <button
                     key={i}
                     onClick={() => setSelectedImage(i)}
-                    className={`h-1.5 rounded-full transition-all ${i === selectedImage ? "w-4 bg-white" : "w-1.5 bg-white/50"}`}
+                    className={`h-1.5 rounded-full transition ${i === selectedImage ? "w-4 bg-white" : "w-1.5 bg-white/50"}`}
                   />
                 ))}
               </div>
@@ -280,7 +274,7 @@ const BuyNow = () => {
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
-                  className={`h-14 w-14 shrink-0 rounded-xl overflow-hidden border-2 transition-all ${i === selectedImage ? "border-primary" : "border-border"}`}
+                  className={`h-14 w-14 shrink-0 rounded-xl overflow-hidden border-2 transition ${i === selectedImage ? "border-primary" : "border-border"}`}
                 >
                   <img src={img} alt="" className="h-full w-full object-cover" />
                 </button>

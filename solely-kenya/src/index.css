@@ -343,7 +343,7 @@ All colors MUST be HSL.
 
   /* Touch-friendly active state */
   .tap-active {
-    @apply active:scale-95 transition-transform;
+    @apply active:scale-[0.97] transition-transform duration-150 ease-out;
   }
 
   /* Hide scrollbar for horizontal carousels */
@@ -432,13 +432,62 @@ All colors MUST be HSL.
 
 
 
-/* Reduce motion for accessibility */
+/* ==========================================
+   MOTION TOKENS
+   Strong custom curves; the built-in CSS easings are too weak for UI.
+   Mirrored in tailwind.config.ts (ease-out-strong, ease-in-out-strong, ease-drawer).
+   ========================================== */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Skeleton shimmer: a soft highlight sweeping across the placeholder. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, hsl(var(--background) / 0.55), transparent);
+  animation: skeleton-sweep 1.4s linear infinite;
+}
+
+@keyframes skeleton-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Cart badge bump when the count changes (key the element on the count). */
+@keyframes badge-bump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+.animate-badge-bump {
+  animation: badge-bump 360ms var(--ease-out);
+}
+
+/* Reduce motion for accessibility: keep fades, drop movement and loops. */
 @media (prefers-reduced-motion: reduce) {
 
   .floating-shoe,
   .hero-shimmer,
-  .scrolling-ticker {
+  .scrolling-ticker,
+  .animate-badge-bump,
+  .skeleton::after {
     animation: none;
+  }
+
+  .animate-sweep {
+    animation: none !important;
   }
 }
 

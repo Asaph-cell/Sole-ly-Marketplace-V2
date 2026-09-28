@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
+import { DashboardSkeleton } from "@/components/skeletons";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { StatusPill, ActionButton, EmptyState, MiniAreaChart } from "@/components/admin/AdminShared";
 import { useAdminAction } from "@/hooks/useAdminAction";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { Star, Scale, ClipboardList, Package, History, ArrowRight, ShieldCheck } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -110,7 +110,7 @@ const AdminVendorDetail = () => {
   if (loading) {
     return (
       <AdminLayout pageTitle="Vendor">
-        <SneakerLoader message="Loading vendor..." fullScreen={false} />
+        <DashboardSkeleton />
       </AdminLayout>
     );
   }

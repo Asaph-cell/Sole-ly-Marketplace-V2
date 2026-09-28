@@ -8,7 +8,7 @@ import { PricingCalculator } from "@/components/vendor/PricingCalculator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Link2, Copy, Trash2, Plus, CheckCircle, Share2, EyeOff, Tag, Package, Code2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -428,7 +428,7 @@ const VendorPaymentLinks = () => {
                       // Update the code preview
                       setEmbedCode(prev => prev.replace(/data-solely-theme="[^"]*"/, `data-solely-theme="${t}"`));
                     }}
-                    className={`h-10 rounded-xl text-xs font-bold border-2 transition-all ${
+                    className={`h-10 rounded-xl text-xs font-bold border-2 transition ${
                       embedTheme === t
                         ? 'border-primary ring-2 ring-primary/20'
                         : 'border-border hover:border-muted-foreground/30'

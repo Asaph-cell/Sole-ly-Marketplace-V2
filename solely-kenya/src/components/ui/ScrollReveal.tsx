@@ -3,6 +3,8 @@
 import { motion, useInView, useAnimation, Variant } from "framer-motion";
 import { useEffect, useRef } from "react";
 
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+
 interface ScrollRevealProps {
     children: React.ReactNode;
     width?: "fit-content" | "100%";
@@ -34,30 +36,24 @@ export const ScrollReveal = ({
 
     const variants = {
         "fade-up": {
-            hidden: { opacity: 0, y: 40 },
-            visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+            hidden: { opacity: 0, transform: "translateY(24px)" },
+            visible: { opacity: 1, transform: "translateY(0px)", transition: { duration: 0.6, ease: EASE_OUT, delay } },
         },
         "slide-in": {
-            hidden: { opacity: 0, x: -40 },
-            visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: "easeOut" } },
+            hidden: { opacity: 0, transform: "translateX(-24px)" },
+            visible: { opacity: 1, transform: "translateX(0px)", transition: { duration: 0.6, ease: EASE_OUT, delay } },
         },
         "zoom-in": {
-            hidden: { opacity: 0, scale: 0.8 },
-            visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: "easeOut" } },
+            // Never grow from far below full size; 0.95 reads as "arriving", 0.8 as "inflating".
+            hidden: { opacity: 0, transform: "scale(0.95)" },
+            visible: { opacity: 1, transform: "scale(1)", transition: { duration: 0.5, ease: EASE_OUT, delay } },
         },
         "aggressive": {
-            hidden: { opacity: 0, y: 100, scale: 0.9 },
+            hidden: { opacity: 0, transform: "translateY(48px) scale(0.95)" },
             visible: {
                 opacity: 1,
-                y: 0,
-                scale: 1,
-                transition: {
-                    type: "spring",
-                    stiffness: 100,
-                    damping: 15,
-                    mass: 1,
-                    delay: delay
-                }
+                transform: "translateY(0px) scale(1)",
+                transition: { type: "spring", duration: 0.6, bounce: 0.2, delay }
             },
         }
     };
@@ -70,9 +66,9 @@ export const ScrollReveal = ({
                 animate={mainControls}
                 transition={{ duration, delay }}
                 style={{ willChange: "transform, opacity" }}
-                whileHover={enableHover ? {
-                    scale: 1.05,
-                    transition: { duration: 0.2 }
+                whileHover={enableHover && typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches ? {
+                    scale: 1.03,
+                    transition: { duration: 0.2, ease: EASE_OUT }
                 } : undefined}
             >
                 {children}

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
+import { ListSkeleton } from "@/components/skeletons";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SearchBar, StatusPill, EmptyState } from "@/components/admin/AdminShared";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { ClipboardList, ChevronDown, ChevronUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -130,7 +130,7 @@ const AdminOrders = () => {
       </div>
 
       {loading ? (
-        <SneakerLoader message="Loading orders..." fullScreen={false} />
+        <ListSkeleton rows={8} />
       ) : orders.length === 0 ? (
         <div className="rounded-xl border border-border bg-card">
           <EmptyState icon={ClipboardList} title="No orders found" subtitle="Try adjusting your search or filters" />

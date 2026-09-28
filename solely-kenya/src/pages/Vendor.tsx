@@ -44,7 +44,7 @@ const Vendor = () => {
         <div className="mb-20">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">Why Sellers Trust Sole.ly</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="border-2 shadow-card hover:shadow-hover transition-all">
+            <Card className="border-2 shadow-card hover:shadow-hover transition">
               <CardHeader>
                 <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                   <Users size={24} strokeWidth={1.5} className=" text-primary" />
@@ -58,7 +58,7 @@ const Vendor = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-2 shadow-card hover:shadow-hover transition-all">
+            <Card className="border-2 shadow-card hover:shadow-hover transition">
               <CardHeader>
                 <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                   <TrendingUp size={24} strokeWidth={1.5} className=" text-primary" />
@@ -72,7 +72,7 @@ const Vendor = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-2 shadow-card hover:shadow-hover transition-all">
+            <Card className="border-2 shadow-card hover:shadow-hover transition">
               <CardHeader>
                 <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                   <DollarSign size={24} strokeWidth={1.5} className=" text-primary" />

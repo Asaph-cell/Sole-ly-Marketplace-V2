@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { clearAllDrafts } from "@/hooks/usePersistentState";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,6 +9,7 @@ import { AuthButtons } from "./navbar/AuthButtons";
 import { MobileNav } from "./navbar/MobileNav";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Search, Heart, MessageCircle } from "lucide-react";
+import { CountBadge } from "@/components/CountBadge";
 import logo from "@/assets/solely-logo.svg";
 import { saveSearch } from "@/lib/searchHistory";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
@@ -25,6 +27,7 @@ const Navbar = () => {
     try {
       localStorage.removeItem("solely_cart_v1");
       sessionStorage.clear();
+      clearAllDrafts(); // saved addresses/listing drafts belong to this account
       const { error } = await supabase.auth.signOut();
       if (error) console.error("Logout failed:", error.message);
     } catch (err) {
@@ -96,11 +99,10 @@ const Navbar = () => {
             <Button variant="ghost" size="icon" asChild>
               <Link to="/cart" className="relative">
                 <ShoppingCart size={20} strokeWidth={1.5}  />
-                {totalQuantity > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 min-w-[20px] rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center px-1">
-                    {totalQuantity}
-                  </span>
-                )}
+                <CountBadge
+                  count={totalQuantity}
+                  className="absolute -top-1 -right-1 h-5 min-w-[20px] rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center px-1"
+                />
               </Link>
             </Button>
             <AuthButtons
@@ -131,7 +133,7 @@ const Navbar = () => {
       <div className="border-t border-border/50 bg-background px-3 sm:px-4 py-2">
         <div className="container mx-auto">
           <form onSubmit={handleSearch} className="w-full">
-            <div className="flex items-center gap-2 bg-muted rounded-full px-3 sm:px-4 min-h-[44px] border border-border focus-within:border-primary/40 focus-within:shadow-sm transition-all">
+            <div className="flex items-center gap-2 bg-muted rounded-full px-3 sm:px-4 min-h-[44px] border border-border focus-within:border-primary/40 focus-within:shadow-sm transition">
               <Search size={16} strokeWidth={1.5} className=" text-muted-foreground shrink-0" />
               <input
                 type="text"

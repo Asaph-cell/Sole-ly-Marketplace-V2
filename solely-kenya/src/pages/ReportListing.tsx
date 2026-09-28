@@ -14,6 +14,7 @@
  */
 
 import { FormEvent, useEffect, useState } from "react";
+import { usePersistentState, readDraft, writeDraft, clearDraft } from "@/hooks/usePersistentState";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { ShieldAlert, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
@@ -50,7 +51,7 @@ const ReportListing = () => {
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
-    const [form, setForm] = useState({
+    const [form, setForm, { clear: clearReportDraft }] = usePersistentState("report-listing", {
         report_type: "",
         product_short_code: "",
         listing_url: "",
@@ -133,6 +134,7 @@ const ReportListing = () => {
                 accuracy_declaration: form.accuracy_declaration,
             });
             if (error) throw error;
+            clearReportDraft();
             setSubmitted(true);
             window.scrollTo(0, 0);
         } catch (err: any) {

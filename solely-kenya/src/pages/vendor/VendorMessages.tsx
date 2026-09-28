@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { ListSkeleton } from "@/components/skeletons";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { VendorNavbar } from "@/components/vendor/VendorNavbar";
@@ -32,7 +33,7 @@ const VendorMessages = () => {
   }, [user, loading, navigate]);
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return <div className="container mx-auto p-4 sm:p-6"><ListSkeleton rows={7} /></div>;
   }
 
   return (

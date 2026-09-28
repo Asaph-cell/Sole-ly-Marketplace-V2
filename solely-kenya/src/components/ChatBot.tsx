@@ -263,7 +263,7 @@ const ChatBot = () => {
                               onClick={() =>
                                 handleOption(opt.label, opt.nextNodeId)
                               }
-                              className="px-3 py-1.5 text-[12px] font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:border-[#c2841d] hover:text-[#c2841d] hover:bg-[#c2841d]/5 transition-all duration-200 active:scale-95 whitespace-nowrap"
+                              className="px-3 py-1.5 text-[12px] font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:border-[#c2841d] hover:text-[#c2841d] hover:bg-[#c2841d]/5 transition duration-200 active:scale-95 whitespace-nowrap"
                             >
                               {opt.label}
                             </button>
@@ -298,13 +298,13 @@ const ChatBot = () => {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Paste your order ID here..."
-                  className="flex-1 px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c2841d]/30 focus:border-[#c2841d] transition-all"
+                  className="flex-1 px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c2841d]/30 focus:border-[#c2841d] transition"
                   disabled={isLoading}
                 />
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || isLoading}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition active:scale-95"
                 >
                   <Send size={15} />
                 </button>
@@ -324,7 +324,7 @@ const ChatBot = () => {
       {/* ── Floating Bubble ── */}
       <motion.button
         onClick={() => (isOpen ? setIsOpen(false) : handleOpen())}
-        className={`fixed bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 ${
+        className={`fixed bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition duration-300 ${
           isOpen
             ? "bg-gray-700 hover:bg-gray-600"
             : "bg-gray-900 hover:bg-gray-800 hover:shadow-xl hover:scale-110"

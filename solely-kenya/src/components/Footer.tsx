@@ -3,7 +3,7 @@ import { Instagram, Facebook, ChevronDown, Share2 } from "lucide-react";
 import logo from "@/assets/solely-logo.svg";
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 // TikTok icon component (not in lucide-react)
 const TikTokIcon = ({ className }: { className?: string }) => (

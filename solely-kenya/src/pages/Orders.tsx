@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { celebrate } from "@/components/Celebration";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DisputeChat } from "@/components/disputes/DisputeChat";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { OrderReviewDialog } from "@/components/OrderReviewDialog";
 import { OrderConfirmationModal } from "@/components/OrderConfirmationModal";
 import { OrderReceipt } from "@/components/OrderReceipt";
@@ -145,7 +146,11 @@ const Orders = () => {
         if (payment?.status === 'captured') {
           console.log('[Orders] Payment confirmed!');
           clearInterval(pollInterval);
-          toast.success('Payment confirmed! Your order is being processed.');
+          celebrate({
+            title: 'Payment confirmed',
+            subtitle: 'Your money is held safely in escrow until you receive your order. The seller has been notified.',
+            cta: 'Track my order',
+          });
           // Clear URL params and refresh
           window.history.replaceState({}, '', `/orders/${orderId}`);
           window.location.reload();

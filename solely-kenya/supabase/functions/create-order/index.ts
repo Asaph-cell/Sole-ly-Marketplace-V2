@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { rateLimit } from "../_shared/rate-limit.ts";
 import { getCommissionRatePercent } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
@@ -78,6 +79,9 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const limited = await rateLimit(req, corsHeaders, { name: "create-order", max: 10, windowSeconds: 600, identity: user.id });
+    if (limited) return limited;
 
     const productIds = body.items.map((item) => item.productId);
     const { data: products, error: productsError } = await supabase

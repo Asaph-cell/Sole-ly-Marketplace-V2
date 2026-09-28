@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { KeyRound, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import logo from "@/assets/solely-logo.svg";
 
@@ -131,6 +131,8 @@ const ResetPassword = () => {
                             <div className="relative">
                                 <Input
                                     id="new-password"
+                                    name="new-password"
+                                    autoComplete="new-password"
                                     type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -152,6 +154,8 @@ const ResetPassword = () => {
                             <div className="relative">
                                 <Input
                                     id="confirm-password"
+                                    name="confirm-password"
+                                    autoComplete="new-password"
                                     type={showConfirmPassword ? "text" : "password"}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}

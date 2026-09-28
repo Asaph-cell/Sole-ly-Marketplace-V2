@@ -8,6 +8,8 @@
  */
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormSkeleton } from "@/components/skeletons";
+import { usePersistentState, readDraft, writeDraft, clearDraft } from "@/hooks/usePersistentState";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,11 +20,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { MapPin, MessageCircle, ArrowRight, Truck, Store, Package, Loader2 } from "lucide-react";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { LocationPinMap } from "@/components/LocationPinMap";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 
 const DeliveryDetails = () => {
   const { items: allCartItems } = useCart();
@@ -43,7 +44,8 @@ const DeliveryDetails = () => {
   );
 
   // Delivery form state
-  const [form, setForm] = useState({
+  // Saved as they type, so leaving to check an M-Pesa message doesn't wipe the address.
+  const [form, setForm] = usePersistentState("delivery-details", {
     recipientName: "",
     phone: "",
     email: "",
@@ -65,9 +67,9 @@ const DeliveryDetails = () => {
     if (user) {
       setForm(prev => ({
         ...prev,
-        recipientName: user.user_metadata?.full_name || prev.recipientName,
-        email: user.email || prev.email,
-        phone: user.user_metadata?.phone || prev.phone,
+        recipientName: prev.recipientName || user.user_metadata?.full_name || "",
+        email: prev.email || user.email || "",
+        phone: prev.phone || user.user_metadata?.phone || "",
       }));
     }
   }, [user]);
@@ -248,7 +250,7 @@ const DeliveryDetails = () => {
   };
 
   if (authLoading || checkingDelivery) {
-    return <SneakerLoader message="Loading delivery options..." />;
+    return <FormSkeleton fields={6} />;
   }
 
   if (items.length === 0) return null;

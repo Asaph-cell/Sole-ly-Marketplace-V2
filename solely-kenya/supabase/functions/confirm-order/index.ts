@@ -9,6 +9,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { rateLimit } from "../_shared/rate-limit.ts";
 import { getCommissionRatePercent } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
@@ -47,6 +48,8 @@ serve(async (req: Request) => {
         console.log(`User ID from token: ${userId}`);
 
         const { orderId, rating, review } = await req.json();
+        const limited = await rateLimit(req, corsHeaders, { name: "confirm-order", max: 10, windowSeconds: 600, identity: userId });
+        if (limited) return limited;
 
         if (!orderId) throw new Error('Missing orderId');
 

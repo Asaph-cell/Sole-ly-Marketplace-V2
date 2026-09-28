@@ -117,7 +117,7 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
       {reviews.length > 0 && (
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger asChild>
-            <Button variant="outline" className="w-full flex items-center justify-between h-12 rounded-xl bg-card/50 backdrop-blur-sm border-white/10 shadow-sm hover:bg-muted/50 transition-all">
+            <Button variant="outline" className="w-full flex items-center justify-between h-12 rounded-xl bg-card/50 backdrop-blur-sm border-white/10 shadow-sm hover:bg-muted/50 transition">
               <span className="font-semibold">{isOpen ? "Hide Reviews" : "Read Customer Reviews"}</span>
               {isOpen ? <ChevronUp size={20} strokeWidth={1.5} className=" text-muted-foreground" /> : <ChevronDown size={20} strokeWidth={1.5} className=" text-muted-foreground" />}
             </Button>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ListSkeleton } from "@/components/skeletons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -6,7 +7,6 @@ import { SearchBar, EmptyState } from "@/components/admin/AdminShared";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Users, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { formatDistanceToNow } from "date-fns";
 
 interface MailingUser {
@@ -242,7 +242,7 @@ const AdminMailingList = () => {
       )}
 
       {loading ? (
-        <SneakerLoader message="Loading directory..." fullScreen={false} />
+        <ListSkeleton rows={8} />
       ) : validEmails.length === 0 ? (
         <div className="rounded-xl border border-border bg-card shadow-soft">
           <EmptyState 

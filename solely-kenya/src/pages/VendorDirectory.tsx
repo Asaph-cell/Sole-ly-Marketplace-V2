@@ -54,7 +54,7 @@ const VendorCard = ({ vendor }: { vendor: VendorData }) => {
   return (
     <Link
       to={`/store/${vendor.store_link || vendor.id}`}
-      className="group rounded-3xl bg-card border border-border overflow-hidden shadow-sm hover:shadow-md transition-all block relative"
+      className="group rounded-3xl bg-card border border-border overflow-hidden shadow-sm hover:shadow-md transition block relative"
     >
       <div className="relative h-32 sm:h-40 w-full overflow-hidden bg-muted">
         <AnimatePresence mode="popLayout">

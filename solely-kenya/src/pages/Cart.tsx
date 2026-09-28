@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { ShoeSizeChart } from "@/components/ShoeSizeChart";
 import { ClothingSizeChart, clothingChartKind } from "@/components/ClothingSizeChart";
 import { Store } from "lucide-react";

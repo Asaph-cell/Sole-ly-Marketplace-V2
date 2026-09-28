@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
+import { DashboardSkeleton } from "@/components/skeletons";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { StatBar, MiniAreaChart, DonutChart, DataTable } from "@/components/admin/AdminShared";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { Users, Store, TrendingUp, Info } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -96,7 +96,7 @@ const AdminGrowth = () => {
   return (
     <AdminLayout pageTitle="Growth">
       {loading ? (
-        <SneakerLoader message="Loading..." fullScreen={false} />
+        <DashboardSkeleton />
       ) : (
         <div className="flex flex-col gap-4">
 

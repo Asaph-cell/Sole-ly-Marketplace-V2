@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { FormSkeleton } from "@/components/skeletons";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import { compressImages } from "@/lib/compressImage";
 import { ALL_CATEGORIES } from "@/lib/categories";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { PricingCalculator } from "@/components/vendor/PricingCalculator";
 import {
   ChevronLeft, ChevronRight, Upload, X, ImagePlus,
@@ -13,6 +14,8 @@ import {
   Dumbbell, Smartphone, Home, LucideIcon
 } from "lucide-react";
 import { VideoUploader } from "@/components/VideoUploader";
+import { usePersistentState, clearDraft } from "@/hooks/usePersistentState";
+import { saveDraftFiles, loadDraftFiles, clearDraftFiles } from "@/lib/draftFiles";
 
 // ── Category icon + gradient map ─────────────────────────────────────────────
 const CAT_META: Record<string, { icon: LucideIcon; from: string; to: string; text: string }> = {
@@ -224,7 +227,7 @@ const TextInput = ({ value, onChange, placeholder = "" }: { value: string; onCha
     value={value}
     onChange={e => onChange(e.target.value)}
     placeholder={placeholder}
-    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition-all"
+    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition"
   />
 );
 
@@ -232,7 +235,7 @@ const SelectInput = ({ value, onChange, options, placeholder }: { value: string;
   <select
     value={value}
     onChange={e => onChange(e.target.value)}
-    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 transition-all appearance-none"
+    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 transition appearance-none"
   >
     <option value="">{placeholder || "Select…"}</option>
     {options.map(o => <option key={o} value={o}>{o}</option>)}
@@ -240,31 +243,66 @@ const SelectInput = ({ value, onChange, options, placeholder }: { value: string;
 );
 
 // ── Main component ─────────────────────────────────────────────────────────────
+// Every field is saved as the vendor types, so a call, a dead battery or the
+// app being closed never costs them a half-finished listing.
+const DRAFT_FIELDS = ["step", "category", "subcategory", "name", "description", "price", "stock", "brand", "condition", "conditionNotes", "freeDelivery", "keyFeatures", "videoUrl", "specs"] as const;
+
 const VendorListItem = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState<1|2|3|4>(1);
+  const draftKey = `list-item:${user?.id ?? "anon"}`;
+  const d = (field: string) => `${draftKey}:${field}`;
+  const [step, setStep, { restored: stepRestored }] = usePersistentState<1|2|3|4>(d("step"), 1);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   // Core fields
-  const [category, setCategory] = useState("");
-  const [subcategory, setSubcategory] = useState("");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("1");
-  const [brand, setBrand] = useState("");
-  const [condition, setCondition] = useState("new");
-  const [conditionNotes, setConditionNotes] = useState("");
-  const [freeDelivery, setFreeDelivery] = useState(false);
-  const [keyFeatures, setKeyFeatures] = useState("");
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [specs, setSpecs] = useState<Record<string, string>>({});
+  const [category, setCategory, { restored: catRestored }] = usePersistentState(d("category"), "");
+  const [subcategory, setSubcategory] = usePersistentState(d("subcategory"), "");
+  const [name, setName] = usePersistentState(d("name"), "");
+  const [description, setDescription] = usePersistentState(d("description"), "");
+  const [price, setPrice] = usePersistentState(d("price"), "");
+  const [stock, setStock] = usePersistentState(d("stock"), "1");
+  const [brand, setBrand] = usePersistentState(d("brand"), "");
+  const [condition, setCondition] = usePersistentState(d("condition"), "new");
+  const [conditionNotes, setConditionNotes] = usePersistentState(d("conditionNotes"), "");
+  const [freeDelivery, setFreeDelivery] = usePersistentState(d("freeDelivery"), false);
+  const [keyFeatures, setKeyFeatures] = usePersistentState(d("keyFeatures"), "");
+  const [videoUrl, setVideoUrl] = usePersistentState<string | null>(d("videoUrl"), null);
+  const [specs, setSpecs] = usePersistentState<Record<string, string>>(d("specs"), {});
 
-  // Images
+  // Images (kept in IndexedDB, since localStorage can't hold photos)
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [filesLoaded, setFilesLoaded] = useState(false);
+  const [showRestored, setShowRestored] = useState(stepRestored || catRestored);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadDraftFiles(draftKey).then((files) => {
+      if (cancelled) return;
+      if (files.length) {
+        setImageFiles(files);
+        setImagePreviews(files.map((f) => URL.createObjectURL(f)));
+        setShowRestored(true);
+      }
+      setFilesLoaded(true);
+    });
+    return () => { cancelled = true; };
+  }, [draftKey]);
+
+  useEffect(() => {
+    if (filesLoaded) void saveDraftFiles(draftKey, imageFiles);
+  }, [imageFiles, filesLoaded, draftKey]);
+
+  const discardDraft = () => {
+    DRAFT_FIELDS.forEach((f) => clearDraft(d(f)));
+    void clearDraftFiles(draftKey);
+    setStep(1); setCategory(""); setSubcategory(""); setName(""); setDescription(""); setPrice("");
+    setStock("1"); setBrand(""); setCondition("new"); setConditionNotes(""); setFreeDelivery(false);
+    setKeyFeatures(""); setVideoUrl(null); setSpecs({}); setImageFiles([]); setImagePreviews([]);
+    setShowRestored(false);
+  };
 
   useEffect(() => { if (!loading && !user) navigate("/auth"); }, [user, loading, navigate]);
 
@@ -376,17 +414,20 @@ const VendorListItem = () => {
       }
 
       await supabase.rpc("publish_product", { product_id_to_publish: inserted.id });
+      DRAFT_FIELDS.forEach((f) => clearDraft(d(f)));
+      void clearDraftFiles(draftKey);
       toast.success("Item listed! It's now live 🎉");
       navigate("/vendor/products");
     } catch (e: any) {
-      toast.error(e.message || "Failed to list item");
+      // The draft is still saved, so a retry picks up exactly where they left off.
+      toast.error(e, { retry: handleSubmit, description: "Your listing is saved as a draft on this device." });
     } finally {
       setSubmitting(false);
       setUploading(false);
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen text-sm text-muted-foreground">Loading…</div>;
+  if (loading) return <FormSkeleton fields={6} />;
 
   // ── Step indicators ──────────────────────────────────────────────────────
   const steps = ["Category", "Type", "Details", "Photos"];
@@ -412,6 +453,18 @@ const VendorListItem = () => {
             </div>
           </div>
 
+          {showRestored && (
+            <div className="mb-4 flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-3.5 py-2.5 text-sm animate-fade-in">
+              <span className="flex-1">Welcome back, we saved your unfinished listing.</span>
+              <button onClick={discardDraft} className="text-xs font-semibold text-muted-foreground hover:text-foreground underline underline-offset-2">
+                Start over
+              </button>
+              <button onClick={() => setShowRestored(false)} className="text-xs font-semibold text-primary">
+                OK
+              </button>
+            </div>
+          )}
+
           {/* Step progress bar */}
           <div className="flex gap-1 mb-6">
             {steps.map((_, i) => (
@@ -432,7 +485,7 @@ const VendorListItem = () => {
                     <button
                       key={cat.key}
                       onClick={() => { setCategory(cat.key); setSubcategory(""); setStep(2); }}
-                      className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl h-20 w-full transition-all active:scale-95 ${
+                      className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl h-20 w-full transition active:scale-95 ${
                         isSelected ? "ring-2 ring-primary ring-offset-2" : "hover:opacity-90"
                       }`}
                       style={{
@@ -470,7 +523,7 @@ const VendorListItem = () => {
                   <button
                     key={sub.key}
                     onClick={() => setSubcategory(sub.key)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                    className={`px-4 py-2 rounded-full text-sm font-medium border transition ${
                       subcategory === sub.key
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card border-border hover:border-primary/50"
@@ -481,7 +534,7 @@ const VendorListItem = () => {
                 ))}
                 <button
                   onClick={() => setSubcategory("")}
-                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium border transition ${
                     subcategory === "" ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border hover:border-primary/50"
                   }`}
                 >
@@ -512,7 +565,7 @@ const VendorListItem = () => {
                   onChange={e => setDescription(e.target.value)}
                   placeholder="Describe your item honestly. Good descriptions attract more buyers."
                   rows={3}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition-all resize-none"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition resize-none"
                 />
               </Field>
 
@@ -560,7 +613,7 @@ const VendorListItem = () => {
                       key={c.value}
                       type="button"
                       onClick={() => setCondition(c.value)}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-semibold transition ${
                         condition === c.value
                           ? "border-primary bg-primary text-primary-foreground"
                           : "border-border bg-card hover:border-primary/50"
@@ -580,7 +633,7 @@ const VendorListItem = () => {
                     onChange={e => setConditionNotes(e.target.value)}
                     placeholder="Describe any wear, scuffs, or defects."
                     rows={2}
-                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition-all resize-none"
+                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition resize-none"
                   />
                 </Field>
               )}
@@ -591,7 +644,7 @@ const VendorListItem = () => {
                   onChange={e => setKeyFeatures(e.target.value)}
                   placeholder="e.g. 5G, 120Hz display, 5000mAh battery"
                   rows={2}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition-all resize-none"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition resize-none"
                 />
               </Field>
 
@@ -645,7 +698,7 @@ const VendorListItem = () => {
                   </div>
                 ))}
                 {imagePreviews.length < 4 && (
-                  <label className="rounded-2xl border-2 border-dashed border-border aspect-square flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-all">
+                  <label className="rounded-2xl border-2 border-dashed border-border aspect-square flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition">
                     <ImagePlus strokeWidth={1.5} className="h-7 w-7 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground font-medium">Add Photo</span>
                     <input type="file" accept="image/*" multiple className="hidden" onChange={handleImages} />
@@ -698,4 +751,11 @@ const VendorListItem = () => {
   );
 };
 
-export default VendorListItem;
+// Remount per account so drafts are always read for the signed-in vendor.
+const VendorListItemPage = () => {
+  const { user, loading } = useAuth();
+  if (loading) return <FormSkeleton fields={6} />;
+  return <VendorListItem key={user?.id ?? "anon"} />;
+};
+
+export default VendorListItemPage;

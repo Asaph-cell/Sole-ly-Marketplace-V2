@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { ListSkeleton } from "@/components/skeletons";
 // Aliased: lucide-react also exports a `User` (the avatar icon used below),
 // and the bare name resolved to this type instead of the component.
 import type { User as AuthUser } from "@supabase/supabase-js";
@@ -25,14 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   MapPin, Send, Check, ArrowRight, Truck, Package,
   MessageCircle, Loader2, RefreshCw, User, Store,
   ShieldCheck, CreditCard,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 interface DeliveryAgreement {
@@ -357,7 +357,7 @@ const DeliveryNegotiation = () => {
   };
 
   if (authLoading || loading) {
-    return <SneakerLoader message="Loading negotiation..." />;
+    return <div className="container mx-auto p-4 sm:p-6"><ListSkeleton rows={5} /></div>;
   }
 
   if (!agreement) {

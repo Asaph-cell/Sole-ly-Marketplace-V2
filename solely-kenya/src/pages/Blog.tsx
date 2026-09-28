@@ -41,7 +41,7 @@ const Blog = () => {
                             transition={{ delay: index * 0.1 }}
                         >
                             <Link to={`/blog/${post.id}`} className="group">
-                                <Card className="h-full overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 flex flex-col shadow-soft hover:shadow-hover">
+                                <Card className="h-full overflow-hidden border-2 hover:border-primary/50 transition duration-300 flex flex-col shadow-soft hover:shadow-hover">
                                     <div className="aspect-video relative overflow-hidden">
                                         <img 
                                             src={post.image} 
@@ -95,7 +95,7 @@ const Blog = () => {
                     Have a collection you're ready to sell? Join Kenya's safest way to sell online. Start selling with zero upfront fees.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button asChild size="lg" className="bg-primary text-primary-foreground px-10 rounded-full font-bold hover:shadow-xl transition-all h-14 text-lg">
+                    <Button asChild size="lg" className="bg-primary text-primary-foreground px-10 rounded-full font-bold hover:shadow-xl transition h-14 text-lg">
                       <Link to="/vendor">Start Selling Today</Link>
                     </Button>
                   </div>

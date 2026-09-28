@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from "react";
+import { celebrate } from "@/components/Celebration";
 import { formatDistanceToNow, differenceInHours } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +13,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
+import { edgeErrorMessage } from "@/lib/edgeError";
 import { LocationViewMap } from "@/components/LocationViewMap";
 import { DeliveryTrackingControl } from "@/components/DeliveryTrackingControl";
 import { ManualTrackingUpdate } from "@/components/tracking/ManualTrackingUpdate";
@@ -631,10 +633,15 @@ const VendorOrders = () => {
         body: { orderId: otpDialogOrder.id, otp: otpInput }
       });
 
-      if (error) throw error;
+      if (error) throw new Error(await edgeErrorMessage(error, "We couldn't verify that code. Please try again."));
 
       if (data?.success) {
-        toast.success(`Delivery confirmed! KES ${data.payoutAmount?.toLocaleString() || ''} released to your account.`);
+        celebrate({
+          title: "Delivery confirmed",
+          amount: data.payoutAmount ? `KES ${Number(data.payoutAmount).toLocaleString()}` : undefined,
+          subtitle: "The funds have been released to your Solely balance.",
+          cta: "Nice!",
+        });
         setOtpDialogOrder(null);
         setOtpInput("");
         await loadOrders();
@@ -643,7 +650,7 @@ const VendorOrders = () => {
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
-      toast.error("Failed to verify code. Please try again.");
+      toast.error(error, { retry: handleVerifyOtp });
     } finally {
       setOtpVerifying(false);
     }

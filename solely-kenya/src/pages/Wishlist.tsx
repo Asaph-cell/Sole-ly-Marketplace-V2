@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
+import { ProductGridSkeleton } from "@/components/skeletons";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/contexts/WishlistContext";
 import ProductCard from "@/components/ProductCard";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { Heart, ShoppingBag, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/SEO";
@@ -71,7 +71,7 @@ const Wishlist = () => {
   // Re-fetch when a product is removed from wishlist (ids change)
   // The above effect already handles this since wishlistIds is a dependency.
 
-  if (authLoading) return <SneakerLoader message="Loading..." />;
+  if (authLoading) return <div className="container mx-auto px-4 py-8"><ProductGridSkeleton count={8} /></div>;
 
   // Not logged in
   if (!user) {
@@ -119,7 +119,7 @@ const Wishlist = () => {
         </div>
 
         {loading ? (
-          <SneakerLoader message="Loading your wishlist..." fullScreen={false} />
+          <ProductGridSkeleton count={8} />
         ) : products.length === 0 ? (
           // Empty state
           <div className="flex flex-col items-center justify-center py-24 gap-5 text-center">

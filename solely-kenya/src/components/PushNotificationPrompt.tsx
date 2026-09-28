@@ -1,4 +1,5 @@
 import { Bell, X, AlertTriangle } from 'lucide-react';
+import { friendlyError } from "@/lib/friendlyError";
 import { Button } from '@/components/ui/button';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useState } from 'react';
@@ -85,7 +86,7 @@ export function PushNotificationPrompt({
                         </div>
 
                         {error && (
-                            <p className="text-red-500 text-sm mb-4">{error}</p>
+                            <p className="text-red-500 text-sm mb-4">{friendlyError(error)}</p>
                         )}
 
                         <div className="flex gap-3">

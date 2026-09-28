@@ -24,7 +24,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 interface Comment {
   id: string;
@@ -278,7 +278,7 @@ const BlogPost = () => {
                           placeholder="Join the hustle conversation... What do you think?"
                           value={newComment}
                           onChange={(e) => setNewComment(e.target.value)}
-                          className="min-h-[100px] rounded-2xl bg-background border-2 focus:border-primary transition-all p-4 text-base"
+                          className="min-h-[100px] rounded-2xl bg-background border-2 focus:border-primary transition p-4 text-base"
                         />
                         <div className="flex justify-end mt-3">
                           <Button type="submit" size="sm" className="rounded-full gap-2 font-bold px-6">
@@ -373,7 +373,7 @@ const BlogPost = () => {
               <h4 className="font-bold mb-4 italic">Spread the Word</h4>
               <p className="text-sm text-muted-foreground mb-6">Found this helpful? Share it with the squad so everyone can stay stiff.</p>
               <div className="flex flex-col gap-3">
-                <Button onClick={handleShare} className="w-full rounded-full gap-2 font-bold bg-primary hover:shadow-lg transition-all">
+                <Button onClick={handleShare} className="w-full rounded-full gap-2 font-bold bg-primary hover:shadow-lg transition">
                   <Share2 size={16} strokeWidth={1.5}  /> Share Article
                 </Button>
                 <Button 
@@ -422,7 +422,7 @@ const BlogPost = () => {
                         onChange={(e) => setTopicIdea(e.target.value)}
                         className="rounded-xl border-2 focus:ring-primary shadow-inner"
                       />
-                      <Button type="submit" className="w-full rounded-full gap-2 font-bold shadow-soft hover:shadow-lg transition-all">
+                      <Button type="submit" className="w-full rounded-full gap-2 font-bold shadow-soft hover:shadow-lg transition">
                         Submit Feedback
                       </Button>
                     </form>
@@ -451,7 +451,7 @@ const BlogPost = () => {
               <h4 className="font-bold italic px-2">Stiff Picks for this Guide</h4>
               <div className="grid gap-4">
                 {sidebarProducts.length > 0 ? sidebarProducts.map((product) => (
-                  <div key={product.id} className="group p-4 bg-card rounded-2xl border-2 border-transparent hover:border-primary/20 transition-all flex items-center gap-4">
+                  <div key={product.id} className="group p-4 bg-card rounded-2xl border-2 border-transparent hover:border-primary/20 transition flex items-center gap-4">
                     <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden shrink-0">
                       <img 
                         src={product.images?.[0] || "/placeholder.svg"} 

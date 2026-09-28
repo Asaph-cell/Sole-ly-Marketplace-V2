@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Heart, Truck, RefreshCcw, Recycle, Play, Star } from "lucide-react";
+import { Heart, Truck, RefreshCcw, Recycle, Play, Star, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 interface ProductCardProps {
   id: number | string;
@@ -81,6 +81,9 @@ const ProductCard = ({
   const { user } = useAuth();
   const navigate = useNavigate();
   const wished = isWished(String(id));
+  const [justAdded, setJustAdded] = useState(false);
+  const addedTimer = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(addedTimer.current), []);
 
   // Detect mobile
   useEffect(() => {
@@ -136,6 +139,10 @@ const ProductCard = ({
       category,
     });
     toast.success("Added to cart", { description: name, duration: 2000 });
+    // Brief confirmation on the button itself, where the user is looking.
+    setJustAdded(true);
+    clearTimeout(addedTimer.current);
+    addedTimer.current = setTimeout(() => setJustAdded(false), 1400);
   };
 
   const handleWishlist = (e: React.MouseEvent) => {
@@ -170,16 +177,14 @@ const ProductCard = ({
   };
 
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ type: "spring", stiffness: 300 }}
+    <div
       onMouseEnter={() => !isMobile && setIsHovering(true)}
       onMouseLeave={() => !isMobile && setIsHovering(false)}
       className="h-full"
     >
       <Link
         to={`/product/${id}`}
-        className="card block h-full group bg-white border border-gray-100 rounded-[20px] overflow-hidden hover:shadow-xl hover:border-gray-200 transition-all duration-300 flex flex-col relative"
+        className="card block h-full group bg-white border border-gray-100 rounded-[20px] overflow-hidden hover:shadow-xl hover:border-gray-200 hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-200 ease-out-strong flex flex-col relative"
       >
         {/* ── img-wrap ── */}
         <div
@@ -221,18 +226,28 @@ const ProductCard = ({
 
           {/* Wishlist button */}
           <button
-            className={`wishlist absolute bottom-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur shadow-sm transition-all duration-200 hover:scale-110 hover:bg-white ${wished ? "text-rose-500" : "text-gray-400 hover:text-rose-400"}`}
+            className={`wishlist absolute bottom-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur shadow-sm transition-[transform,background-color,color] duration-150 ease-out hover:bg-white active:scale-90 ${wished ? "text-rose-500" : "text-gray-400 hover:text-rose-400"}`}
             onClick={handleWishlist}
-            aria-label="Add to wishlist"
+            aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+            aria-pressed={wished}
           >
-            <Heart size={15} strokeWidth={2} className={wished ? "fill-rose-500" : ""} />
+            {/* Keyed on state so saving replays a small spring pop; un-saving just swaps. */}
+            <motion.span
+              key={wished ? "on" : "off"}
+              initial={wished ? { scale: 0.5 } : false}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", duration: 0.45, bounce: 0.55 }}
+              className="flex"
+            >
+              <Heart size={15} strokeWidth={2} className={wished ? "fill-rose-500" : ""} />
+            </motion.span>
           </button>
 
           <LazyLoadImage
             src={image}
             alt={name}
             effect="blur"
-            className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"}`}
+            className={`w-full h-full object-cover transition-[transform,opacity] duration-300 ease-out-strong group-hover:scale-105 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"}`}
             wrapperClassName="w-full h-full"
           />
 
@@ -286,14 +301,26 @@ const ProductCard = ({
             </span>
             <button
               onClick={handleAddToCart}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-700 active:scale-95 transition-all text-xs font-bold shadow-sm"
+              aria-live="polite"
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-white rounded-lg active:scale-[0.97] transition-[transform,background-color] duration-150 ease-out text-xs font-bold shadow-sm ${justAdded ? "bg-emerald-600" : "bg-gray-900 hover:bg-gray-700"}`}
             >
-              Add
+              {justAdded ? (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                  className="flex items-center gap-1"
+                >
+                  <Check size={13} strokeWidth={3} /> Added
+                </motion.span>
+              ) : (
+                "Add"
+              )}
             </button>
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 };
 

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
+import { DashboardSkeleton } from "@/components/skeletons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 
 /**
  * Route-level guard for every /admin* page. Wraps the page component from above
@@ -21,7 +21,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   }, [ready, user, isAdmin, navigate]);
 
   if (!ready || !user || !isAdmin) {
-    return <SneakerLoader message="Loading admin dashboard..." />;
+    return <DashboardSkeleton />;
   }
 
   return <>{children}</>;

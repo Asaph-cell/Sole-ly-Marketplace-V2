@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { friendlyError } from "@/lib/friendlyError";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Loader2 } from "lucide-react";
@@ -216,7 +217,7 @@ export function AddressAutocomplete({
             </div>
 
             {error && (
-                <p className="text-xs text-destructive mt-1">{error}</p>
+                <p className="text-xs text-destructive mt-1">{friendlyError(error)}</p>
             )}
 
             {showDropdown && suggestions.length > 0 && (

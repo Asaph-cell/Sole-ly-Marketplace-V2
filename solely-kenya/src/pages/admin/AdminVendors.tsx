@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ListSkeleton } from "@/components/skeletons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -18,7 +19,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 
 interface VendorDetails {
   id: string;
@@ -132,7 +132,7 @@ const AdminVendors = () => {
       />
 
       {loading ? (
-        <SneakerLoader message="Loading vendors..." fullScreen={false} />
+        <ListSkeleton rows={8} />
       ) : filteredVendors.length === 0 ? (
         <div className="rounded-xl border border-border bg-card shadow-soft">
           <EmptyState 

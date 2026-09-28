@@ -74,7 +74,7 @@ export const OfflineBanner = () => {
                 <button
                   onClick={handleRetry}
                   disabled={checking}
-                  className="shrink-0 flex items-center gap-1.5 bg-white text-zinc-900 font-semibold text-xs px-3.5 py-2 rounded-full hover:bg-zinc-100 active:scale-95 transition-all disabled:opacity-60"
+                  className="shrink-0 flex items-center gap-1.5 bg-white text-zinc-900 font-semibold text-xs px-3.5 py-2 rounded-full hover:bg-zinc-100 active:scale-95 transition disabled:opacity-60"
                 >
                   <RefreshCw
                     size={14}

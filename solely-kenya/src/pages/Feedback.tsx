@@ -1,17 +1,18 @@
 import { useState } from "react";
+import { usePersistentState, readDraft, writeDraft, clearDraft } from "@/hooks/usePersistentState";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquareHeart, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { SEO } from "@/components/SEO";
 
 const Feedback = () => {
   const [searchParams] = useSearchParams();
   const source = searchParams.get("source");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = usePersistentState("feedback-message", "");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 

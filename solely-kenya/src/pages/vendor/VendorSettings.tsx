@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FormSkeleton } from "@/components/skeletons";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 import { Check, User, Store, CreditCard, MapPin, Save, Phone, ImagePlus, Loader2 } from "lucide-react";
 
@@ -158,11 +159,7 @@ const VendorSettings = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <FormSkeleton fields={6} />;
   }
 
   return (
@@ -402,7 +399,7 @@ const VendorSettings = () => {
                 <Button
                   type="submit"
                   size="lg"
-                  className={`w-full sm:w-auto min-w-[200px] transition-all ${saveSuccess ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                  className={`w-full sm:w-auto min-w-[200px] transition ${saveSuccess ? 'bg-green-600 hover:bg-green-700' : ''}`}
                   disabled={saving}
                 >
                   {saveSuccess ? (

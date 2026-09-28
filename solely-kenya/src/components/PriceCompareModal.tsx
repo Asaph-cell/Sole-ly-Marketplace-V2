@@ -182,7 +182,7 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.04 }}
-                                    className={`rounded-2xl border-2 transition-all ${listing.isCurrent
+                                    className={`rounded-2xl border-2 transition ${listing.isCurrent
                                         ? "border-primary bg-primary/5"
                                         : isLowest
                                             ? "border-green-500/50 bg-green-500/5"

@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback } from "react";
+import { friendlyError } from "@/lib/friendlyError";
 import { Upload, X, Play, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 interface VideoUploaderProps {
     vendorId: string;
@@ -222,7 +223,7 @@ export const VideoUploader = ({ vendorId, videoUrl, onVideoChange }: VideoUpload
             {error && (
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
                     <AlertCircle size={16} strokeWidth={1.5} className=" mt-0.5 flex-shrink-0" />
-                    <span>{error}</span>
+                    <span>{friendlyError(error)}</span>
                 </div>
             )}
 

@@ -11,6 +11,7 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { rateLimit } from "../_shared/rate-limit.ts";
 import webpush from "npm:web-push@3.6.7";
 
 const corsHeaders = {
@@ -34,6 +35,10 @@ Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
         return new Response(null, { headers: corsHeaders });
     }
+
+    // Open endpoint (called server-to-server too), so cap per IP to stop email/push spam.
+    const limited = await rateLimit(req, corsHeaders, { name: "send-push-notification", max: 120, windowSeconds: 60 });
+    if (limited) return limited;
 
     try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

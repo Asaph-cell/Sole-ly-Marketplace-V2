@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { rateLimit } from "../_shared/rate-limit.ts";
 import { getCommissionRatePercent } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
@@ -19,6 +20,8 @@ serve(async (req) => {
         );
 
         const body = await req.json();
+        const limited = await rateLimit(req, corsHeaders, { name: "pay-init", max: 10, windowSeconds: 600 });
+        if (limited) return limited;
         const { successUrl, cancelUrl, checkoutPayload } = body;
         let orderId = body.orderId;
 

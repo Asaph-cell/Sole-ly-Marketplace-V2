@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ListSkeleton } from "@/components/skeletons";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,7 +21,6 @@ import {
     RefreshCw, Scale, CheckCircle2,
     ChevronRight, SplitSquareHorizontal, XCircle, AlertTriangle
 } from "lucide-react";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { DisputeChat } from "@/components/disputes/DisputeChat";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -189,7 +189,7 @@ const AdminDisputes = () => {
     return (
         <AdminLayout pageTitle="Disputes">
             {loadingData ? (
-                <SneakerLoader message="Loading..." fullScreen={false} />
+                <ListSkeleton rows={6} />
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 

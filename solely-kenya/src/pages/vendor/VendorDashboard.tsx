@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DashboardSkeleton } from "@/components/skeletons";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -157,7 +158,7 @@ const VendorDashboard = () => {
     setViewsData(Object.entries(byDate).map(([date, views]) => ({ date, views })));
   };
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading…</div>;
+  if (loading) return <DashboardSkeleton />;
 
   // ── Greeting ─────────────────────────────────────────────────────────────────
   const hour = new Date().getHours();

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
+import { ListSkeleton } from "@/components/skeletons";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { EmptyState } from "@/components/admin/AdminShared";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { History, PauseCircle, PlayCircle, Trash2, Star, ShieldOff, ShieldCheck, RefreshCw, SplitSquareHorizontal, CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -130,7 +130,7 @@ const AdminActivity = () => {
       </div>
 
       {loading ? (
-        <SneakerLoader message="Loading activity..." fullScreen={false} />
+        <ListSkeleton rows={8} />
       ) : entries.length === 0 ? (
         <div className="rounded-xl border border-border bg-card">
           <EmptyState icon={History} title="No activity yet" subtitle="Admin actions will be recorded here as they happen" />

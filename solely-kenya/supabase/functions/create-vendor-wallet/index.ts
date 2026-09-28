@@ -5,6 +5,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { rateLimit } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -15,6 +16,10 @@ serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
         return new Response(null, { headers: corsHeaders });
     }
+
+    // Open endpoint (called server-to-server too), so cap per IP to stop email/push spam.
+    const limited = await rateLimit(req, corsHeaders, { name: "create-vendor-wallet", max: 120, windowSeconds: 60 });
+    if (limited) return limited;
 
     try {
         const supabase = createClient(

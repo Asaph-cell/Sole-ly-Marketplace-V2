@@ -6,6 +6,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { rateLimit } from "../_shared/rate-limit.ts";
 import { getPayoutFeeSchedule, resolvePayoutFee } from "../_shared/platform-settings.ts";
 
 const corsHeaders = {
@@ -50,6 +51,9 @@ serve(async (req: Request) => {
         if (authError || !user || user.id !== vendor_id) {
             throw new Error('Unauthorized');
         }
+
+        const limited = await rateLimit(req, corsHeaders, { name: "withdraw", max: 5, windowSeconds: 3600, identity: user.id, failClosed: true });
+        if (limited) return limited;
 
         console.log(`[Vendor Withdraw] Processing withdrawal for vendor: ${vendor_id}`);
 

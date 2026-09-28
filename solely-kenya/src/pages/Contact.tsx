@@ -1,14 +1,15 @@
 import { Button } from "@/components/ui/button";
+import { usePersistentState, readDraft, writeDraft, clearDraft } from "@/hooks/usePersistentState";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { SEO } from "@/components/SEO";
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = usePersistentState("contact-form", {
     name: "",
     email: "",
     message: "",

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { friendlyError } from "@/lib/friendlyError";
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
@@ -136,6 +137,11 @@ type Toast = Omit<ToasterToast, "id">;
 
 function toast({ ...props }: Toast) {
   const id = genId();
+
+  // Error toasts often get handed a raw error.message; never show that verbatim.
+  if (props.variant === "destructive" && typeof props.description === "string") {
+    props.description = friendlyError(props.description, props.description);
+  }
 
   const update = (props: ToasterToast) =>
     dispatch({

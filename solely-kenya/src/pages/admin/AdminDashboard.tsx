@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
+import { DashboardSkeleton } from "@/components/skeletons";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { StatBar, MiniAreaChart, DonutChart, DataTable, StatusPill } from "@/components/admin/AdminShared";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
@@ -194,7 +194,7 @@ const AdminDashboard = () => {
   return (
     <AdminLayout>
       {loadingData ? (
-        <SneakerLoader message="Loading..." fullScreen={false} />
+        <DashboardSkeleton />
       ) : (
         <div className="flex flex-col gap-4">
 
@@ -212,7 +212,7 @@ const AdminDashboard = () => {
               <Link
                 key={action.href}
                 to={action.href}
-                className="flex items-center gap-2.5 rounded-2xl border border-border bg-card shadow-soft px-3.5 py-3 hover:shadow-hover hover:-translate-y-0.5 transition-all"
+                className="flex items-center gap-2.5 rounded-2xl border border-border bg-card shadow-soft px-3.5 py-3 hover:shadow-hover hover:-translate-y-0.5 transition"
               >
                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <action.icon size={14} strokeWidth={2} className="text-primary" />

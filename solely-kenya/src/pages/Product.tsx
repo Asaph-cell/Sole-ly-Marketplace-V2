@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
+import { ProductCardSkeleton } from "@/components/skeletons";
+import { ProductDetailSkeleton } from "@/components/skeletons";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Star, Shield, ArrowLeft, Bell, BellOff, X, ChevronLeft, ChevronRight, Share2, Copy, BarChart2, Flag } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { VendorRating } from "@/components/VendorRating";
 import { ProductReviews } from "@/components/ProductReviews";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
-import { SneakerLoader } from "@/components/ui/SneakerLoader";
 import { SEO } from "@/components/SEO";
 import { trackProductView, trackCartAddition } from "@/lib/userInterests";
 import { ShoeSizeChart } from "@/components/ShoeSizeChart";
@@ -341,7 +342,7 @@ const Product = () => {
   };
 
   if (loading) {
-    return <SneakerLoader message="Loading product..." />;
+    return <ProductDetailSkeleton />;
   }
 
   if (!product) {
@@ -446,7 +447,7 @@ const Product = () => {
                     <SwiperSlide className="!w-20 !h-20">
                       <button
                         onClick={() => setSelectedImage(-1)}
-                        className={`w-full h-full overflow-hidden rounded-2xl shadow-sm transition-all ${selectedImage === -1 ? "ring-2 ring-primary ring-offset-2" : ""
+                        className={`w-full h-full overflow-hidden rounded-2xl shadow-sm transition ${selectedImage === -1 ? "ring-2 ring-primary ring-offset-2" : ""
                           }`}
                       >
                         <div className="relative w-full h-full">
@@ -471,7 +472,7 @@ const Product = () => {
                     <SwiperSlide key={index} className="!w-20 !h-20">
                       <button
                         onClick={() => setSelectedImage(index)}
-                        className={`w-full h-full overflow-hidden rounded-2xl shadow-sm transition-all ${selectedImage === index ? "ring-2 ring-primary ring-offset-2" : ""
+                        className={`w-full h-full overflow-hidden rounded-2xl shadow-sm transition ${selectedImage === index ? "ring-2 ring-primary ring-offset-2" : ""
                           }`}
                       >
                         <img
@@ -529,7 +530,7 @@ const Product = () => {
                 {product.video_url && (
                   <button
                     onClick={() => setSelectedImage(-1)}
-                    className={`aspect-square overflow-hidden rounded-lg border-2 transition-all relative ${selectedImage === -1 ? "border-primary shadow-hover" : "border-border hover:border-primary/50"
+                    className={`aspect-square overflow-hidden rounded-lg border-2 transition relative ${selectedImage === -1 ? "border-primary shadow-hover" : "border-border hover:border-primary/50"
                       }`}
                   >
                     <img
@@ -552,7 +553,7 @@ const Product = () => {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`aspect-square overflow-hidden rounded-lg border-2 transition-all ${selectedImage === index ? "border-primary shadow-hover" : "border-border hover:border-primary/50"
+                    className={`aspect-square overflow-hidden rounded-lg border-2 transition ${selectedImage === index ? "border-primary shadow-hover" : "border-border hover:border-primary/50"
                       }`}
                   >
                     <img
@@ -892,8 +893,10 @@ const Product = () => {
           </div>
           <div className="relative group">
             {similarLoading ? (
-              <div className="flex justify-center p-8">
-                <SneakerLoader message="Loading..." size="sm" fullScreen={false} />
+              <div className="flex gap-3 sm:gap-4 overflow-hidden">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="w-[46%] sm:w-[31%] lg:w-[23%] shrink-0"><ProductCardSkeleton /></div>
+                ))}
               </div>
             ) : (
               <Swiper
