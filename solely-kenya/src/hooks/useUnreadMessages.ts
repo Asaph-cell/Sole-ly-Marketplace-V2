@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { CHAT_READ_EVENT } from "@/lib/chat";
 
 /**
  * Hook that returns the total unread message count for the current user.
@@ -43,9 +44,19 @@ export const useUnreadMessages = () => {
 
     fetchUnread();
 
-    // Subscribe to new messages AND read-status updates
+    // Refresh the moment a chat is marked read here, and when coming back to
+    // the tab, rather than relying only on realtime delivery.
+    const onRead = () => fetchUnread();
+    const onVisible = () => { if (document.visibilityState === "visible") fetchUnread(); };
+    window.addEventListener(CHAT_READ_EVENT, onRead);
+    document.addEventListener("visibilitychange", onVisible);
+
+    // Subscribe to new messages AND read-status updates. The channel name is
+    // unique per hook instance: the desktop header and the mobile menu both
+    // use this hook, and two channels sharing one topic knock each other out,
+    // which left the red dot stuck on a stale count.
     const channel = supabase
-      .channel("global-unread-messages")
+      .channel(`global-unread-messages-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
@@ -67,6 +78,8 @@ export const useUnreadMessages = () => {
       .subscribe();
 
     return () => {
+      window.removeEventListener(CHAT_READ_EVENT, onRead);
+      document.removeEventListener("visibilitychange", onVisible);
       supabase.removeChannel(channel);
     };
   }, [user]);

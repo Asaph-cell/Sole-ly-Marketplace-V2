@@ -17,15 +17,20 @@ export const getChatUserId = async (): Promise<{ id: string; isGuest: boolean }>
  * Uses the mark_conversation_read RPC (which also stamps read_at); falls back
  * to a plain update until that migration is applied.
  */
+/** Fired on window whenever a chat is marked read, so unread badges refresh at once. */
+export const CHAT_READ_EVENT = "solely:chat-read";
+
 export const markConversationRead = async (conversationId: string, userId: string) => {
   const { error } = await (supabase as any).rpc("mark_conversation_read", { conv: conversationId });
-  if (!error) return;
-  await supabase
-    .from("messages")
-    .update({ is_read: true })
-    .eq("conversation_id", conversationId)
-    .neq("sender_id", userId)
-    .eq("is_read", false);
+  if (error) {
+    await supabase
+      .from("messages")
+      .update({ is_read: true })
+      .eq("conversation_id", conversationId)
+      .neq("sender_id", userId)
+      .eq("is_read", false);
+  }
+  window.dispatchEvent(new Event(CHAT_READ_EVENT));
 };
 
 // ── Photos ────────────────────────────────────────────────────────────────

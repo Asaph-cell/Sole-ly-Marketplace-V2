@@ -117,13 +117,32 @@ serve(async (req) => {
                 try {
                     console.log(`[IntaSend Webhook] Verifying invoice ${invoice_id} with IntaSend API...`);
 
-                    const verifyResponse = await fetch(`https://api.intasend.com/api/v1/invoices/${invoice_id}/`, {
-                        method: 'GET',
+                    // Documented collection-status endpoint (POST /payment/status/).
+                    // The old GET /invoices/{id}/ lookup was failing, which made this
+                    // check reject genuine payments: the buyer was charged but the
+                    // order stayed "pending payment". Kept only as a fallback.
+                    let verifyResponse = await fetch('https://api.intasend.com/api/v1/payment/status/', {
+                        method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${intaSendSecretKey}`,
                             'Content-Type': 'application/json',
                         },
+                        body: JSON.stringify({
+                            invoice_id,
+                            public_key: Deno.env.get('INTASEND_PUBLISHABLE_KEY') ?? undefined,
+                        }),
                     });
+
+                    if (!verifyResponse.ok) {
+                        console.warn(`[IntaSend Webhook] payment/status returned HTTP ${verifyResponse.status}; trying invoices lookup`);
+                        verifyResponse = await fetch(`https://api.intasend.com/api/v1/invoices/${invoice_id}/`, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${intaSendSecretKey}`,
+                                'Content-Type': 'application/json',
+                            },
+                        });
+                    }
 
                     if (!verifyResponse.ok) {
                         // Cannot reach IntaSend API — reject to be safe

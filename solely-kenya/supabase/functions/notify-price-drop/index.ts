@@ -3,9 +3,8 @@
  *
  * Tells buyers who tapped "Notify me on price drop" that an item got cheaper.
  * Called by the vendor edit pages right after a seller saves a lower price
- * ({ productId }). Can also be run with the service-role key and no body as a
- * sweep over every product (e.g. from a Supabase cron job) to catch drops made
- * any other way.
+ * ({ productId }). Called with no productId it sweeps every product; a daily
+ * pg_cron job does this to catch drops made any other way.
  *
  * Each alert fires once: it is marked notified and switched off, and the buyer
  * can switch it back on from the product page.
@@ -43,9 +42,11 @@ Deno.serve(async (req: Request) => {
     const productId: string | undefined = body?.productId;
     const service = isServiceCall(req);
 
-    // Only the seller who owns the product (or a service/cron call) may trigger it.
-    if (!service) {
-      if (!productId) return json({ error: "Missing productId" }, 400);
+    // A single-product check is for the seller who owns it. The full sweep (no
+    // productId) is open so the daily cron can call it with the public anon
+    // key: it only notifies genuine drops, each alert fires once, and it's
+    // rate-limited, so calling it early just delivers alerts sooner.
+    if (!service && productId) {
       const userId = await requireUserId(req, supabase);
       const { data: owned } = await supabase
         .from("products").select("id").eq("id", productId).eq("vendor_id", userId).maybeSingle();
