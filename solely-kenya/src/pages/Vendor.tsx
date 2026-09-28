@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, Users, DollarSign, Lock } from "lucide-react";
+import { TrendingUp, Users, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/solely-logo.svg";
 import { SEO } from "@/components/SEO";

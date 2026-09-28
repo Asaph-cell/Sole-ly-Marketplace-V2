@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { usePersistentState, readDraft, writeDraft, clearDraft } from "@/hooks/usePersistentState";
+import { usePersistentState, clearDraft } from "@/hooks/usePersistentState";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";

@@ -9,7 +9,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { FormSkeleton } from "@/components/skeletons";
-import { usePersistentState, readDraft, writeDraft, clearDraft } from "@/hooks/usePersistentState";
+import { usePersistentState } from "@/hooks/usePersistentState";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";

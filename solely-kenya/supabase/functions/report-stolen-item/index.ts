@@ -12,6 +12,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { rateLimit } from "../_shared/rate-limit.ts";
+import { requireUserId, authErrorResponse } from "../_shared/auth.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -29,13 +30,8 @@ serve(async (req: Request) => {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         // Authenticate caller (must be the vendor)
-        const authHeader = req.headers.get("Authorization");
-        if (!authHeader) throw new Error("Missing auth header");
-        const token = authHeader.replace("Bearer ", "");
-        const parts = token.split(".");
-        if (parts.length !== 3) throw new Error("Invalid token format");
-        const userId = JSON.parse(atob(parts[1])).sub;
-        if (!userId) throw new Error("Invalid user token");
+        // Verified by Supabase Auth, not just decoded: a forged token is rejected here.
+        const userId = await requireUserId(req, supabase);
 
         const { orderId, description } = await req.json();
         const limited = await rateLimit(req, corsHeaders, { name: "stolen-report", max: 5, windowSeconds: 3600, identity: userId });
@@ -112,6 +108,8 @@ serve(async (req: Request) => {
         );
 
     } catch (error) {
+        const unauthorized = authErrorResponse(error, corsHeaders);
+        if (unauthorized) return unauthorized;
         console.error("Error filing stolen item report:", error);
         return new Response(
             JSON.stringify({ error: error instanceof Error ? error.message : "Internal Server Error" }),

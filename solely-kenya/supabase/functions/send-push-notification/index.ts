@@ -11,7 +11,7 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { rateLimit } from "../_shared/rate-limit.ts";
+import { isServiceCall } from "../_shared/auth.ts";
 import webpush from "npm:web-push@3.6.7";
 
 const corsHeaders = {
@@ -37,8 +37,15 @@ Deno.serve(async (req: Request) => {
     }
 
     // Open endpoint (called server-to-server too), so cap per IP to stop email/push spam.
-    const limited = await rateLimit(req, corsHeaders, { name: "send-push-notification", max: 120, windowSeconds: 60 });
-    if (limited) return limited;
+    // Internal only: it pushes arbitrary title/body/link to any user, so a
+    // public caller could phish every customer. Only other functions (with the
+    // service-role key) may call it.
+    if (!isServiceCall(req)) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+    }
 
     try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

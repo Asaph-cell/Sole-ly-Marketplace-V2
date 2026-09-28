@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { ProductGridSkeleton } from "@/components/skeletons";
 import { ErrorState } from "@/components/ErrorState";
 import { Button } from "@/components/ui/button";
@@ -10,11 +10,9 @@ import {
   Package, Star, Zap, Users, Sparkles, ChevronRight, Link2, MessageCircle
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { ALL_CATEGORIES } from "@/lib/categories";
 import { PendingOrdersBanner } from "@/components/vendor/PendingOrdersBanner";
 import { SEO } from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
-import { saveSearch } from "@/lib/searchHistory";
 import { rankByInterests, trackCategoryClick, hasInterestData, buildInterestProfile } from "@/lib/userInterests";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";

@@ -9,7 +9,6 @@ import { VendorBalanceCard } from "@/components/vendor/VendorBalanceCard";
 import { PayoutHistory } from "@/components/vendor/PayoutHistory";
 import { VendorInsights } from "@/components/vendor/VendorInsights";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import {

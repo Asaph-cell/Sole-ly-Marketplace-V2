@@ -11,6 +11,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { rateLimit } from "../_shared/rate-limit.ts";
+import { isServiceCall, requireUserId } from "../_shared/auth.ts";
 import { sendEmail, emailTemplates } from "../_shared/email-service.ts";
 
 const corsHeaders = {
@@ -56,6 +57,23 @@ Deno.serve(async (req: Request) => {
       `)
             .eq("id", orderId)
             .single();
+
+        // The email carries a free-text reason, so only the order's own vendor
+        // (or the auto-cancel job, via the service key) may send it.
+        if (!isServiceCall(req)) {
+            let callerId: string | null = null;
+            try {
+                callerId = await requireUserId(req, supabase);
+            } catch {
+                callerId = null;
+            }
+            if (!order || callerId !== order.vendor_id) {
+                return new Response(JSON.stringify({ error: "Forbidden" }), {
+                    status: 403,
+                    headers: { ...corsHeaders, "Content-Type": "application/json" },
+                });
+            }
+        }
 
         if (orderError || !order) {
             console.error("Order not found:", orderError);

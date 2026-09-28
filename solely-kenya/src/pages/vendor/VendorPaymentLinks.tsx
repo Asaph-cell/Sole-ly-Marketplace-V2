@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { VendorNavbar } from "@/components/vendor/VendorNavbar";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
-import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { PricingCalculator } from "@/components/vendor/PricingCalculator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

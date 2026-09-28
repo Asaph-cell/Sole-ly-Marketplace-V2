@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState, useMemo } from "react";
-import { usePersistentState, readDraft, writeDraft, clearDraft } from "@/hooks/usePersistentState";
+import { readDraft, writeDraft } from "@/hooks/usePersistentState";
 import { useSearchParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/lib/toast";
 import { MapPin, Store, Truck } from "lucide-react";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";

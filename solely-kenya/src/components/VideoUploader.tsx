@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { friendlyError } from "@/lib/friendlyError";
-import { Upload, X, Play, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { Upload, X, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";

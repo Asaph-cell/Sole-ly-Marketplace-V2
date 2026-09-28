@@ -14,7 +14,7 @@
  */
 
 import { FormEvent, useEffect, useState } from "react";
-import { usePersistentState, readDraft, writeDraft, clearDraft } from "@/hooks/usePersistentState";
+import { usePersistentState } from "@/hooks/usePersistentState";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";

@@ -21,7 +21,7 @@ serve(async (req: Request) => {
     }
 
     // Internal-only: this function moves real money and must only ever be
-    // called by trusted server-side code (confirm-order, verify-delivery-otp,
+    // called by trusted server-side code (verify-delivery-otp,
     // auto-release-escrow), which already authenticate with the service-role
     // key. Reject anything else so a vendor's own session can never invoke it.
     const authHeader = req.headers.get('Authorization');

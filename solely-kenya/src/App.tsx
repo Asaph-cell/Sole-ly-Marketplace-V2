@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import React from "react";
-import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { MotionConfig, motion } from "framer-motion";
 import { CelebrationHost } from "./components/Celebration";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { OfflineBanner } from "./components/OfflineBanner";

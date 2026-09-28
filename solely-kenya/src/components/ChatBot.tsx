@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle, X, Send, ArrowLeft } from "lucide-react";
+import { MessageCircle, X, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CHAT_NODES, type ChatNode } from "@/lib/chatFlows";
 import { trackOrder } from "@/lib/chatActions";

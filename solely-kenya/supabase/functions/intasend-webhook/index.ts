@@ -96,7 +96,21 @@ serve(async (req) => {
         // payload entirely. Returning 200 so IntaSend doesn't retry, but we do
         // NOT update the order — blocking spoofed "COMPLETE" webhook attacks.
         // ─────────────────────────────────────────────────────────────────────
-        if (invoice_id && (state === 'COMPLETE' || state === 'COMPLETED' || state === 'SUCCESSFUL')) {
+        const claimsSuccess = state === 'COMPLETE' || state === 'COMPLETED' || state === 'SUCCESSFUL';
+        // Amount IntaSend itself says was paid; checked against the order below.
+        let verifiedAmount: number | null = null;
+
+        // A "paid" claim without an invoice id can't be verified, so it must
+        // never mark an order as paid (previously it skipped verification).
+        if (claimsSuccess && !invoice_id) {
+            console.error(`[IntaSend Webhook] ❌ REJECTED: success state without invoice_id for order ${orderId}.`);
+            return new Response(
+                JSON.stringify({ success: false, message: 'Webhook rejected: missing invoice id' }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        if (claimsSuccess) {
             const intaSendSecretKey = Deno.env.get('INTASEND_SECRET_KEY');
 
             if (intaSendSecretKey) {
@@ -120,7 +134,9 @@ serve(async (req) => {
                         );
                     }
 
-                    const verifiedInvoice = await verifyResponse.json();
+                    const verifyBody = await verifyResponse.json();
+                    // Some IntaSend endpoints wrap the invoice; accept either shape.
+                    const verifiedInvoice = verifyBody?.invoice ?? verifyBody;
                     const isVerifiedSuccess = verifiedInvoice.state === 'COMPLETE' || verifiedInvoice.state === 'COMPLETED' || verifiedInvoice.state === 'SUCCESSFUL';
 
                     if (!isVerifiedSuccess) {
@@ -132,7 +148,21 @@ serve(async (req) => {
                         );
                     }
 
-                    if (verifiedInvoice.api_ref && verifiedInvoice.api_ref !== orderId) {
+                    const paidAmount = Number(verifiedInvoice.value ?? verifiedInvoice.amount);
+                    const hasRef = verifiedInvoice.api_ref != null && verifiedInvoice.api_ref !== '';
+
+                    // We need at least one independent link to this order: the
+                    // order id IntaSend stored, or the amount it says was paid
+                    // (checked against the order total further down).
+                    if (!hasRef && isNaN(paidAmount)) {
+                        console.error(`[IntaSend Webhook] ❌ REJECTED: invoice ${invoice_id} has neither api_ref nor amount. Fields: ${Object.keys(verifiedInvoice ?? {}).join(', ')}`);
+                        return new Response(
+                            JSON.stringify({ success: false, message: 'Webhook rejected: invoice could not be matched to order' }),
+                            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                        );
+                    }
+
+                    if (hasRef && verifiedInvoice.api_ref !== orderId) {
                         // The invoice belongs to a different order — replay attack
                         console.error(`[IntaSend Webhook] ❌ REJECTED: Order ID mismatch — webhook: ${orderId}, IntaSend API: ${verifiedInvoice.api_ref}. Possible replay attack.`);
                         return new Response(
@@ -141,6 +171,7 @@ serve(async (req) => {
                         );
                     }
 
+                    verifiedAmount = isNaN(paidAmount) ? null : paidAmount;
                     console.log(`[IntaSend Webhook] ✅ Invoice ${invoice_id} verified successfully. Proceeding.`);
 
                 } catch (verifyError) {
@@ -177,8 +208,35 @@ serve(async (req) => {
             );
         }
 
+        // The invoice is always created for the full order total, so a smaller
+        // verified amount means someone is trying to pass off a cheaper payment.
+        if (claimsSuccess && verifiedAmount !== null && verifiedAmount + 1 < Number(order.total_ksh)) {
+            console.error(`[IntaSend Webhook] ❌ REJECTED: amount mismatch for order ${orderId}: paid ${verifiedAmount}, due ${order.total_ksh}.`);
+            return new Response(
+                JSON.stringify({ success: false, message: 'Webhook rejected: amount mismatch' }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        // One IntaSend invoice pays for exactly one order.
+        if (claimsSuccess) {
+            const { data: reused } = await supabaseClient
+                .from('payments')
+                .select('order_id')
+                .eq('transaction_id', invoice_id)
+                .neq('order_id', orderId)
+                .limit(1);
+            if (reused && reused.length > 0) {
+                console.error(`[IntaSend Webhook] ❌ REJECTED: invoice ${invoice_id} already paid order ${reused[0].order_id}; refusing to apply it to ${orderId}.`);
+                return new Response(
+                    JSON.stringify({ success: false, message: 'Webhook rejected: invoice already used' }),
+                    { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+            }
+        }
+
         // Update payment record
-        const isSuccess = state === 'COMPLETE' || state === 'COMPLETED' || state === 'SUCCESSFUL';
+        const isSuccess = claimsSuccess;
         const { error: paymentUpdateError } = await supabaseClient
             .from('payments')
             .update({

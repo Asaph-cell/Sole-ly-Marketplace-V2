@@ -8,7 +8,6 @@ import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, TrendingUp, Sparkles, MessageSquareHeart } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { SEO } from "@/components/SEO";
 

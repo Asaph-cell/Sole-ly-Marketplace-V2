@@ -4,7 +4,7 @@ import { ProductDetailSkeleton } from "@/components/skeletons";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Shield, ArrowLeft, Bell, BellOff, X, ChevronLeft, ChevronRight, Share2, Copy, BarChart2, Flag } from "lucide-react";
+import { Shield, ArrowLeft, Bell, BellOff, X, ChevronRight, Share2, Copy, BarChart2, Flag } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/lib/toast";

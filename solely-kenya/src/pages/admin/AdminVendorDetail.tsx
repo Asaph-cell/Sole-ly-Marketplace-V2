@@ -7,7 +7,6 @@ import { StatusPill, ActionButton, EmptyState, MiniAreaChart } from "@/component
 import { useAdminAction } from "@/hooks/useAdminAction";
 import { Star, Scale, ClipboardList, Package, History, ArrowRight, ShieldCheck } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
-import { cn } from "@/lib/utils";
 
 interface VendorProfile {
   id: string;

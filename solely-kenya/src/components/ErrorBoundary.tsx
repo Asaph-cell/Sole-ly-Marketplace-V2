@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from "react";
+import { Component, ErrorInfo, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { CloudOff, RefreshCw } from "lucide-react";
 import { friendlyError } from "@/lib/friendlyError";
