@@ -19,6 +19,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/lib/toast";
+import { uploadEvidence } from "@/lib/disputeEvidence";
 import { Star, CheckCircle, AlertTriangle, Upload } from "lucide-react";
 
 interface OrderItem {
@@ -205,23 +206,15 @@ export const OrderConfirmationModal = ({
             // 0. Upload Evidence
             const uploadedUrls: string[] = [];
             if (evidenceFiles.length > 0) {
+                // Stored as private object paths; shown via signed URLs.
                 for (const file of evidenceFiles) {
-                    const fileName = `buyer/${orderId}/${Date.now()}-${file.name}`;
-                    const { data: uploadData, error: uploadError } = await supabase.storage
-                        .from("dispute-evidence")
-                        .upload(fileName, file);
-
-                    if (uploadError) {
+                    try {
+                        uploadedUrls.push(await uploadEvidence("buyer", orderId, file));
+                    } catch (uploadError: any) {
                         console.warn("Upload error:", uploadError);
-                        // Convert specific errors to helpful messages
-                        if (uploadError.message === "The resource was not found") {
+                        if (uploadError?.message === "The resource was not found") {
                             throw new Error("Storage bucket 'dispute-evidence' not found. Please contact support.");
                         }
-                    } else if (uploadData) {
-                        const { data: urlData } = supabase.storage
-                            .from("dispute-evidence")
-                            .getPublicUrl(uploadData.path);
-                        uploadedUrls.push(urlData.publicUrl);
                     }
                 }
             }

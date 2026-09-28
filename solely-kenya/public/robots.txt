@@ -4,6 +4,7 @@ Disallow: /vendor/dashboard
 Disallow: /vendor/products
 Disallow: /vendor/orders
 Disallow: /vendor/settings
+Disallow: /vendor/setup
 Disallow: /vendor/disputes
 Disallow: /vendor/ratings
 Disallow: /vendor/payment-links
@@ -27,6 +28,7 @@ Disallow: /vendor/dashboard
 Disallow: /vendor/products
 Disallow: /vendor/orders
 Disallow: /vendor/settings
+Disallow: /vendor/setup
 Disallow: /vendor/disputes
 Disallow: /vendor/ratings
 Disallow: /vendor/payment-links
@@ -56,6 +58,7 @@ Disallow: /vendor/dashboard
 Disallow: /vendor/products
 Disallow: /vendor/orders
 Disallow: /vendor/settings
+Disallow: /vendor/setup
 Disallow: /vendor/disputes
 Disallow: /vendor/ratings
 Disallow: /vendor/payment-links

@@ -1,46 +1,31 @@
-import { useEffect, useState } from "react";
 import { ListSkeleton } from "@/components/skeletons";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Card } from "@/components/ui/card";
-import { ConversationList } from "@/components/messaging/ConversationList";
-import { MessageThread } from "@/components/messaging/MessageThread";
+import { ChatInbox } from "@/components/messaging/ChatInbox";
 
+// Guests can chat too (with a device guest id), so no sign-in redirect here.
 const Messages = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const { loading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  useEffect(() => {
-    // Guests are allowed to use in-app messaging with a local guestId
-  }, [user, loading, navigate]);
+  // ?conversation=<id> lets other pages deep-link straight into a chat.
+  const selected = searchParams.get("conversation");
+  const select = (id: string | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (id) next.set("conversation", id);
+    else next.delete("conversation");
+    setSearchParams(next, { replace: true });
+  };
 
   if (loading) {
     return <div className="container mx-auto p-4 sm:p-6"><ListSkeleton rows={7} /></div>;
   }
 
   return (
-    <div className="min-h-screen">
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">My Messages</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[calc(100vh-250px)]">
-          <Card className="md:col-span-1 overflow-y-auto">
-            <ConversationList
-              onSelectConversation={setSelectedConversationId}
-              selectedConversationId={selectedConversationId}
-              isVendor={false}
-            />
-          </Card>
-          <Card className="md:col-span-2 flex flex-col">
-            {selectedConversationId ? (
-              <MessageThread conversationId={selectedConversationId} />
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                Select a conversation to view messages
-              </div>
-            )}
-          </Card>
-        </div>
+    <div data-layout="designed" className="bg-sunken">
+      <main className="container mx-auto px-3 py-4 sm:px-6 sm:py-8">
+        <h1 className="font-display text-3xl mb-4 sm:mb-6">Messages</h1>
+        <ChatInbox selectedId={selected} onSelect={select} isVendor={false} className="h-[calc(100dvh-190px)] sm:h-[calc(100dvh-240px)]" />
       </main>
     </div>
   );

@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/lib/toast";
+import { uploadEvidence } from "@/lib/disputeEvidence";
 import { Loader2, Upload, Package, Truck, CheckCircle, AlertCircle } from "lucide-react";
 
 export function ManualTrackingUpdate({ orderId, onUpdate }: { orderId: string, onUpdate?: () => void }) {
@@ -25,21 +26,8 @@ export function ManualTrackingUpdate({ orderId, onUpdate }: { orderId: string, o
       let proof_image_url = null;
 
       if (file) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${orderId}-${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('dispute-evidence')
-          .upload(filePath, file);
-
-        if (uploadError) throw uploadError;
-
-        const { data } = supabase.storage
-          .from('dispute-evidence')
-          .getPublicUrl(filePath);
-          
-        proof_image_url = data.publicUrl;
+        // Private object path; the timeline shows it via a signed URL.
+        proof_image_url = await uploadEvidence("tracking", orderId, file);
       }
 
       const { error } = await supabase

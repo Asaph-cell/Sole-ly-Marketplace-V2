@@ -4,7 +4,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, DollarSign, ToggleLeft, Clock, Save, ShieldCheck, UserPlus, X } from "lucide-react";
+import { AlertTriangle, DollarSign, ToggleLeft, Clock, Save, ShieldCheck, UserPlus, X, type LucideIcon } from "lucide-react";
 import { invokeAdminAction } from "@/lib/edgeError";
 
 type SettingsMap = Record<string, any>;
@@ -39,7 +39,7 @@ const DEFAULT_FEE_SCHEDULE: PayoutFeeTier[] = [
 // so this section gets a visually distinct, unmissable treatment instead
 // of just another red-bordered card in the list.
 function Section({ icon: Icon, title, description, children, tone = "default" }: {
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  icon: LucideIcon;
   title: string;
   description: string;
   children: React.ReactNode;

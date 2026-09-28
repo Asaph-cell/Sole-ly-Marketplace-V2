@@ -77,12 +77,12 @@ const GuestTracking = () => {
 
   return (
     <div className="min-h-screen bg-muted/20 pb-20">
-      <SEO title="Order Tracking" description="Track your Sole-ly secure order." />
+      <SEO title="Order Tracking" description="Track your Solely secure order." />
       
       {/* Header */}
       <div className="bg-primary text-primary-foreground text-center py-2.5 px-4 text-xs font-semibold flex items-center justify-center gap-2 sticky top-0 z-10 shadow-md">
         <Shield className="h-4 w-4" />
-        Protected by Sole-ly Escrow
+        Protected by Solely Escrow
       </div>
 
       <div className="max-w-md mx-auto pt-8 px-4 space-y-6">

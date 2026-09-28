@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { FormSkeleton } from "@/components/skeletons";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,7 @@ const VendorEditAccessory = () => {
     const { user, loading } = useAuth();
     const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
+    const originalPrice = useRef<number | null>(null); // price when the page loaded
     const [loadingProduct, setLoadingProduct] = useState(true);
 
     const [formData, setFormData] = useState({
@@ -61,6 +62,7 @@ const VendorEditAccessory = () => {
             if (error) throw error;
 
             if (data) {
+                originalPrice.current = data.price_ksh;
                 setFormData({
                     name: data.name,
                     description: data.description || "",
@@ -171,6 +173,11 @@ const VendorEditAccessory = () => {
                 .eq("vendor_id", user?.id);
 
             if (error) throw error;
+
+            // Price went down: let buyers with a price alert know (runs in the background).
+            if (originalPrice.current != null && parseInt(formData.price_ksh) < originalPrice.current) {
+                supabase.functions.invoke("notify-price-drop", { body: { productId: id } }).catch(() => {});
+            }
 
             toast.success("Accessory updated successfully!");
             navigate("/vendor/products");

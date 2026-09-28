@@ -33,6 +33,8 @@ import {
   ShieldCheck, CreditCard,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { MessageThread } from "@/components/messaging/MessageThread";
+import { acceptDeliveryFee } from "@/lib/deliveryAgreement";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 interface DeliveryAgreement {
@@ -70,21 +72,6 @@ interface NegMessage {
   is_read: boolean;
 }
 
-// Collecting it yourself has no delivery fee by definition, so the amount
-// field is meaningless here - asking for one made buyers type a nonsense
-// number before they could send anything.
-const PICKUP_METHOD = "Pick Up";
-
-const DELIVERY_METHODS = [
-  "Boda Boda",
-  "G4S",
-  "Personal Delivery",
-  "Matatu/Bus Parcel",
-  "Courier Service",
-  PICKUP_METHOD,
-  "Other",
-];
-
 const DeliveryNegotiation = () => {
   const [searchParams] = useSearchParams();
   const agreementId = searchParams.get("agreementId");
@@ -98,23 +85,10 @@ const DeliveryNegotiation = () => {
   const [vendorProfile, setVendorProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Chat input
-  const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
 
-  // Proposal input
-  const [showProposalForm, setShowProposalForm] = useState(false);
-  const [proposedFee, setProposedFee] = useState("");
-  const [proposedMethod, setProposedMethod] = useState("");
-
-  // Checkout state
+  // Checkout state  // Checkout state
   const [processingCheckout, setProcessingCheckout] = useState(false);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
 
   // Load agreement + messages + products
   useEffect(() => {
@@ -125,34 +99,6 @@ const DeliveryNegotiation = () => {
     }
     loadData();
   }, [agreementId, user, authLoading]);
-
-  // Realtime message subscription
-  useEffect(() => {
-    if (!agreement?.conversation_id) return;
-
-    const channel = supabase
-      .channel(`neg-messages-${agreement.conversation_id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${agreement.conversation_id}`,
-        },
-        (payload) => {
-          setMessages(prev => {
-            const newMsg = payload.new as NegMessage;
-            // Deduplicate: skip if message already exists
-            if (prev.some(m => m.id === newMsg.id)) return prev;
-            return [...prev, newMsg];
-          });
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [agreement?.conversation_id]);
 
   // Realtime agreement status subscription
   useEffect(() => {
@@ -177,11 +123,6 @@ const DeliveryNegotiation = () => {
     return () => { supabase.removeChannel(channel); };
   }, [agreementId]);
 
-  // Auto-scroll on new messages
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
   const loadData = async () => {
     setLoading(true);
     try {
@@ -193,16 +134,6 @@ const DeliveryNegotiation = () => {
         .single();
       if (agrErr) throw agrErr;
       setAgreement(agr);
-
-      // Fetch messages
-      if (agr.conversation_id) {
-        const { data: msgs } = await supabase
-          .from("messages")
-          .select("*")
-          .eq("conversation_id", agr.conversation_id)
-          .order("created_at", { ascending: true });
-        setMessages(msgs || []);
-      }
 
       // Fetch products
       if (agr.product_ids?.length > 0) {
@@ -228,129 +159,17 @@ const DeliveryNegotiation = () => {
     }
   };
 
-  // Send a regular text message
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || sending || !agreement?.conversation_id || !user) return;
-
-    setSending(true);
-    try {
-      const isVendor = user.id === agreement.vendor_id;
-
-      const { error } = await supabase.from("messages").insert({
-        conversation_id: agreement.conversation_id,
-        sender_id: user.id,
-        sender_role: isVendor ? "vendor" : "user",
-        message: newMessage.trim(),
-        message_type: "text",
-      });
-      if (error) throw error;
-
-      await supabase
-        .from("conversations")
-        .update({ updated_at: new Date().toISOString() })
-        .eq("id", agreement.conversation_id);
-
-      setNewMessage("");
-    } catch (err) {
-      console.error("Error sending message:", err);
-      toast.error("Failed to send message");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  // Send a delivery fee proposal
-  const handleSendProposal = async () => {
-    const isPickup = proposedMethod === PICKUP_METHOD;
-    // Pickup is always free - don't make the buyer invent a number.
-    const fee = isPickup ? 0 : parseFloat(proposedFee);
-    if (isNaN(fee) || fee < 0) {
-      toast.error("Please enter a valid delivery fee");
-      return;
-    }
-    if (!agreement?.conversation_id || !user) return;
-
-    setSending(true);
-    try {
-      const isVendor = user.id === agreement.vendor_id;
-
-      // Insert proposal message
-      await supabase.from("messages").insert({
-        conversation_id: agreement.conversation_id,
-        sender_id: user.id,
-        sender_role: isVendor ? "vendor" : "user",
-        message: isPickup
-          ? "Proposed pick up, no delivery fee"
-          : `Proposed delivery fee: KES ${fee.toLocaleString()}${proposedMethod ? ` via ${proposedMethod}` : ""}`,
-        message_type: "delivery_proposal",
-        metadata: {
-          delivery_fee: fee,
-          delivery_method: proposedMethod || null,
-        },
-      });
-
-      // Update agreement with latest proposal
-      await supabase
-        .from("delivery_agreements")
-        .update({
-          delivery_fee_ksh: fee,
-          delivery_method: proposedMethod || agreement.delivery_method,
-          proposed_by: user.id,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", agreement.id);
-
-      setProposedFee("");
-      setProposedMethod("");
-      setShowProposalForm(false);
-      toast.success("Proposal sent!");
-    } catch (err) {
-      console.error("Error sending proposal:", err);
-      toast.error("Failed to send proposal");
-    } finally {
-      setSending(false);
-    }
-  };
-
   // Accept a delivery proposal
   const handleAcceptProposal = async (fee: number, method: string | null) => {
     if (!agreement || !user) return;
-
     setSending(true);
     try {
-      // Update agreement to agreed
-      await supabase
-        .from("delivery_agreements")
-        .update({
-          status: "agreed",
-          delivery_fee_ksh: fee,
-          delivery_method: method || agreement.delivery_method,
-          agreed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", agreement.id);
-
-      const isVendor = user.id === agreement.vendor_id;
-
-      // Send acceptance message
-      await supabase.from("messages").insert({
-        conversation_id: agreement.conversation_id,
-        sender_id: user.id,
-        sender_role: isVendor ? "vendor" : "user",
-        message: `✅ Delivery fee agreed: KES ${fee.toLocaleString()}${method ? ` via ${method}` : ""}`,
-        message_type: "delivery_accepted",
-        metadata: { delivery_fee: fee, delivery_method: method },
-      });
-
-      if (isVendor) {
-        toast.success("🎉 Delivery fee agreed! The buyer has been notified to proceed to checkout.");
-      } else {
-        toast.success("🎉 Delivery fee agreed! You can now proceed to checkout.");
-      }
+      await acceptDeliveryFee(agreement, user.id, fee, method);
+      toast.success(user.id === agreement.vendor_id
+        ? "Delivery fee agreed. The buyer can check out now."
+        : "Delivery fee agreed. You can check out now.");
     } catch (err) {
-      console.error("Error accepting proposal:", err);
-      toast.error("Failed to accept proposal");
+      toast.error(err, { description: "The delivery fee wasn't agreed." });
     } finally {
       setSending(false);
     }
@@ -524,265 +343,18 @@ const DeliveryNegotiation = () => {
             )}
           </div>
 
-          {/* Right: Chat Thread */}
+          {/* Right: the shared chat thread, with the delivery fee pinned on top */}
           <div className="lg:col-span-2">
-            <Card className="flex flex-col h-[calc(100vh-220px)] min-h-[400px]">
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {messages.length === 0 ? (
-                  <div className="text-center text-muted-foreground py-8">
-                    <MessageCircle size={40} strokeWidth={1} className="mx-auto mb-3 opacity-30" />
-                    <p>No messages yet. Start the conversation!</p>
-                  </div>
-                ) : (
-                  messages.map(msg => (
-                    <MessageBubble
-                      key={msg.id}
-                      message={msg}
-                      currentUserId={user?.id || ""}
-                      onAccept={canAccept ? handleAcceptProposal : undefined}
-                      onCounter={canPropose ? (fee, method) => {
-                        setProposedFee(String(fee));
-                        setProposedMethod(method || "");
-                        setShowProposalForm(true);
-                      } : undefined}
-                      sending={sending}
-                    />
-                  ))
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Proposal Form (expandable) */}
-              {canPropose && showProposalForm && (
-                <div className="border-t bg-muted/30 p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold flex items-center gap-2">
-                      <Truck size={16} strokeWidth={1.5} className="text-primary" />
-                      Propose Delivery Fee
-                    </Label>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowProposalForm(false)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                  <div className="flex gap-2">
-                    {proposedMethod !== PICKUP_METHOD && (
-                      <div className="flex-1">
-                        <Input
-                          type="number"
-                          min="0"
-                          value={proposedFee}
-                          onChange={e => setProposedFee(e.target.value)}
-                          placeholder="Amount in KES"
-                          className="text-base"
-                        />
-                      </div>
-                    )}
-                    {proposedMethod === PICKUP_METHOD && (
-                      <div className="flex-1 flex items-center px-3 rounded-md border border-border bg-muted/50 text-sm text-muted-foreground">
-                        No delivery fee
-                      </div>
-                    )}
-                    <Select value={proposedMethod} onValueChange={setProposedMethod}>
-                      <SelectTrigger className="w-[160px]">
-                        <SelectValue placeholder="Method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DELIVERY_METHODS.map(m => (
-                          <SelectItem key={m} value={m}>{m}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    onClick={handleSendProposal}
-                    disabled={sending || (proposedMethod !== PICKUP_METHOD && !proposedFee)}
-                    className="w-full gap-2"
-                  >
-                    {sending ? (
-                      <Loader2 size={16} strokeWidth={1.5} className="animate-spin" />
-                    ) : (
-                      <Send size={16} strokeWidth={1.5} />
-                    )}
-                    Send Proposal
-                  </Button>
-                </div>
+            <div className="h-[calc(100dvh-220px)] min-h-[420px] overflow-hidden rounded-3xl border border-border bg-background shadow-card">
+              {agreement.conversation_id ? (
+                <MessageThread conversationId={agreement.conversation_id} />
+              ) : (
+                <div className="flex h-full items-center justify-center p-8 text-sm text-muted-foreground">This negotiation has no chat yet.</div>
               )}
-
-              {/* Chat Input */}
-              <div className="border-t p-3">
-                {canPropose && !showProposalForm && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mb-2 w-full gap-2 text-primary border-primary/30 hover:bg-primary/5"
-                    onClick={() => setShowProposalForm(true)}
-                  >
-                    <Truck size={16} strokeWidth={1.5} />
-                    Propose Delivery Fee
-                  </Button>
-                )}
-                <form onSubmit={handleSendMessage} className="flex gap-2">
-                  <Input
-                    value={newMessage}
-                    onChange={e => setNewMessage(e.target.value)}
-                    placeholder="Type a message..."
-                    disabled={sending}
-                    className="flex-1"
-                  />
-                  <Button type="submit" disabled={sending || !newMessage.trim()} size="icon">
-                    <Send size={16} strokeWidth={1.5} />
-                  </Button>
-                </form>
-              </div>
-            </Card>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
-
-// ── Message Bubble Component ──────────────────────────────────────────
-
-const MessageBubble = ({
-  message,
-  currentUserId,
-  onAccept,
-  onCounter,
-  sending,
-}: {
-  message: NegMessage;
-  currentUserId: string;
-  onAccept?: (fee: number, method: string | null) => void;
-  onCounter?: (fee: number, method: string | null) => void;
-  sending: boolean;
-}) => {
-  const isOwn = message.sender_id === currentUserId;
-
-  // System messages
-  if (message.message_type === "system") {
-    return (
-      <div className="flex justify-center">
-        <div className="bg-muted/60 rounded-lg px-4 py-2 max-w-[85%] text-center">
-          <p className="text-xs text-muted-foreground whitespace-pre-line">{message.message}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Delivery proposal card
-  if (message.message_type === "delivery_proposal") {
-    const fee = message.metadata?.delivery_fee || 0;
-    const method = message.metadata?.delivery_method;
-
-    return (
-      <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-        <Card className={`max-w-[80%] border-2 ${isOwn ? "border-primary/30 bg-primary/5" : "border-amber-300/50 bg-amber-50/50 dark:bg-amber-900/20"}`}>
-          <CardContent className="p-3 space-y-2">
-            <div className="flex items-center gap-2">
-              <Truck size={16} strokeWidth={1.5} className="text-primary" />
-              <span className="text-sm font-semibold">
-                {isOwn ? "Your Proposal" : "Delivery Proposal"}
-              </span>
-            </div>
-            <div className="bg-background/80 rounded-lg p-3">
-              <p className="text-lg font-bold">KES {fee.toLocaleString()}</p>
-              {method && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  via {method}
-                </p>
-              )}
-            </div>
-            {!isOwn && onAccept && (
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="flex-1 gap-1 bg-green-600 hover:bg-green-700"
-                  onClick={() => onAccept(fee, method)}
-                  disabled={sending}
-                >
-                  <Check size={14} strokeWidth={1.5} />
-                  Accept
-                </Button>
-                {onCounter && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 gap-1"
-                    onClick={() => onCounter(fee, method)}
-                  >
-                    <RefreshCw size={14} strokeWidth={1.5} />
-                    Counter
-                  </Button>
-                )}
-              </div>
-            )}
-            <span className="text-[10px] text-muted-foreground">
-              {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-            </span>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Delivery accepted card
-  if (message.message_type === "delivery_accepted") {
-    const fee = message.metadata?.delivery_fee || 0;
-    const method = message.metadata?.delivery_method;
-
-    return (
-      <div className="flex justify-center">
-        <Card className="max-w-[85%] border-2 border-green-300 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20">
-          <CardContent className="p-4 text-center space-y-1">
-            <p className="text-green-600 dark:text-green-400 font-bold text-lg">
-              ✅ Delivery Fee Agreed!
-            </p>
-            <p className="text-xl font-bold">KES {fee.toLocaleString()}</p>
-            {method && <p className="text-sm text-muted-foreground">via {method}</p>}
-            <p className="text-[10px] text-muted-foreground">
-              {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Delivery rejected card
-  if (message.message_type === "delivery_rejected") {
-    return (
-      <div className="flex justify-center">
-        <Card className="max-w-[85%] border-2 border-red-300 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20">
-          <CardContent className="p-3 text-center">
-            <p className="text-red-600 dark:text-red-400 font-medium text-sm">
-              ❌ {message.message}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-1">
-              {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Regular text message
-  return (
-    <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-      <Card className={`max-w-[75%] ${isOwn ? "bg-primary text-primary-foreground" : ""}`}>
-        <CardContent className="p-3">
-          <p className="text-sm break-words whitespace-pre-line">{message.message}</p>
-          <span className={`text-[10px] mt-1 block ${isOwn ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-            {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-          </span>
-        </CardContent>
-      </Card>
     </div>
   );
 };

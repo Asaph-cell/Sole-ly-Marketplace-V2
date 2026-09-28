@@ -7,6 +7,7 @@ import { StatusPill, ActionButton, EmptyState, MiniAreaChart } from "@/component
 import { useAdminAction } from "@/hooks/useAdminAction";
 import { Star, Scale, ClipboardList, Package, History, ArrowRight, ShieldCheck } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
+import { VerificationReview } from "@/components/admin/VerificationReview";
 
 interface VendorProfile {
   id: string;
@@ -16,6 +17,8 @@ interface VendorProfile {
   vendor_city: string | null;
   vendor_county: string | null;
   kyc_status: string | null;
+  kyc_documents: { document_path?: string; document_type?: string } | null;
+  kyc_submitted_at: string | null;
   created_at: string;
 }
 
@@ -76,7 +79,7 @@ const AdminVendorDetail = () => {
         { data: productsData },
         { data: activityData },
       ] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, store_name, store_logo_url, vendor_city, vendor_county, kyc_status, created_at").eq("id", vendorId).single(),
+        supabase.from("profiles").select("id, full_name, store_name, store_logo_url, vendor_city, vendor_county, kyc_status, kyc_documents, kyc_submitted_at, created_at").eq("id", vendorId).single(),
         supabase.from("vendor_rating_stats").select("avg_rating, rating_count").eq("vendor_id", vendorId).maybeSingle(),
         supabase.from("vendor_ratings").select("rating, created_at").eq("vendor_id", vendorId).order("created_at", { ascending: true }),
         supabase.from("disputes").select("id, order_id, reason, status, opened_at, customer:profiles!customer_id(full_name)").eq("vendor_id", vendorId).order("opened_at", { ascending: false }).limit(10),
@@ -85,7 +88,7 @@ const AdminVendorDetail = () => {
         supabase.from("admin_activity_log").select("id, action_type, target_type, created_at, admin:profiles!admin_id(full_name)").eq("vendor_id", vendorId).order("created_at", { ascending: false }).limit(10),
       ]);
 
-      setProfile(profileData);
+      setProfile(profileData as VendorProfile | null);
       setRatingStats(statsData);
       setRatingTrend((ratingsData || []).map(r => ({ date: format(new Date(r.created_at), "MMM d"), rating: r.rating })));
       setDisputes(disputesData as any || []);
@@ -155,6 +158,14 @@ const AdminVendorDetail = () => {
           </p>
         </div>
       </div>
+
+      <VerificationReview
+        vendorId={profile.id}
+        status={profile.kyc_status}
+        documents={profile.kyc_documents}
+        submittedAt={profile.kyc_submitted_at}
+        onReviewed={loadAll}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Rating trend */}

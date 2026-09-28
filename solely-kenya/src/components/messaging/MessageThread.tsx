@@ -1,338 +1,347 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, ImagePlus, Loader2, SendHorizontal, Store, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Send, Truck, Check, RefreshCw } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
-import { generateUUID } from "@/utils/uuid";
-
-interface Message {
-  id: string;
-  message: string;
-  sender_id: string;
-  sender_role: string;
-  message_type?: string;
-  metadata?: any;
-  created_at: string;
-  is_read: boolean;
-}
+import { toast } from "@/lib/toast";
+import { getChatUserId, markConversationRead, QUICK_REPLIES, uploadChatPhotos, MAX_CHAT_PHOTOS } from "@/lib/chat";
+import { compressImages } from "@/lib/compressImage";
+import { useIsOnline, useTyping } from "@/hooks/usePresence";
+import { ChatMessages, ChatMessage } from "@/components/messaging/ChatMessages";
+import { DeliveryFeeBar, Agreement } from "@/components/messaging/DeliveryFeeBar";
 
 interface MessageThreadProps {
   conversationId: string;
+  /** Shown on phones, where the thread replaces the conversation list. */
+  onBack?: () => void;
 }
 
-export const MessageThread = ({ conversationId }: MessageThreadProps) => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
+type Conversation = { id: string; buyer_id: string | null; vendor_id: string; delivery_agreement_id: string | null };
+type OtherUser = { id: string; name: string; storeLink?: string | null; isStore: boolean };
+
+export const MessageThread = ({ conversationId, onBack }: MessageThreadProps) => {
+  const [me, setMe] = useState<{ id: string; isGuest: boolean } | null>(null);
+  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [other, setOther] = useState<OtherUser | null>(null);
+  const [agreement, setAgreement] = useState<Agreement | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+  // Photos picked but not yet sent (previewed above the composer)
+  const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Resolve current user ID once, not per bubble
+  const online = useIsOnline(other?.id);
+  const { otherTyping, notify, stop } = useTyping(conversationId, me?.id ?? null);
+
+  useEffect(() => { void getChatUserId().then(setMe); }, []);
+
+  const markRead = useCallback(() => {
+    if (me && document.visibilityState === "visible") void markConversationRead(conversationId, me.id);
+  }, [conversationId, me]);
+
+  // Load conversation, other person, agreement, messages
   useEffect(() => {
-    const resolveUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.id) {
-        setCurrentUserId(user.id);
-      } else {
-        const existing = localStorage.getItem("guestId");
-        let normalized = existing || "";
-        if (normalized && normalized.startsWith('guest:')) {
-          normalized = normalized.replace(/^guest:/, '');
-          localStorage.setItem('guestId', normalized);
-        }
-        const id = normalized || generateUUID();
-        if (!existing) localStorage.setItem("guestId", id);
-        setCurrentUserId(id);
+    if (!me) return;
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      const { data: conv } = await supabase
+        .from("conversations").select("id, buyer_id, vendor_id, delivery_agreement_id").eq("id", conversationId).single();
+      if (cancelled || !conv) { setLoading(false); return; }
+      setConversation(conv);
+
+      const otherId = conv.vendor_id === me.id ? conv.buyer_id : conv.vendor_id;
+      const otherIsStore = otherId === conv.vendor_id;
+      if (otherId) {
+        const { data: p } = await supabase
+          .from("public_vendor_profiles").select("id, full_name, store_name, store_link").eq("id", otherId).maybeSingle();
+        if (!cancelled) setOther({
+          id: otherId,
+          name: (otherIsStore ? p?.store_name : null) || p?.full_name || p?.store_name || (otherIsStore ? "Seller" : "Buyer"),
+          storeLink: otherIsStore ? (p?.store_link || otherId) : null,
+          isStore: otherIsStore,
+        });
+      } else if (!cancelled) {
+        setOther({ id: "", name: "Guest buyer", isStore: false });
       }
-    };
-    resolveUser();
-  }, []);
 
+      if (conv.delivery_agreement_id) {
+        const { data: agr } = await supabase
+          .from("delivery_agreements")
+          .select("id, conversation_id, vendor_id, buyer_id, delivery_fee_ksh, delivery_method, status, proposed_by")
+          .eq("id", conv.delivery_agreement_id).maybeSingle();
+        if (!cancelled) setAgreement(agr as Agreement | null);
+      } else setAgreement(null);
+
+      const { data: msgs } = await supabase
+        .from("messages").select("*").eq("conversation_id", conversationId).order("created_at", { ascending: true });
+      if (!cancelled) {
+        setMessages((msgs || []) as ChatMessage[]);
+        setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [conversationId, me]);
+
+  // Opening the chat reads it; so does coming back to the tab.
   useEffect(() => {
-    loadMessages();
-    markMessagesAsRead();
+    if (loading) return;
+    markRead();
+    const onVisible = () => markRead();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [loading, markRead]);
 
+  // Realtime: new messages, read receipts, and agreement changes
+  useEffect(() => {
     const channel = supabase
-      .channel(`messages-${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`
-        },
-        (payload) => {
-          setMessages((current) => {
-            // Deduplicate: check if message already exists
-            const newMsg = payload.new as Message;
-            if (current.some(m => m.id === newMsg.id)) return current;
-            return [...current, newMsg];
-          });
-          markMessagesAsRead();
-        }
-      )
+      .channel(`thread-${conversationId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` }, (payload) => {
+        const m = payload.new as ChatMessage;
+        setMessages((cur) => (cur.some((x) => x.id === m.id) ? cur : [...cur, m]));
+        if (me && m.sender_id !== me.id) markRead();
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` }, (payload) => {
+        const m = payload.new as ChatMessage;
+        setMessages((cur) => cur.map((x) => (x.id === m.id ? { ...x, ...m } : x)));
+      })
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [conversationId]);
+    return () => { supabase.removeChannel(channel); };
+  }, [conversationId, me, markRead]);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (!conversation?.delivery_agreement_id) return;
+    const channel = supabase
+      .channel(`thread-agreement-${conversation.delivery_agreement_id}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "delivery_agreements", filter: `id=eq.${conversation.delivery_agreement_id}` }, (payload) => {
+        setAgreement((a) => (a ? { ...a, ...(payload.new as Agreement) } : a));
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [conversation?.delivery_agreement_id]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // Keep the newest message in view
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages.length, otherTyping, loading]);
 
-  const loadMessages = async () => {
+  const send = async (text: string) => {
+    const body = text.trim();
+    if (!body || sending || !me || !conversation) return;
+    setSending(true);
+    stop();
     try {
       const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      setMessages(data || []);
-    } catch (error) {
-      console.error('Error loading messages:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const markMessagesAsRead = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      let userId = user?.id as string | undefined;
-      if (!userId) {
-        const existing = localStorage.getItem("guestId");
-        let normalized = existing || "";
-        if (normalized && normalized.startsWith('guest:')) {
-          normalized = normalized.replace(/^guest:/, '');
-          localStorage.setItem('guestId', normalized);
-        }
-        userId = normalized || generateUUID();
-        if (!existing) localStorage.setItem("guestId", userId);
-      }
-
-      await supabase
-        .from('messages')
-        .update({ is_read: true })
-        .eq('conversation_id', conversationId)
-        .neq('sender_id', userId)
-        .eq('is_read', false);
-    } catch (error) {
-      console.error('Error marking messages as read:', error);
-    }
-  };
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || sending) return;
-
-    setSending(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      let senderId = user?.id as string | undefined;
-      let senderRole = 'user';
-      if (!senderId) {
-        const existing = localStorage.getItem("guestId");
-        let normalized = existing || "";
-        if (normalized && normalized.startsWith('guest:')) {
-          normalized = normalized.replace(/^guest:/, '');
-          localStorage.setItem('guestId', normalized);
-        }
-        senderId = normalized || generateUUID();
-        if (!existing) localStorage.setItem("guestId", senderId);
-        senderRole = 'guest';
-      }
-
-      const { data: conversation } = await supabase
-        .from('conversations')
-        .select('vendor_id, buyer_id')
-        .eq('id', conversationId)
-        .single();
-
-      if (!conversation) throw new Error('Conversation not found');
-
-      const isVendor = conversation.vendor_id === senderId;
-
-      const { error } = await supabase
-        .from('messages')
-        .insert([{
+        .from("messages")
+        .insert({
           conversation_id: conversationId,
-          sender_id: senderId,
-          sender_role: isVendor ? 'vendor' : senderRole,
-          message: newMessage.trim()
-        }]);
-
+          sender_id: me.id,
+          sender_role: conversation.vendor_id === me.id ? "vendor" : me.isGuest ? "guest" : "user",
+          message: body,
+          message_type: "text",
+        })
+        .select()
+        .single();
       if (error) throw error;
-
-      await supabase
-        .from('conversations')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', conversationId);
-
-      setNewMessage("");
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send message",
-        variant: "destructive"
-      });
+      if (data) setMessages((cur) => (cur.some((x) => x.id === data.id) ? cur : [...cur, data as ChatMessage]));
+      setDraft("");
+      inputRef.current?.focus();
+      await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", conversationId);
+    } catch (e) {
+      toast.error(e, { description: "Your message wasn't sent." });
     } finally {
       setSending(false);
     }
   };
 
-  if (loading) {
-    return <div className="p-8 text-center text-muted-foreground">Loading messages...</div>;
-  }
+  const pickPhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []).filter((f) => f.type.startsWith("image/"));
+    e.target.value = "";
+    if (!files.length) return;
+    const room = MAX_CHAT_PHOTOS - photos.length;
+    if (files.length > room) toast.error(`You can send up to ${MAX_CHAT_PHOTOS} photos at a time`);
+    try {
+      const small = await compressImages(files.slice(0, Math.max(room, 0)));
+      setPhotos((cur) => [...cur, ...small.map((file) => ({ file, preview: URL.createObjectURL(file) }))]);
+    } catch {
+      toast.error("Couldn't read those photos. Try again.");
+    }
+  };
+
+  const removePhoto = (i: number) => setPhotos((cur) => {
+    URL.revokeObjectURL(cur[i].preview);
+    return cur.filter((_, idx) => idx !== i);
+  });
+
+  const sendPhotos = async () => {
+    if (!photos.length || sending || !me || !conversation) return;
+    setSending(true);
+    stop();
+    try {
+      const paths = await uploadChatPhotos(conversationId, me.id, photos.map((p) => p.file));
+      const caption = draft.trim();
+      const { data, error } = await supabase
+        .from("messages")
+        .insert({
+          conversation_id: conversationId,
+          sender_id: me.id,
+          sender_role: conversation.vendor_id === me.id ? "vendor" : "user",
+          message: caption || (paths.length === 1 ? "Photo" : `${paths.length} photos`),
+          message_type: "image",
+          metadata: { images: paths },
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      if (data) setMessages((cur) => (cur.some((x) => x.id === data.id) ? cur : [...cur, data as ChatMessage]));
+      photos.forEach((p) => URL.revokeObjectURL(p.preview));
+      setPhotos([]);
+      setDraft("");
+      await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", conversationId);
+    } catch (e) {
+      toast.error(e, { description: "Your photos weren't sent." });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Grow the box with the text, up to about five lines
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 132)}px`;
+  }, [draft]);
+
+  const isVendor = !!me && conversation?.vendor_id === me.id;
+  const chips = isVendor ? QUICK_REPLIES.vendor : QUICK_REPLIES.buyer;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
-            No messages yet. Start the conversation!
+    <div className="flex h-full min-h-0 min-w-0 flex-col bg-sunken">
+      {/* Header */}
+      <div className="flex flex-nowrap items-center gap-3 border-b border-border bg-background px-3 py-2.5 sm:px-4">
+        {onBack && (
+          <button onClick={onBack} aria-label="Back to conversations" className="grid h-10 w-10 shrink-0 place-items-center rounded-full hover:bg-sunken md:hidden">
+            <ArrowLeft size={20} />
+          </button>
+        )}
+        <div className="relative shrink-0">
+          <div className="grid h-10 w-10 place-items-center rounded-full bg-foreground text-background font-display text-lg">
+            {(other?.name || "?").charAt(0).toUpperCase()}
+          </div>
+          {online && <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-background bg-emerald-500" aria-hidden="true" />}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold leading-tight">{other?.name || "Loading…"}</p>
+          <p className={`text-xs ${otherTyping ? "text-[hsl(40_62%_33%)] dark:text-primary" : online ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
+            {otherTyping ? "typing…" : online ? "Online" : "Offline"}
+          </p>
+        </div>
+        {other?.isStore && other.storeLink && (
+          <Link to={`/store/${other.storeLink}`} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-medium hover:bg-sunken">
+            <Store size={14} /> Store
+          </Link>
+        )}
+      </div>
+
+      {agreement && me && <DeliveryFeeBar agreement={agreement} userId={me.id} />}
+
+      {/* Messages */}
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-3 py-2 sm:px-5">
+        {loading ? (
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Loading messages…</div>
+        ) : messages.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+            <p className="font-display text-xl">Say hello</p>
+            <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+              Ask about sizes, photos or delivery. Your chat stays here with the order.
+            </p>
           </div>
         ) : (
-          messages.map((msg) => (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              currentUserId={currentUserId || ""}
-            />
-          ))
+          <ChatMessages messages={messages} currentUserId={me?.id || ""} otherTyping={otherTyping} />
         )}
-        <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSendMessage} className="p-4 border-t">
-        <div className="flex gap-2">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            disabled={sending}
-          />
-          <Button type="submit" disabled={sending || !newMessage.trim()}>
-            <Send size={16} strokeWidth={1.5}  />
-          </Button>
+      {/* Quick replies */}
+      {!draft && !photos.length && !loading && (
+        <div className="flex gap-2 overflow-x-auto px-3 pb-2 pt-1 scrollbar-hide sm:px-4" aria-label="Quick replies">
+          {chips.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => {
+                // Promising photos opens the picker right away (must be in the tap itself)
+                if (/photos/i.test(c) && isVendor && !me?.isGuest) fileRef.current?.click();
+                void send(c);
+              }}
+              disabled={sending}
+              className="shrink-0 rounded-full border border-border bg-background px-3 h-9 text-xs font-medium hover:border-foreground/40 active:scale-[0.97] transition"
+            >
+              {c}
+            </button>
+          ))}
         </div>
+      )}
+
+      {/* Composer */}
+      {photos.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto border-t border-border bg-background px-3 pt-2.5 sm:px-4" aria-label="Photos to send">
+          {photos.map((p, i) => (
+            <div key={p.preview} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-sunken">
+              <img src={p.preview} alt={`Photo ${i + 1} to send`} className="h-full w-full object-cover" />
+              <button type="button" onClick={() => removePhoto(i)} aria-label={`Remove photo ${i + 1}`}
+                className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white">
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <form
+        onSubmit={(e) => { e.preventDefault(); void (photos.length ? sendPhotos() : send(draft)); }}
+        className="flex flex-nowrap items-end gap-2 border-t border-border bg-background px-3 py-2.5 sm:px-4"
+      >
+        {/* Photos need an account (they go to private storage) */}
+        {!me?.isGuest && (
+          <>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={sending || photos.length >= MAX_CHAT_PHOTOS}
+              aria-label="Add photos"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-foreground/60 hover:bg-sunken hover:text-foreground disabled:opacity-40"
+            >
+              <ImagePlus size={21} />
+            </button>
+            <input ref={fileRef} type="file" accept="image/*" multiple className="sr-only" onChange={pickPhotos} />
+          </>
+        )}
+        <textarea
+          ref={inputRef}
+          value={draft}
+          rows={1}
+          onChange={(e) => { setDraft(e.target.value); notify(); }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void (photos.length ? sendPhotos() : send(draft)); }
+          }}
+          placeholder={photos.length ? "Add a caption (optional)" : "Message"}
+          aria-label="Message"
+          className="min-h-[44px] flex-1 resize-none rounded-3xl border border-border bg-sunken px-4 py-2.5 text-[15px] leading-snug outline-none focus:border-foreground/30"
+        />
+        <button
+          type="submit"
+          disabled={sending || (!draft.trim() && !photos.length)}
+          aria-label="Send"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-[transform,opacity] active:scale-95 disabled:opacity-40"
+        >
+          {sending && photos.length ? <Loader2 size={19} className="animate-spin" /> : <SendHorizontal size={19} />}
+        </button>
       </form>
-    </div>
-  );
-};
-
-// Issue #4: currentUserId is now passed as a prop, no more per-bubble auth calls
-// Issue #7: supports structured message types (delivery_proposal, delivery_accepted, etc.)
-const MessageBubble = ({ message, currentUserId }: { message: Message; currentUserId: string }) => {
-  const isOwn = message.sender_id === currentUserId;
-
-  // System messages, centered info style
-  if (message.message_type === "system") {
-    return (
-      <div className="flex justify-center">
-        <div className="bg-muted/60 rounded-lg px-4 py-2 max-w-[85%] text-center">
-          <p className="text-xs text-muted-foreground whitespace-pre-line">{message.message}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Delivery proposal card
-  if (message.message_type === "delivery_proposal") {
-    const fee = message.metadata?.delivery_fee || 0;
-    const method = message.metadata?.delivery_method;
-
-    return (
-      <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-        <Card className={`max-w-[80%] border-2 ${isOwn ? "border-primary/30 bg-primary/5" : "border-amber-300/50 bg-amber-50/50 dark:bg-amber-900/20"}`}>
-          <CardContent className="p-3 space-y-2">
-            <div className="flex items-center gap-2">
-              <Truck size={16} strokeWidth={1.5} className="text-primary" />
-              <span className="text-sm font-semibold">
-                {isOwn ? "Your Proposal" : "Delivery Proposal"}
-              </span>
-            </div>
-            <div className="bg-background/80 rounded-lg p-3">
-              <p className="text-lg font-bold">KES {fee.toLocaleString()}</p>
-              {method && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  via {method}
-                </p>
-              )}
-            </div>
-            <span className="text-[10px] text-muted-foreground">
-              {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-            </span>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Delivery accepted card
-  if (message.message_type === "delivery_accepted") {
-    const fee = message.metadata?.delivery_fee || 0;
-    const method = message.metadata?.delivery_method;
-
-    return (
-      <div className="flex justify-center">
-        <Card className="max-w-[85%] border-2 border-green-300 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20">
-          <CardContent className="p-4 text-center space-y-1">
-            <p className="text-green-600 dark:text-green-400 font-bold text-lg">
-              ✅ Delivery Fee Agreed!
-            </p>
-            <p className="text-xl font-bold">KES {fee.toLocaleString()}</p>
-            {method && <p className="text-sm text-muted-foreground">via {method}</p>}
-            <p className="text-[10px] text-muted-foreground">
-              {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Delivery rejected card
-  if (message.message_type === "delivery_rejected") {
-    return (
-      <div className="flex justify-center">
-        <Card className="max-w-[85%] border-2 border-red-300 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20">
-          <CardContent className="p-3 text-center">
-            <p className="text-red-600 dark:text-red-400 font-medium text-sm">
-              ❌ {message.message}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-1">
-              {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Regular text message
-  return (
-    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-      <Card className={`max-w-[70%] p-3 ${isOwn ? 'bg-primary text-primary-foreground' : ''}`}>
-        <p className="text-sm break-words whitespace-pre-line">{message.message}</p>
-        <span className={`text-xs mt-1 block ${isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-          {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-        </span>
-      </Card>
     </div>
   );
 };

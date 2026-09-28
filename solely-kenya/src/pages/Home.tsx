@@ -5,17 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import ProductCard from "@/components/ProductCard";
 import {
-  Shield, Lock, CheckCircle, Truck, ArrowRight,
+  Shield, Lock, Check, ArrowRight, ArrowUpRight,
   ShoppingBag, Tag, LayoutDashboard,
-  Package, Star, Zap, Users, Sparkles, ChevronRight, Link2, MessageCircle
+  Package, KeyRound, Wallet, ChevronRight, Link2, MessageCircle
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { PendingOrdersBanner } from "@/components/vendor/PendingOrdersBanner";
 import { SEO } from "@/components/SEO";
-import { Badge } from "@/components/ui/badge";
 import { rankByInterests, trackCategoryClick, hasInterestData, buildInterestProfile } from "@/lib/userInterests";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
 
 // ─── Category pill nav (Mercari-style outlined pills, no emoji) ───────────────
 const PILL_CATEGORIES = [
@@ -33,55 +34,50 @@ const PILL_CATEGORIES = [
 ];
 
 // ─── Category showcase cards ─────────────────────────────────────────────────
-// Images from Unsplash matching the category feel
+// `span` drives the desktop zig-zag (7/5, 5/7, 7/5 on a 12-col grid) so the
+// row doesn't read as a uniform template grid.
 const SHOWCASE_CARDS = [
   {
     key: "electronics",
     name: "Electronics",
-    subtitle: "Phones & accessories",
-    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=700&h=460&fit=crop&crop=center",
-    gradient: "from-[#F3F4F6] to-[#E5E7EB] dark:from-gray-900 dark:to-gray-800",
-    fadeFrom: "from-[#F3F4F6] dark:from-gray-900",
+    subtitle: "Phones and accessories",
+    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=900&h=520&fit=crop&crop=center",
+    span: "lg:col-span-7",
   },
   {
     key: "womens-fashion",
     name: "Fashion",
-    subtitle: "Premium clothing",
-    image: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=700&h=460&fit=crop&crop=center",
-    gradient: "from-[#F9FAFB] to-[#F3F4F6] dark:from-gray-800 dark:to-gray-700",
-    fadeFrom: "from-[#F9FAFB] dark:from-gray-800",
+    subtitle: "Clothing from local boutiques",
+    image: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=700&h=520&fit=crop&crop=center",
+    span: "lg:col-span-5",
   },
   {
     key: "shoes",
     name: "Shoes",
-    subtitle: "Leather & Sneakers",
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=700&h=460&fit=crop&crop=center",
-    gradient: "from-[#FDFBF7] to-[#F3F0E6] dark:from-stone-900 dark:to-stone-800",
-    fadeFrom: "from-[#FDFBF7] dark:from-stone-900",
+    subtitle: "Leather and sneakers",
+    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=700&h=520&fit=crop&crop=center",
+    span: "lg:col-span-5",
   },
   {
     key: "bags",
     name: "Accessories",
-    subtitle: "Luxury & everyday",
-    image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=700&h=460&fit=crop&crop=center",
-    gradient: "from-[#FAF5F0] to-[#EBE3D5] dark:from-[#3D332D] dark:to-[#2D2520]",
-    fadeFrom: "from-[#FAF5F0] dark:from-[#3D332D]",
+    subtitle: "Bags, watches, jewellery",
+    image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=900&h=520&fit=crop&crop=center",
+    span: "lg:col-span-7",
   },
   {
     key: "beauty",
     name: "Beauty",
-    subtitle: "Beauty style",
-    image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=700&h=460&fit=crop&crop=center",
-    gradient: "from-[#F8F3ED] to-[#E9DFD1] dark:from-[#4A3F35] dark:to-[#3A3028]",
-    fadeFrom: "from-[#F8F3ED] dark:from-[#4A3F35]",
+    subtitle: "Skincare and makeup",
+    image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=900&h=520&fit=crop&crop=center",
+    span: "lg:col-span-7",
   },
   {
     key: "sports",
-    name: "Sports & Fitness",
-    subtitle: "Athletic, fitness",
-    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=700&h=460&fit=crop&crop=center",
-    gradient: "from-[#F8FAFC] to-[#E2E8F0] dark:from-slate-900 dark:to-slate-800",
-    fadeFrom: "from-[#F8FAFC] dark:from-slate-900",
+    name: "Sports and fitness",
+    subtitle: "Gym, running, outdoor",
+    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=700&h=520&fit=crop&crop=center",
+    span: "lg:col-span-5",
   },
 ];
 
@@ -89,32 +85,42 @@ const SHOWCASE_CARDS = [
 const HOW_IT_WORKS = [
   {
     step: "01",
-    icon: ShoppingBag,
-    title: "Pay With Confidence",
-    desc: "Checkout and pay securely via M-Pesa. Your money goes into a protected holding account, not directly to the seller.",
+    icon: Wallet,
+    short: "Pay",
+    title: "Pay with M-Pesa",
+    desc: "You check out with M-Pesa. The money goes into a Solely holding account, not to the seller.",
     image: "/images/how-it-works/1-order.jpg"
   },
   {
     step: "02",
     icon: Lock,
-    title: "Your Money is Safe",
-    desc: "While the vendor ships your order, your payment is held securely. Neither side can be scammed.",
+    short: "Held",
+    title: "We hold the money",
+    desc: "The seller ships knowing you've paid. You know they can't take the money and disappear.",
     image: "/images/how-it-works/2-locked.png"
   },
   {
     step: "03",
     icon: Package,
-    title: "Inspect Your Item",
-    desc: "Receive your package and inspect it to ensure it matches exactly what you ordered.",
+    short: "Inspect",
+    title: "Inspect your item",
+    desc: "Open the package and check it against the listing. Something wrong? Open a dispute and our team reviews it within 24 hours.",
     image: "/images/how-it-works/3-inspect.jpg"
   },
   {
     step: "04",
-    icon: Zap,
-    title: "Confirm & Release",
-    desc: "Happy with it? Share the release code and the seller gets paid instantly. Not happy? Get a full refund.",
+    icon: KeyRound,
+    short: "Release",
+    title: "Confirm and release",
+    desc: "Enter your delivery PIN and share the release code. The seller gets paid on the spot. If the order never arrives, you get a full refund.",
     image: "/images/how-it-works/4-release.png"
   },
+];
+
+const SELLER_STEPS = [
+  { icon: Link2,         title: "Create a protected link",   desc: "List the item once and get a checkout link to share." },
+  { icon: MessageCircle, title: "Drop it in the chat",        desc: "WhatsApp, Instagram, TikTok, wherever your customers are." },
+  { icon: Shield,        title: "Get paid on delivery",       desc: "The buyer confirms and you're paid. If they go quiet after confirming, the money releases to you after 6 hours." },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -137,7 +143,7 @@ const Home = () => {
         .not("store_name", "is", null)
         .order("created_at", { ascending: false })
         .limit(15);
-      
+
       if (!error && data) {
         // Filter out empty strings if any exist despite the null check
         const names = data.map(v => v.store_name).filter(name => name && name.trim().length > 0);
@@ -217,19 +223,43 @@ const Home = () => {
         .join(" & ")}`
     : null;
 
+  const scrollToShop = () =>
+    document.getElementById("shop-section")?.scrollIntoView({ behavior: "smooth" });
+
+  const renderProductCard = (product: any) => (
+    <ProductCard
+      key={product.id}
+      id={product.id}
+      name={product.name}
+      price={product.price}
+      image={product.image}
+      brand={product.brand}
+      description={product.description}
+      averageRating={product.averageRating}
+      reviewCount={product.reviewCount}
+      createdAt={product.created_at}
+      condition={product.condition || "new"}
+      videoUrl={product.video_url}
+      freeDelivery={product.free_delivery}
+      category={product.category}
+      vendorId={product.vendor_id}
+    />
+  );
+
+  const sectionLink = (to: string, label = "See all") => (
+    <Link
+      to={to}
+      className="group inline-flex items-center gap-1 py-3 -my-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+    >
+      {label}
+      <ArrowRight size={14} strokeWidth={1.75} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+    </Link>
+  );
+
   return (
     // The route wrapper already fades the page in; a second 1.2s full-page
     // brightness filter here only delayed first paint and cost GPU time.
-    <div className="min-h-screen overflow-x-clip bg-background">
-      <style>{`
-        @keyframes sweep {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(200%); }
-        }
-        .animate-sweep {
-          animation: sweep 2.5s infinite;
-        }
-      `}</style>
+    <div data-layout="designed" className="min-h-screen overflow-x-clip bg-background">
       <SEO
         title="Kenya's Safest Way to Buy and Sell Online"
         description="Your money is protected until you get what you ordered. Sellers get paid when buyers are happy. Send secure M-Pesa payment links on WhatsApp, Instagram & TikTok. No scams. No fees to start."
@@ -249,208 +279,208 @@ const Home = () => {
 
       <PendingOrdersBanner />
 
-      {/* ─── NEW HERO BANNER ─── */}
-      <section className="relative overflow-hidden flex flex-col justify-center h-[100svh] sticky top-0 z-0">
-        {/* Background image (Maintained) */}
+      {/* Sticky scope: the hero only stays pinned while the first sections
+          slide over it. Pinning it for the whole page left a full-screen
+          photo behind everything, which flashed through on fast scrolls
+          before the content above it finished painting. */}
+      <div className="relative">
+      {/* ─── HERO ─── */}
+      <section className="bg-grain relative overflow-hidden flex flex-col justify-center min-h-[100svh] sticky top-0 z-0 text-white">
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+          initial={{ opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.1, ease: EASE_OUT }}
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1600&h=700&fit=crop&crop=center')",
+              "url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1800&h=1100&fit=crop&crop=center')",
           }}
         />
-        {/* Heavy dark overlay for experimental vibe */}
-        <div className="absolute inset-0 bg-slate-950/80 mix-blend-multiply" />
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] sm:w-[800px] sm:h-[800px] bg-primary/20 blur-[100px] sm:blur-[120px] rounded-full pointer-events-none z-0" 
-        />
+        {/* Warm off-black scrim, heavier on the text side */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[hsl(30_14%_5%/0.94)] via-[hsl(30_14%_5%/0.78)] to-[hsl(30_14%_5%/0.45)]" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[hsl(30_14%_5%/0.8)] to-transparent" />
 
-        {/* Left Floating Card - Escrow */}
-        <motion.div
-          initial={{ opacity: 0, x: -40, y: 10 }}
-          animate={{ opacity: 1, x: 0, y: [0, -10, 0] }}
-          transition={{ opacity: { duration: 0.6, delay: 0.5 }, y: { repeat: Infinity, duration: 4, ease: "easeInOut" } }}
-          className="hidden 2xl:flex absolute top-[30%] left-[5%] 2xl:left-[10%] bg-white/10 backdrop-blur-md border border-white/20 p-3.5 pr-6 rounded-2xl shadow-2xl items-center gap-4 z-20 pointer-events-none"
-        >
-          <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
-            <Lock className="text-amber-400 w-5 h-5" />
-          </div>
-          <div className="flex flex-col text-left">
-            <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">Buyer Protection</span>
-            <span className="text-sm text-white font-bold">Payment Protected 🔒</span>
-          </div>
-        </motion.div>
-
-        {/* Right Floating Card - Moneyback Guarantee */}
-        <motion.div
-          initial={{ opacity: 0, x: 40, y: -10 }}
-          animate={{ opacity: 1, x: 0, y: [0, 10, 0] }}
-          transition={{ opacity: { duration: 0.6, delay: 0.6 }, y: { repeat: Infinity, duration: 5, ease: "easeInOut" } }}
-          className="hidden 2xl:flex absolute bottom-[30%] right-[5%] 2xl:right-[10%] bg-white/10 backdrop-blur-md border border-white/20 p-3.5 pr-6 rounded-2xl shadow-2xl items-center gap-4 z-20 pointer-events-none"
-        >
-          <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-            <Shield className="text-emerald-400 w-5 h-5" />
-          </div>
-          <div className="flex flex-col text-left">
-            <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">100% Refund</span>
-            <span className="text-sm text-white font-bold">If not delivered 🛡️</span>
-          </div>
-        </motion.div>
-
-        <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 flex flex-col items-center text-center">
-          
-          {/* Trust Badge */}
-          <motion.div 
-            initial={{ opacity: 0, transform: "translateY(-8px)" }}
-            animate={{ opacity: 1, transform: "translateY(0px)" }}
-            transition={{ duration: 0.5, delay: 0.05, ease: [0.23, 1, 0.32, 1] }}
-            className="mb-8"
-          >
-            <Badge className="bg-primary/90 text-primary-foreground border-0 text-[10px] sm:text-xs font-bold uppercase tracking-widest px-3 py-1.5 shadow-lg">
-              <Shield size={14} className="mr-1.5 inline-block mb-[2px]" />
-              Trusted Checkout · 100% Safe
-            </Badge>
-          </motion.div>
-
-          {/* Headline */}
-          <motion.h1 
-            initial={{ opacity: 0, transform: "translateY(12px) scale(0.97)" }}
-            animate={{ opacity: 1, transform: "translateY(0px) scale(1)" }}
-            transition={{ duration: 0.6, delay: 0.1, ease: [0.23, 1, 0.32, 1] }}
-            className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 leading-[1.15] text-white"
-          >
-            Sell and Shop on Social Media<br className="hidden sm:block" /> with{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-amber-400 italic font-serif font-normal">
-              100% Safety.
-            </span>
-          </motion.h1>
-
-          {/* Subheadline */}
-          <motion.p 
-            initial={{ opacity: 0, transform: "translateY(12px)" }}
-            animate={{ opacity: 1, transform: "translateY(0px)" }}
-            transition={{ duration: 0.5, delay: 0.18, ease: [0.23, 1, 0.32, 1] }}
-            className="text-lg md:text-xl text-slate-200 max-w-2xl mb-8 leading-relaxed"
-          >
-            Zero upfront fees. No scams. Just secure M-Pesa payments that protect both the buyer and the seller.
-          </motion.p>
-
-          {/* Dual-Path CTAs */}
-          <motion.div 
-            initial={{ opacity: 0, transform: "translateY(12px)" }}
-            animate={{ opacity: 1, transform: "translateY(0px)" }}
-            transition={{ duration: 0.5, delay: 0.25, ease: [0.23, 1, 0.32, 1] }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto"
-          >
-            {/* Seller Path */}
-            <Link to={!isVendor ? "/vendor" : "/vendor/dashboard"} className="w-full sm:w-auto">
-              <Button size="lg" className="relative overflow-hidden w-full sm:w-auto rounded-full text-base h-14 px-8 font-bold shadow-[0_0_40px_-5px_rgba(var(--primary),0.8)] bg-primary text-primary-foreground hover:bg-primary/90 transition-transform hover:scale-105 group">
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-sweep" />
-                <Shield className="mr-2 w-5 h-5 relative z-10" /> 
-                <span className="relative z-10">{!isVendor ? "Start Selling Safely" : "Vendor Dashboard"}</span>
-              </Button>
-            </Link>
-
-            {/* Buyer Path */}
-            <button 
-              onClick={() => document.getElementById('shop-section')?.scrollIntoView({ behavior: 'smooth' })}
-              className="w-full sm:w-auto"
+        <div className="relative z-10 container mx-auto px-6 pt-16 pb-10 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 grid lg:grid-cols-12 gap-12 items-center">
+          <div className="lg:col-span-7">
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.05, ease: EASE_OUT }}
+              className="mb-7 flex items-center gap-3 text-sm font-medium text-white/70"
             >
-              <Button size="lg" variant="outline" className="w-full sm:w-auto rounded-full text-base h-14 px-8 font-bold bg-black/40 backdrop-blur-md border-slate-500 text-white hover:bg-white/10 hover:text-white hover:border-slate-400 transition-transform hover:scale-105">
-                <ShoppingBag className="mr-2 w-5 h-5" /> Shop Verified Sellers
+              <span className="h-px w-8 bg-primary" />
+              Buyer protection on every order
+            </motion.p>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.1, ease: EASE_OUT }}
+              className="font-display font-normal text-[2.75rem] leading-[0.98] sm:text-6xl lg:text-7xl xl:text-[5.25rem] tracking-[-0.01em] [text-wrap:balance]"
+            >
+              Sell and shop on social media,{" "}
+              <span className="font-serif italic font-normal tracking-[-0.01em] text-primary">
+                without the scams.
+              </span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: EASE_OUT }}
+              className="mt-7 max-w-[34rem] text-lg md:text-xl text-white/75 leading-relaxed [text-wrap:pretty]"
+            >
+              You pay with M-Pesa. We hold the money until your order arrives, then pay the seller when you confirm.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.28, ease: EASE_OUT }}
+              className="mt-10 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-7"
+            >
+              <Button
+                size="lg"
+                asChild
+                className="h-14 rounded-full px-8 text-base font-semibold bg-primary text-primary-foreground hover:bg-primary-hover shadow-[0_12px_32px_-10px_hsl(var(--primary)/0.7)] transition-[transform,background-color] duration-200 active:scale-[0.97]"
+              >
+                <Link to={!isVendor ? "/vendor" : "/vendor/dashboard"}>
+                  {!isVendor ? "Start selling free" : "Vendor dashboard"}
+                  <ArrowRight className="ml-2 w-4 h-4" strokeWidth={2} />
+                </Link>
               </Button>
-            </button>
+
+              <button
+                type="button"
+                onClick={scrollToShop}
+                className="group inline-flex items-center justify-center gap-2 h-14 sm:h-auto text-base font-medium text-white/85 hover:text-white transition-colors rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+              >
+                <span className="underline decoration-white/30 underline-offset-[6px] group-hover:decoration-white transition-colors">
+                  Shop local sellers
+                </span>
+                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" strokeWidth={1.75} />
+              </button>
+            </motion.div>
+          </div>
+
+          {/* Escrow receipt: shows the mechanism instead of claiming it */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4, ease: EASE_OUT }}
+            className="hidden lg:block lg:col-span-5 lg:justify-self-end w-full max-w-[380px]"
+            aria-hidden="true"
+          >
+            <div className="rounded-[1.75rem] bg-white/[0.07] backdrop-blur-xl p-6 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.12),0_30px_80px_-20px_hsl(30_20%_2%/0.8)] ring-1 ring-white/10">
+              <div className="flex items-center justify-between text-xs text-white/55">
+                <span>Order #SL-40917</span>
+                <span className="inline-flex items-center gap-1.5 text-primary">
+                  <Lock className="w-3 h-3" /> Held by Solely
+                </span>
+              </div>
+              <p className="mt-5 text-sm text-white/60">Leather ankle boots, size 41</p>
+              <p className="mt-1 font-display font-normal text-4xl tracking-tight tabular-nums">KSh 4,850</p>
+
+              <ol className="mt-6 space-y-3.5 text-sm">
+                {[
+                  { label: "Paid via M-Pesa", done: true },
+                  { label: "Dispatched by seller", done: true },
+                  { label: "Buyer confirms delivery", done: false },
+                ].map((s) => (
+                  <li key={s.label} className="flex items-center gap-3">
+                    <span
+                      className={`grid place-items-center w-5 h-5 rounded-md ${
+                        s.done ? "bg-primary text-primary-foreground" : "ring-1 ring-white/25"
+                      }`}
+                    >
+                      {s.done && <Check className="w-3 h-3" strokeWidth={3} />}
+                    </span>
+                    <span className={s.done ? "text-white/85" : "text-white/50"}>{s.label}</span>
+                  </li>
+                ))}
+              </ol>
+
+              <div className="mt-6 rounded-xl bg-white/[0.06] px-4 py-3 text-xs leading-relaxed text-white/60">
+                Solely pays the seller after the buyer confirms delivery. If it never arrives, the buyer gets it all back.
+              </div>
+            </div>
           </motion.div>
 
-
-
-          {/* Trust Guarantees */}
-          <motion.div 
+          <motion.ul
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex flex-wrap justify-center items-center gap-6 mt-12 text-sm text-slate-300 font-medium"
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="lg:col-span-12 mt-4 lg:mt-10 grid sm:grid-cols-3 gap-y-3 sm:gap-x-8 border-t border-white/10 pt-6 text-sm text-white/65"
           >
-            <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> Your money is protected until delivery</span>
-            <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> Full refund if order doesn't arrive</span>
-            <span className="flex items-center gap-2"><CheckCircle size={16} className="text-green-400"/> Works with M-Pesa · No apps needed</span>
-          </motion.div>
+            {[
+              "We hold your money until delivery",
+              "Full refund if your order never arrives",
+              "M-Pesa checkout, no app to install",
+            ].map((t) => (
+              <li key={t} className="flex items-center gap-2.5">
+                <Check size={15} strokeWidth={2.25} className="text-primary shrink-0" />
+                {t}
+              </li>
+            ))}
+          </motion.ul>
         </div>
       </section>
 
-      {/* Content wrapper for sections that scroll over the sticky hero */}
-      <div className="relative z-10 bg-background shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
-      {/* ─── TRUSTED BY BANNER ─── */}
-      <section className="border-b border-border/40 bg-slate-100 dark:bg-black/60 overflow-hidden py-5 sm:py-6 relative z-10">
-        <div className="flex flex-col items-center">
-          <p className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">
-            Trusted by top sellers across Kenya
-          </p>
-          <div className="w-full flex flex-nowrap overflow-hidden relative">
-            {/* Left gradient overlay */}
-            <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-slate-100 dark:from-[rgba(0,0,0,0.6)] to-transparent z-10 pointer-events-none" />
-            {/* Right gradient overlay */}
-            <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-slate-100 dark:from-[rgba(0,0,0,0.6)] to-transparent z-10 pointer-events-none" />
-            <div className="animate-[scroll_30s_linear_infinite] flex flex-nowrap min-w-max items-center shrink-0">
-              {(marqueeVendors.length > 0 ? marqueeVendors : [
-                "Sneakerhead KE", "The Thrift Lab", "Urban Kicks NBO", "TechHub Kenya", 
-                "Glamour Boutique", "Nairobi Vintage", "Hypebeast Africa", "Gadget Galaxy", 
-                "Retro Wear KE"
-              ]).map((name, i) => (
-                <div key={i} className="flex items-center shrink-0 mx-6 sm:mx-10 text-slate-700 dark:text-slate-300 font-extrabold tracking-tight text-sm sm:text-base opacity-70 hover:opacity-100 transition-opacity">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary/40 mr-3 hidden sm:block" />
-                  {name}
-                </div>
-              ))}
-            </div>
-            {/* Duplicate for seamless looping */}
-            <div className="animate-[scroll_30s_linear_infinite] flex flex-nowrap min-w-max items-center shrink-0" aria-hidden="true">
-              {(marqueeVendors.length > 0 ? marqueeVendors : [
-                "Sneakerhead KE", "The Thrift Lab", "Urban Kicks NBO", "TechHub Kenya", 
-                "Glamour Boutique", "Nairobi Vintage", "Hypebeast Africa", "Gadget Galaxy", 
-                "Retro Wear KE"
-              ]).map((name, i) => (
-                <div key={i} className="flex items-center shrink-0 mx-6 sm:mx-10 text-slate-700 dark:text-slate-300 font-extrabold tracking-tight text-sm sm:text-base opacity-70 hover:opacity-100 transition-opacity">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary/40 mr-3 hidden sm:block" />
-                  {name}
+      {/* Sections that slide over the pinned hero */}
+      <div className="relative z-10 bg-background">
+
+      {/* ─── SELLER MARQUEE (only real, registered vendors) ─── */}
+      {marqueeVendors.length > 0 && (
+        <section className="border-b border-border/60 overflow-hidden py-6 sm:py-7">
+          <div className="container mx-auto px-6 flex flex-col md:flex-row md:items-center gap-4 md:gap-10">
+            <p className="shrink-0 text-sm text-muted-foreground">
+              Sellers already using<br className="hidden md:block" /> Solely checkout
+            </p>
+            <div className="relative flex flex-nowrap overflow-hidden min-w-0 flex-1 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+              {[0, 1].map((copy) => (
+                <div
+                  key={copy}
+                  aria-hidden={copy === 1 ? "true" : undefined}
+                  className="animate-[scroll_40s_linear_infinite] motion-reduce:animate-none flex flex-nowrap min-w-max items-center shrink-0"
+                >
+                  {marqueeVendors.map((name, i) => (
+                    <span
+                      key={i}
+                      className="shrink-0 mx-7 sm:mx-9 font-display font-normal tracking-tight text-base sm:text-lg text-foreground/75"
+                    >
+                      {name}
+                    </span>
+                  ))}
                 </div>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ─── HOW IT WORKS ─── */}
-      <section className="py-20 bg-slate-50 dark:bg-slate-900/50">
+      <section className="py-14 sm:py-16 lg:py-20 bg-sunken">
         <div className="container mx-auto px-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
+          <div
+            className="grid lg:grid-cols-12 gap-4 lg:gap-12 items-end mb-8 lg:mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">How We Protect Every Sale</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Every payment link is backed by our buyer protection protocol. Here's how it works for both sides.
+            <h2 className="lg:col-span-7 font-display font-normal text-4xl md:text-5xl tracking-[-0.01em] leading-[1.02] [text-wrap:balance]">
+              How your money stays safe
+            </h2>
+            <p className="lg:col-span-5 text-muted-foreground text-lg leading-relaxed max-w-md [text-wrap:pretty]">
+              You pay, we hold it, and the seller gets paid once the item is in your hands. If something goes wrong, our team steps in within 24 hours.
             </p>
-          </motion.div>
+          </div>
 
           {/* ── Mobile View: Swipeable Carousel ── */}
           <div className="lg:hidden flex flex-col items-center w-full overflow-hidden">
             <AnimatePresence mode="wait">
-              <motion.div 
+              <motion.div
                 key={activeStep}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.25, ease: EASE_OUT }}
                 drag="x"
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.2}
@@ -461,199 +491,172 @@ const Home = () => {
                     setActiveStep((prev) => Math.max(prev - 1, 0));
                   }
                 }}
-                className="w-full bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-border/50 flex flex-col cursor-grab active:cursor-grabbing"
+                className="w-full bg-card rounded-[2rem] p-6 shadow-card flex flex-col cursor-grab active:cursor-grabbing"
               >
-                <h3 className="text-2xl font-bold mb-3 shrink-0">{HOW_IT_WORKS[activeStep].title}</h3>
+                <p className="text-xs font-medium text-muted-foreground tabular-nums mb-2">
+                  Step {HOW_IT_WORKS[activeStep].step} of 04
+                </p>
+                <h3 className="font-display font-normal text-2xl tracking-tight mb-3 shrink-0">{HOW_IT_WORKS[activeStep].title}</h3>
                 <div className="flex-grow mb-6">
                   <p className="text-muted-foreground text-[15px] leading-relaxed">
                     {HOW_IT_WORKS[activeStep].desc}
                   </p>
                 </div>
                 <div className="relative w-full h-[220px] rounded-2xl overflow-hidden shrink-0 mt-auto">
-                  <img 
-                    src={HOW_IT_WORKS[activeStep].image} 
-                    alt={HOW_IT_WORKS[activeStep].title} 
+                  <img
+                    src={HOW_IT_WORKS[activeStep].image}
+                    alt={HOW_IT_WORKS[activeStep].title}
                     className="w-full h-full object-cover pointer-events-none"
                   />
-                  {/* Dark gradient at bottom to make number pop */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10 pointer-events-none" />
-                  <span className="absolute bottom-1 right-4 font-black text-7xl text-white tracking-tighter z-20 pointer-events-none">
-                    .{HOW_IT_WORKS[activeStep].step}
-                  </span>
                 </div>
               </motion.div>
             </AnimatePresence>
-            {/* Pagination Dots */}
-            <div className="flex gap-2 mt-8">
-              {HOW_IT_WORKS.map((_, idx) => (
-                <button 
+            {/* Pagination */}
+            <div className="flex mt-6">
+              {HOW_IT_WORKS.map((s, idx) => (
+                <button
                   key={idx}
+                  type="button"
+                  aria-label={`Show step ${idx + 1}: ${s.title}`}
+                  aria-current={activeStep === idx ? "step" : undefined}
                   onClick={() => setActiveStep(idx)}
-                  className={`w-2.5 h-2.5 rounded-full transition duration-300 ${activeStep === idx ? 'bg-slate-800 dark:bg-slate-200 w-6' : 'bg-slate-300 dark:bg-slate-700'}`}
-                />
+                  className="group grid place-items-center h-11 min-w-11"
+                >
+                  <span className={`block h-2.5 rounded-full transition-[width,background-color] duration-300 ${activeStep === idx ? "bg-foreground w-7" : "bg-foreground/20 w-2.5 group-hover:bg-foreground/40"}`} />
+                </button>
               ))}
             </div>
           </div>
 
           {/* ── Desktop View: Interactive Accordion ── */}
-          <div className="hidden lg:flex flex-row gap-4 w-full h-[400px]">
+          <div className="hidden lg:flex flex-row gap-3 w-full h-[420px]">
             {HOW_IT_WORKS.map((step, idx) => {
               const Icon = step.icon;
               const isActive = activeStep === idx;
               return (
-                <motion.div 
+                <div
                   key={step.step}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5, delay: idx * 0.15 }}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isActive}
+                  aria-label={step.title}
                   onMouseEnter={() => setActiveStep(idx)}
-                  className={`group relative overflow-hidden rounded-[2rem] flex flex-col justify-between p-6 transition duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer ${
-                    isActive 
-                      ? 'flex-[2.5] bg-white dark:bg-slate-900 shadow-xl border border-border/50' 
-                      : 'flex-[1] bg-slate-200 dark:bg-slate-800/70 hover:bg-slate-300 dark:hover:bg-slate-700 border border-transparent'
+                  onFocus={() => setActiveStep(idx)}
+                  className={`group relative overflow-hidden rounded-[2rem] flex flex-col justify-between p-7 transition-[flex-grow,background-color,box-shadow] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                    isActive
+                      ? "flex-[2.5] bg-card shadow-card"
+                      : "flex-[1] bg-background/55 hover:bg-background/80"
                   }`}
                 >
                   <div className="flex flex-col h-full z-20">
                     <div className="flex items-center justify-between shrink-0">
-                      <h3 className={`font-bold transition duration-300 ${isActive ? 'text-2xl' : 'text-lg whitespace-nowrap'}`}>
-                        {isActive ? step.title : step.title.split(' ')[0]}
+                      <h3 className={`font-display font-bold tracking-tight transition-[font-size] duration-300 ${isActive ? "text-2xl" : "text-lg whitespace-nowrap"}`}>
+                        {isActive ? step.title : step.short}
                       </h3>
                       {!isActive && (
-                        <div className="flex w-8 h-8 rounded-full bg-background/50 items-center justify-center shrink-0 shadow-sm">
-                          <Icon size={16} className="text-primary" />
-                        </div>
+                        <Icon size={18} strokeWidth={1.75} className="text-foreground/50 shrink-0" />
                       )}
                     </div>
-                    
-                    <div className={`transition-all duration-500 overflow-hidden ${isActive ? 'max-h-40 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'}`}>
-                      <p className="text-muted-foreground text-base leading-relaxed max-w-[280px]">{step.desc}</p>
+
+                    <div className={`transition-all duration-500 overflow-hidden ${isActive ? "max-h-40 opacity-100 mt-2" : "max-h-0 opacity-0 mt-0"}`}>
+                      <p className="text-muted-foreground text-base leading-relaxed max-w-[320px]">{step.desc}</p>
                     </div>
 
                     <div className="mt-auto">
-                      {/* Active Image */}
-                      <div className={`relative w-full rounded-2xl overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] origin-bottom ${isActive ? 'h-[200px] opacity-100 scale-100' : 'h-0 opacity-0 scale-90'}`}>
+                      <div className={`relative w-full rounded-2xl overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] origin-bottom ${isActive ? "h-[200px] opacity-100 scale-100" : "h-0 opacity-0 scale-95"}`}>
                         <img src={step.image} alt={step.title} className="w-full h-[200px] object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10"></div>
-                        <span className="absolute bottom-1 right-4 font-black text-7xl text-white tracking-tighter z-20">
-                          .{step.step}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent z-10" />
+                        <span className="absolute bottom-2 right-5 font-display font-normal text-6xl text-white tracking-[-0.01em] tabular-nums z-20">
+                          {step.step}
                         </span>
                       </div>
-                      
-                      {/* Inactive Big Number */}
-                      <div className={`transition duration-500 ${isActive ? 'h-0 opacity-0 overflow-hidden' : 'opacity-100 block'}`}>
-                        <span className="font-black text-5xl tracking-tighter text-slate-300 dark:text-slate-600">
-                          .{step.step}
+
+                      <div className={`transition duration-500 ${isActive ? "h-0 opacity-0 overflow-hidden" : "opacity-100 block"}`}>
+                        <span className="font-display font-normal text-5xl tracking-[-0.01em] tabular-nums text-foreground/15">
+                          {step.step}
                         </span>
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* Removed anchor to place it lower */}
+      </div>
+      </div>
 
-      {/* ─── SELL ON SOCIALS BANNER ─── */}
-      <section className="py-20 bg-gradient-to-br from-primary/30 via-primary/10 to-primary/5 border-y border-primary/30 relative overflow-hidden">
-          {/* Abstract background pattern (Fun & Random Memphis SVG) */}
-          <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.06] pointer-events-none" 
-               style={{ 
-                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23000' stroke-width='2'%3E%3Cpath d='M20,40 Q30,20 40,40 T60,40' /%3E%3Ccircle cx='150' cy='50' r='10' /%3E%3Cpath d='M40,140 L60,160 M60,140 L40,160' /%3E%3Cpolygon points='140,160 150,140 160,160' /%3E%3Ccircle cx='90' cy='90' r='3' fill='%23000' stroke='none' /%3E%3Ccircle cx='100' cy='110' r='2' fill='%23000' stroke='none' /%3E%3Ccircle cx='110' cy='90' r='4' fill='%23000' stroke='none' /%3E%3C/g%3E%3C/svg%3E")`
-               }} 
-          />
-          {/* Large Abstract Orbs */}
-          <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 w-96 h-96 bg-background/40 rounded-full blur-[80px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 translate-y-12 -translate-x-12 w-64 h-64 bg-primary/20 rounded-full blur-[60px] pointer-events-none" />
-
-          <div className="container mx-auto px-6 relative z-10">
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-              <div className="max-w-xl text-center lg:text-left">
-                <Badge variant="outline" className="mb-6 bg-background/50 border-primary/30 text-primary py-1.5 px-4 text-xs font-semibold uppercase tracking-wider shadow-sm">
-                  📱 For Instagram & WhatsApp Sellers
-                </Badge>
-                <h2 className="text-4xl sm:text-5xl font-extrabold mb-6 tracking-tight leading-[1.15] text-foreground">
-                  Sell on your platforms. <br className="hidden sm:block" />
-                  <span className="text-primary">Build trust through ours.</span>
-                </h2>
-                <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                  Stop losing customers who are afraid to pay upfront. Send them a secure Solely <strong className="text-foreground">Payment Link</strong> in their DMs. Your cash is secured, their delivery is tracked, and everyone is protected.
-                </p>
-                <Button size="lg" className="rounded-full px-8 h-14 font-bold text-base shadow-[0_8px_30px_-4px_rgba(255,215,0,0.4)] hover:scale-105 transition" asChild>
-                  <Link to="/vendor">Start Selling Now <ArrowRight className="ml-2" size={18} strokeWidth={2.5} /></Link>
-                </Button>
-              </div>
-              
-              {/* Visual Graphic */}
-              <div className="hidden lg:flex gap-4 items-center pr-4 lg:pr-8">
-                <div className="flex flex-col gap-5 relative">
-                  {/* Decorative connecting line */}
-                  <div className="absolute left-9 top-10 bottom-10 w-[2px] bg-gradient-to-b from-blue-400 via-green-400 to-primary/60 -z-10" />
-
-                  <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[-4deg] hover:rotate-0 hover:scale-[1.03] transition duration-300 w-72">
-                     <div className="flex items-center gap-4 mb-2">
-                       <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shadow-inner"><Link2 size={18} strokeWidth={2.5} /></div>
-                       <p className="font-bold text-base text-foreground">1. Create a Trusted Link</p>
-                     </div>
-                     <p className="text-sm text-muted-foreground pl-14">List your item and generate a secure checkout link.</p>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[3deg] hover:rotate-0 hover:scale-[1.03] transition duration-300 w-72 translate-x-8">
-                     <div className="flex items-center gap-4 mb-2">
-                       <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-inner"><MessageCircle size={18} strokeWidth={2.5} /></div>
-                       <p className="font-bold text-base text-foreground">2. Drop it Anywhere</p>
-                     </div>
-                     <p className="text-sm text-muted-foreground pl-14">WhatsApp, Instagram, TikTok, wherever your customers are.</p>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-white/95 to-white/70 dark:from-slate-900/95 dark:to-slate-900/70 backdrop-blur-2xl p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white dark:border-white/20 rounded-2xl rotate-[-2deg] hover:rotate-0 hover:scale-[1.03] transition duration-300 w-72">
-                     <div className="flex items-center gap-4 mb-2">
-                       <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary shadow-inner"><Shield size={18} strokeWidth={2.5} /></div>
-                       <p className="font-bold text-base text-foreground">3. Get Paid When They're Happy</p>
-                     </div>
-                     <p className="text-sm text-muted-foreground pl-14">Buyer confirms delivery. You get paid. Simple.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-      {/* ─── VENDOR TICKER ─── */}
-      {!isVendor && (
-        <Link to="/vendor" className="block bg-secondary text-secondary-foreground hover:opacity-90 transition-opacity">
-          <div className="overflow-hidden whitespace-nowrap py-1.5">
-            <div className="inline-block animate-[scroll_30s_linear_infinite]">
-              {[
-                "🔗 Send payment links: sell on WhatsApp, IG & TikTok with buyer protection",
-                "🛡️ Buyers trust Sole.ly checkout. Convert more followers into customers",
-                "💸 6% commission only when you sell, zero setup, zero monthly fees",
-                "🤝 Build trust instantly. Your buyers' money is protected until delivery",
-                "📱 Not another shop. We're the safe checkout your online business needs",
-              ].map((text, i) => (
-                <span key={i} className="inline-block px-10 text-xs sm:text-sm font-medium">
-                  {text}
+      {/* ─── SELL ON SOCIALS ─── */}
+      <section className="py-14 sm:py-16 lg:py-20 border-y border-primary/25 bg-cream relative overflow-hidden">
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="grid lg:grid-cols-12 items-center gap-10 lg:gap-10">
+            <div className="lg:col-span-6">
+              <p className="mb-6 flex items-center gap-3 text-sm font-medium text-foreground/70">
+                <span className="h-px w-8 bg-primary" />
+                For WhatsApp, Instagram and TikTok sellers
+              </p>
+              <h2 className="font-display font-normal text-4xl sm:text-5xl lg:text-[3.5rem] tracking-[-0.01em] leading-[1.02] text-foreground [text-wrap:balance]">
+                Sell on your platforms.{" "}
+                <span className="font-serif italic font-normal tracking-normal text-[hsl(40_62%_33%)] dark:text-primary">
+                  Borrow our trust.
                 </span>
-              ))}
+              </h2>
+              <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-[34rem] [text-wrap:pretty]">
+                Buyers ghost at "send to Till" because they can't see who's on the other end. Send a Solely{" "}
+                <strong className="font-semibold text-foreground">payment link</strong> instead. They pay into protection,
+                you ship, and the money lands with you when they confirm.
+              </p>
+              <Button
+                size="lg"
+                asChild
+                className="mt-9 rounded-full px-8 h-14 font-semibold text-base shadow-[0_12px_30px_-10px_hsl(var(--primary)/0.6)] hover:bg-primary-hover transition-[transform,background-color] duration-200 active:scale-[0.97]"
+              >
+                <Link to="/vendor">Start selling free <ArrowRight className="ml-2" size={17} strokeWidth={2} /></Link>
+              </Button>
+              <p className="mt-4 text-sm text-muted-foreground">
+                6% of the product price, only when you sell. The delivery fee is all yours.
+              </p>
             </div>
+
+            <ol className="lg:col-span-6 lg:pl-10 relative flex flex-col gap-3 max-w-md lg:max-w-none">
+              <span className="absolute left-[2.35rem] lg:left-[4.85rem] top-10 bottom-10 w-px bg-foreground/15" aria-hidden="true" />
+              {SELLER_STEPS.map((s, i) => {
+                const Icon = s.icon;
+                return (
+                  <li
+                    key={s.title}
+                    className={`relative flex flex-nowrap items-start gap-4 rounded-2xl bg-card p-4 sm:p-5 shadow-[0_1px_0_hsl(var(--border)),0_18px_40px_-24px_hsl(40_40%_25%/0.35)] ${i === 1 ? "lg:ml-10" : ""}`}
+                  >
+                    <span className="grid place-items-center w-10 h-10 rounded-xl bg-foreground text-background shrink-0">
+                      <Icon size={17} strokeWidth={2} />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-foreground">{s.title}</p>
+                      <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
           </div>
-        </Link>
-      )}
+        </div>
+      </section>
 
       {/* Anchor for scrolling to shop */}
       <div id="shop-section" className="scroll-mt-20" />
 
       {/* ─── PILL CATEGORY NAV ─── */}
-      <div className="bg-background border-b border-border relative z-20 shadow-sm">
-        <div className="px-3 sm:container sm:mx-auto sm:px-4">
-          <div className="flex flex-nowrap gap-2 overflow-x-auto scrollbar-hide py-2.5">
+      <div className="bg-background border-b border-border relative z-20">
+        <div className="px-3 sm:container sm:mx-auto sm:px-6">
+          <div className="flex flex-nowrap gap-2 overflow-x-auto scrollbar-hide py-3">
             {PILL_CATEGORIES.map((cat) => (
               <button
                 key={cat.key}
                 id={`cat-pill-${cat.key}`}
+                type="button"
+                aria-pressed={activeTab === cat.key}
                 onClick={() => {
                   setActiveTab(cat.key);
                   trackCategoryClick(cat.key);
@@ -661,7 +664,7 @@ const Home = () => {
                     navigate(`/shop?category=${cat.key}`);
                   }
                 }}
-                className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition duration-150
+                className={`shrink-0 h-11 sm:h-9 px-4 rounded-full text-sm font-medium border transition-colors duration-150 active:scale-[0.97]
                   ${activeTab === cat.key
                     ? "bg-foreground text-background border-foreground"
                     : "bg-background text-foreground border-border hover:border-foreground/40"
@@ -674,59 +677,48 @@ const Home = () => {
         </div>
       </div>
 
-      {/* ─── CATEGORY SHOWCASE CARDS ─── */}
-      <section className="py-6 sm:py-10">
-        <div className="mb-6 flex items-baseline justify-between px-4 sm:px-6 lg:px-8 container mx-auto">
-          <h2 className="text-xl sm:text-2xl font-bold">Shop by Category</h2>
-          <Link to="/shop" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-            See all <ArrowRight size={14} strokeWidth={1.5}  />
-          </Link>
+      {/* ─── CATEGORY SHOWCASE ─── */}
+      <section className="pt-10 pb-6 sm:pt-12 sm:pb-8">
+        <div className="mb-7 flex items-end justify-between container mx-auto px-4 sm:px-6">
+          <h2 className="font-display font-normal text-2xl sm:text-3xl tracking-[-0.01em]">Shop by category</h2>
+          {sectionLink("/shop")}
         </div>
 
-        {/* ── Unified Responsive Grid ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 container mx-auto px-4 sm:px-6 lg:px-8">
-          {SHOWCASE_CARDS.map((card, i) => {
-            const isLastOdd = i === SHOWCASE_CARDS.length - 1 && SHOWCASE_CARDS.length % 2 !== 0;
-            return (
-              <motion.div
-                key={card.key}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.07 }}
-                className={isLastOdd ? "col-span-2 sm:col-span-1" : ""}
+        <div className="grid grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-4 container mx-auto px-4 sm:px-6">
+          {SHOWCASE_CARDS.map((card, i) => (
+            <div
+              key={card.key}
+              className={card.span}
+            >
+              <Link
+                to={`/shop?category=${card.key}`}
+                onClick={() => trackCategoryClick(card.key)}
+                className="group relative flex overflow-hidden rounded-3xl bg-sunken h-[140px] sm:h-[190px] lg:h-[230px] transition-[transform,box-shadow] duration-300 ease-out hover:shadow-card active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <Link
-                  to={`/shop?category=${card.key}`}
-                  className={`group relative flex overflow-hidden rounded-3xl bg-gradient-to-r ${card.gradient} border border-border/40 hover:shadow-xl hover:-translate-y-1 transition duration-300 h-[130px] sm:h-[180px] lg:h-[200px]`}
-                >
-                  {/* Image on the right */}
-                  <div className="absolute right-0 top-0 bottom-0 w-[55%] sm:w-[60%] overflow-hidden">
-                    <img
-                      src={card.image}
-                      alt={card.name}
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
-                    />
-                    {/* Fade from left to right to blend image into the card background */}
-                    <div className={`absolute inset-0 bg-gradient-to-r ${card.fadeFrom} via-transparent to-transparent`} />
-                  </div>
+                <div className="absolute right-0 top-0 bottom-0 w-[58%] overflow-hidden">
+                  <img
+                    src={card.image}
+                    alt=""
+                    loading="lazy"
+                    className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-sunken from-[6%] via-sunken/50 via-[32%] to-transparent" />
+                </div>
 
-                  {/* Text on the left */}
-                  <div className="relative z-10 p-3 sm:p-5 lg:p-8 flex flex-col justify-center flex-1 max-w-[65%] sm:max-w-[60%]">
-                    <p className="text-[clamp(0.65rem,2.2vw,0.875rem)] font-medium text-muted-foreground mb-1 opacity-90 leading-tight">
-                      {card.subtitle}
-                    </p>
-                    <h3 className="text-[clamp(0.9rem,3.5vw,1.5rem)] font-extrabold text-foreground mb-2 sm:mb-4 tracking-tight leading-none break-words hyphens-auto">
-                      {card.name}
-                    </h3>
-                    <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-sm font-medium text-primary group-hover:gap-2 transition">
-                      See more <ChevronRight size={16} strokeWidth={1.5}  />
-                    </span>
-                  </div>
-                </Link>
-              </motion.div>
-            );
-          })}
+                <div className="relative z-10 p-4 sm:p-6 lg:p-8 flex flex-col justify-end flex-1 max-w-[62%]">
+                  <p className="text-[clamp(0.68rem,2.2vw,0.875rem)] text-muted-foreground mb-1 leading-tight">
+                    {card.subtitle}
+                  </p>
+                  <h3 className="font-display font-normal text-[clamp(1rem,3.6vw,1.75rem)] text-foreground tracking-[-0.01em] leading-none break-words hyphens-auto">
+                    {card.name}
+                  </h3>
+                  <span className="mt-3 sm:mt-4 inline-flex items-center gap-1 text-[11px] sm:text-sm font-medium text-foreground/80 group-hover:text-foreground transition-colors">
+                    Browse <ChevronRight size={15} strokeWidth={1.75} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </span>
+                </div>
+              </Link>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -737,45 +729,19 @@ const Home = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="py-8 sm:py-12 bg-primary/5 border-y border-primary/10"
+            transition={{ duration: 0.4, ease: EASE_OUT }}
+            className="py-8 sm:py-10 bg-cream border-y border-primary/25"
           >
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={20} strokeWidth={1.5} className=" text-primary" />
-                  <h2 className="text-xl sm:text-2xl font-bold">For You</h2>
-                </div>
-                <Link to="/shop" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-                  See All <ArrowRight size={16} strokeWidth={1.5}  />
-                </Link>
+            <div className="container mx-auto px-4 sm:px-6">
+              <div className="flex items-end justify-between mb-2">
+                <h2 className="font-display font-normal text-2xl sm:text-3xl tracking-[-0.01em]">Picked for you</h2>
+                {sectionLink("/shop")}
               </div>
               {reasonChip && (
-                <p className="text-xs text-muted-foreground mb-5 flex items-center gap-1.5">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
-                  {reasonChip}
-                </p>
+                <p className="text-sm text-muted-foreground mb-6">{reasonChip}</p>
               )}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
-                {forYouProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    name={product.name}
-                    price={product.price}
-                    image={product.image}
-                    brand={product.brand}
-                    description={product.description}
-                    averageRating={product.averageRating}
-                    reviewCount={product.reviewCount}
-                    createdAt={product.created_at}
-                    condition={product.condition || "new"}
-                    videoUrl={product.video_url}
-                    freeDelivery={product.free_delivery}
-                    category={product.category}
-                    vendorId={product.vendor_id}
-                  />
-                ))}
+                {forYouProducts.map(renderProductCard)}
               </div>
             </div>
           </motion.section>
@@ -783,13 +749,11 @@ const Home = () => {
       </AnimatePresence>
 
       {/* ─── TRENDING PRODUCT GRID ─── */}
-      <section className="py-8 sm:py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-baseline justify-between mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold">Trending Now</h2>
-            <Link to="/shop" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-              View All <ArrowRight size={16} strokeWidth={1.5}  />
-            </Link>
+      <section className="py-8 sm:py-10">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex items-end justify-between mb-7">
+            <h2 className="font-display font-normal text-2xl sm:text-3xl tracking-[-0.01em]">Trending now</h2>
+            {sectionLink("/shop")}
           </div>
 
           {productsLoading ? (
@@ -802,136 +766,90 @@ const Home = () => {
               className="bg-background rounded-2xl border border-border shadow-sm"
             />
           ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground">
-              <ShoppingBag strokeWidth={1.5} className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p className="font-medium">No items in this category yet.</p>
-              <p className="text-sm mt-1">Be the first to list here!</p>
-              <Button className="mt-4 rounded-full" asChild>
-                <Link to="/vendor">Start Selling</Link>
+            <div className="rounded-3xl bg-sunken py-16 px-6 text-center">
+              <ShoppingBag strokeWidth={1.5} className="h-10 w-10 mx-auto mb-4 text-foreground/25" />
+              <p className="font-display font-normal text-lg">Nothing listed here yet</p>
+              <p className="text-sm text-muted-foreground mt-1">Sellers in this category can be the first to list.</p>
+              <Button className="mt-6 rounded-full active:scale-[0.97]" asChild>
+                <Link to="/vendor">Start selling</Link>
               </Button>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
-              {filteredProducts.slice(0, 24).map((product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  name={product.name}
-                  price={product.price}
-                  image={product.image}
-                  brand={product.brand}
-                  description={product.description}
-                  averageRating={product.averageRating}
-                  reviewCount={product.reviewCount}
-                  createdAt={product.created_at}
-                  condition={product.condition || "new"}
-                  videoUrl={product.video_url}
-                  freeDelivery={product.free_delivery}
-                  category={product.category}
-                  vendorId={product.vendor_id}
-                />
-              ))}
+              {filteredProducts.slice(0, 24).map(renderProductCard)}
             </div>
           )}
         </div>
       </section>
 
-      {/* ─── HOW IT WORKS ─── */}
-      <section className="py-12 sm:py-16 bg-muted/30">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <Badge variant="secondary" className="mb-3 text-xs font-bold uppercase tracking-widest px-3 py-1">
-              For Everyday Shoppers
-            </Badge>
-            <h2 className="text-2xl sm:text-3xl font-extrabold">Shop Without the Fear</h2>
-            <p className="text-muted-foreground mt-2 max-w-lg mx-auto text-sm sm:text-base">
-              Shop from your favourite online creators without the fear of getting scammed. Your money is only released to the seller after your items arrive and you verify they are exactly what you ordered.
-            </p>
-          </div>
-
-          <div className="relative flex flex-col gap-0 max-w-2xl mx-auto mt-8 text-left">
-            <div className="absolute left-[17px] top-[18px] bottom-[18px] w-[2px] bg-border" />
-            {HOW_IT_WORKS.map((step, i) => {
-              const Icon = step.icon;
-              return (
-                <motion.div
-                  key={step.step}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="relative z-10 flex flex-nowrap items-start gap-4 pb-8 last:pb-0"
-                >
-                  <div className="w-9 h-9 flex-shrink-0 rounded-full border-2 border-primary bg-background flex items-center justify-center text-sm font-medium text-primary">
-                    {i + 1}
-                  </div>
-                  <div className="pt-1.5">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Icon size={14} strokeWidth={1.5} className="text-primary" />
-                      <p className="text-sm font-semibold text-foreground">{step.title}</p>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
       {/* ─── VENDOR CTA ─── */}
-      <section className="py-12 sm:py-16 bg-secondary text-secondary-foreground">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
-            <div className="flex-1 text-center lg:text-left">
-              <Badge className="mb-4 bg-primary/20 text-primary border-primary/30 text-xs font-bold uppercase tracking-widest">
-                For Vendors
-              </Badge>
-              <h2 className="text-2xl sm:text-4xl font-extrabold mb-4 leading-tight">
-                Stop Losing Sales<br />
-                <span className="text-primary">to Mistrust.</span>
-              </h2>
-              <p className="text-secondary-foreground/80 max-w-md mx-auto lg:mx-0 text-sm sm:text-base leading-relaxed">
-                Your followers want to buy, but they don't trust "send to Till." With Solely,
-                you generate a protected payment link that tells buyers: "Your money is safe until you get what you ordered."
-              </p>
-              <ul className="mt-6 space-y-3 text-sm">
-                {[
-                  "Zero listing fees, only 6% when you sell",
-                  "Sell shoes, fashion, electronics, beauty & more",
-                  "Your own store page with reviews & ratings",
-                  "Real-time order tracking & payout dashboard",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-2.5">
-                    <CheckCircle size={16} strokeWidth={1.5} className=" text-primary shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex flex-wrap gap-3 justify-center lg:justify-start mt-8">
-                {isVendor ? (
-                  <Button size="lg" className="rounded-full" asChild>
-                    <Link to="/vendor/dashboard">
-                      <LayoutDashboard size={16} strokeWidth={1.5} className=" mr-2" /> My Dashboard
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button size="lg" className="rounded-full" asChild>
-                    <Link to="/vendor">
-                      <Tag size={16} strokeWidth={1.5} className=" mr-2" /> Start Selling Free
-                    </Link>
-                  </Button>
-                )}
-                <Button size="lg" variant="outline" className="rounded-full bg-transparent border-secondary-foreground/30 text-secondary-foreground hover:bg-secondary-foreground/10 hover:text-secondary-foreground" asChild>
-                  <Link to="/about">Learn More</Link>
-                </Button>
+      <section className="pt-4 pb-2 sm:pt-6">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="bg-grain relative overflow-hidden rounded-[2rem] bg-secondary text-secondary-foreground px-6 py-12 sm:p-12 lg:p-16">
+            {/* Warm light from the top-right corner */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: "radial-gradient(60% 80% at 100% 0%, hsl(var(--primary) / 0.22), transparent 70%)" }}
+              aria-hidden="true"
+            />
+            <div className="relative grid lg:grid-cols-12 gap-10 lg:gap-16">
+              <div className="lg:col-span-6">
+                <p className="mb-6 flex items-center gap-3 text-sm font-medium text-secondary-foreground/65">
+                  <span className="h-px w-8 bg-primary" />
+                  For vendors
+                </p>
+                <h2 className="font-display font-normal text-4xl sm:text-5xl tracking-[-0.01em] leading-[1.02] [text-wrap:balance]">
+                  Stop losing sales{" "}
+                  <span className="font-serif italic font-normal tracking-normal text-primary">to mistrust.</span>
+                </h2>
+                <p className="mt-6 text-secondary-foreground/70 max-w-md text-base sm:text-lg leading-relaxed [text-wrap:pretty]">
+                  Your followers want to buy. They just don't trust "send to Till." With a Solely payment link, they
+                  pay knowing the money waits with us until the order arrives.
+                </p>
+              </div>
+
+              <div className="lg:col-span-6 lg:pt-14">
+                <ul className="divide-y divide-secondary-foreground/10 border-y border-secondary-foreground/10">
+                  {[
+                    "No listing or monthly fees. 6% of the product price when you sell",
+                    "You keep the full delivery fee",
+                    "Your own store page with reviews and ratings",
+                    "Live order tracking and a payout dashboard",
+                  ].map((item) => (
+                    <li key={item} className="flex items-center gap-3 py-3.5 text-sm sm:text-base text-secondary-foreground/85">
+                      <Check size={16} strokeWidth={2.25} className="text-primary shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex flex-wrap items-center gap-x-7 gap-y-4 mt-8">
+                  {isVendor ? (
+                    <Button size="lg" className="h-12 rounded-full px-7 font-semibold hover:bg-primary-hover active:scale-[0.97]" asChild>
+                      <Link to="/vendor/dashboard">
+                        <LayoutDashboard size={16} strokeWidth={1.75} className="mr-2" /> My dashboard
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button size="lg" className="h-12 rounded-full px-7 font-semibold hover:bg-primary-hover active:scale-[0.97]" asChild>
+                      <Link to="/vendor">
+                        <Tag size={16} strokeWidth={1.75} className="mr-2" /> Start selling free
+                      </Link>
+                    </Button>
+                  )}
+                  <Link
+                    to="/how-it-works"
+                    className="group inline-flex items-center gap-1 py-3 -my-3 text-sm font-medium text-secondary-foreground/75 hover:text-secondary-foreground transition-colors"
+                  >
+                    How Solely works
+                    <ArrowUpRight size={15} strokeWidth={1.75} className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      </div>
     </div>
   );
 };

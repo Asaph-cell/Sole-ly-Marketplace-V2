@@ -3,6 +3,58 @@
  * Injects dynamic OG meta tags for product pages so social media crawlers
  * (WhatsApp, Facebook, Twitter) show rich product previews.
  */
+const SITE_URL = 'https://solelymarketplace.com';
+
+// Server-side head tags for the main static pages. index.html only carries
+// the homepage's tags, so without this every URL looks like the homepage to
+// crawlers that don't run JavaScript (Bing, AI crawlers, link previews).
+// Keep these in step with each page's <SEO> props.
+const ROUTE_META = {
+    '/shop': ['Shop Local Sellers in Kenya | Solely Kenya', 'Shop shoes, fashion, electronics and more from sellers across Kenya. Pay with M-Pesa; we hold your money until your order arrives.'],
+    '/how-it-works': ['How Solely Protects Your Money | Solely Kenya', 'See how Solely holds your M-Pesa payment until your order arrives and pays the seller when you confirm. Full refund if it never comes.'],
+    '/vendor': ['Sell Online Safely in Kenya with Payment Links | Solely Kenya', "Stop losing sales because buyers don't trust you yet. Send them a secure Solely payment link, their money is protected until delivery. Zero fees to start. Works on WhatsApp, Instagram & TikTok."],
+    '/vendors': ['Sellers and Stores in Kenya | Solely Kenya', 'Browse sellers on Solely. Every order is buyer-protected: we hold your money until the order arrives.'],
+    '/blog': ['Safe Online Selling and Shopping Guides | Solely Kenya', "Tips on selling safely online, growing your social media shop, and protecting yourself as a buyer. Real stories from Kenya's online sellers."],
+    '/about': ['About Solely: Safe Online Payments in Kenya | Solely Kenya', 'Solely is the safest way to buy and sell online in Kenya. We protect every transaction; your money is safe until you get what you ordered.'],
+    '/contact': ['Contact Solely | Solely Kenya', 'Got a question or complaint? Contact Solely. We respond within 24 hours. Email us at contact@solelymarketplace.com.'],
+};
+
+// Every client-side route in src/App.tsx. A path that matches none of these
+// gets a real 404 status (the SPA still renders its Not Found page), instead
+// of a 200 that search engines index as a "soft 404".
+const ROUTE_PATTERNS = [
+    /^\/$/,
+    /^\/(shop|vendors|blog|about|contact|how-it-works|terms|privacy-policy|feedback|report-listing|auth|reset-password|cart|checkout|wishlist|orders|messages|delivery-details|delivery-negotiation)\/?$/,
+    /^\/(shop|store|product|blog|orders|buy|pay|track)\/[^/]+\/?$/,
+    /^\/vendor(\/(register|dashboard|setup|products|list-item|add-product|add-accessory|orders|ratings|disputes|payment-links|settings|messages))?\/?$/,
+    /^\/vendor\/(edit-product|edit-accessory)\/[^/]+\/?$/,
+    /^\/admin(\/(dashboard|disputes|vendors|products|reports|comms|mailing-list|activity|settings|growth|orders))?\/?$/,
+    /^\/admin\/vendors\/[^/]+\/?$/,
+];
+
+// Point canonical/og:url at this path and, for known pages, swap in the
+// page's own title and description.
+function rewriteHead(response, pathname) {
+    var canonical = SITE_URL + (pathname === '/' ? '/' : pathname.replace(/\/$/, ''));
+    var meta = ROUTE_META[pathname.replace(/\/$/, '')];
+    var rewriter = new HTMLRewriter()
+        .on('link[rel="canonical"]', { element: function (el) { el.setAttribute('href', canonical); } })
+        .on('meta[property="og:url"]', { element: function (el) { el.setAttribute('content', canonical); } });
+    if (meta) {
+        var title = meta[0];
+        var desc = meta[1];
+        rewriter = rewriter
+            .on('title', { element: function (el) { el.setInnerContent(title); } })
+            .on('meta[name="description"], meta[property="og:description"], meta[name="twitter:description"]', {
+                element: function (el) { el.setAttribute('content', desc); },
+            })
+            .on('meta[property="og:title"], meta[name="twitter:title"]', {
+                element: function (el) { el.setAttribute('content', title); },
+            });
+    }
+    return rewriter.transform(response);
+}
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
@@ -92,10 +144,10 @@ export default {
                 }
 
                 // Prepare OG data with buyer-intent keywords
-                var title = 'Buy ' + product.name + ' Online in Kenya | Sole-ly';
+                var title = product.name + ', KES ' + Number(product.price_ksh).toLocaleString('en-US') + ' in Kenya | Solely Kenya';
                 var desc = (
                     product.description ||
-                    'Buy ' + product.name + ' online in Kenya for KES ' + product.price_ksh + '. Escrow-protected payment. Verified seller.'
+                    'Buy ' + product.name + ' online in Kenya for KES ' + product.price_ksh + '. Your money is held until your order arrives.'
                 );
                 if (desc.length > 197) {
                     desc = desc.substring(0, 197) + '...';
@@ -113,7 +165,7 @@ export default {
                     + '<meta property="og:title" content="' + safeTitle + '">'
                     + '<meta property="og:description" content="' + safeDesc + '">'
                     + '<meta property="og:url" content="' + url.href + '">'
-                    + '<meta property="og:site_name" content="Sole-ly Kenya">'
+                    + '<meta property="og:site_name" content="Solely Kenya">'
                     + '<meta property="og:image" content="' + ogImageUrl + '">'
                     + '<meta property="og:image:width" content="1200">'
                     + '<meta property="og:image:height" content="630">'
@@ -135,6 +187,12 @@ export default {
                     })
                     .on('title', {
                         element: function (el) { el.setInnerContent(safeTitle); },
+                    })
+                    .on('link[rel="canonical"]', {
+                        element: function (el) { el.setAttribute('href', SITE_URL + '/product/' + productId); },
+                    })
+                    .on('meta[name="description"]', {
+                        element: function (el) { el.setAttribute('content', safeDesc); },
                     })
                     .on('head', {
                         element: function (el) { el.append(ogTags, { html: true }); },
@@ -203,7 +261,16 @@ export default {
                 });
             }
 
-            return spaResponse;
+            try {
+                var known = ROUTE_PATTERNS.some(function (re) { return re.test(url.pathname); });
+                var rewritten = rewriteHead(spaResponse, url.pathname);
+                if (known) return rewritten;
+                var notFoundHeaders = new Headers(rewritten.headers);
+                notFoundHeaders.set('X-Robots-Tag', 'noindex');
+                return new Response(rewritten.body, { status: 404, headers: notFoundHeaders });
+            } catch (e) {
+                return spaResponse;
+            }
         }
         return assetResponse;
     },

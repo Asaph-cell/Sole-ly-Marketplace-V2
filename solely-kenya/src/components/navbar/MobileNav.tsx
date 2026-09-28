@@ -71,17 +71,18 @@ export const MobileNav = ({
 
       <SheetContent
         side="right"
-        className="w-[280px] p-0 flex flex-col bg-sidebar border-l border-border"
+        className="w-[280px] p-0 flex flex-col bg-background border-l border-border [&>button]:text-secondary-foreground [&>button]:top-5"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {/* ── Header ── */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
-          <div className="flex flex-col">
-            <span className="font-extrabold text-base tracking-tight text-foreground">SOLE.<span className="text-primary">ly</span></span>
+        {/* Dark header strip so the drawer reads as its own layer over the page */}
+        <div className="bg-grain relative flex items-center gap-3 px-5 py-5 bg-secondary text-secondary-foreground">
+          <div className="relative flex flex-col">
+            <span className="font-display text-2xl leading-none">Sole<span className="text-primary">ly</span></span>
             {user ? (
-              <span className="text-[11px] text-muted-foreground truncate max-w-[180px]">{user.email}</span>
+              <span className="mt-1.5 text-xs text-secondary-foreground/65 truncate max-w-[180px]">{user.email}</span>
             ) : (
-              <span className="text-[11px] text-muted-foreground">Kenya's Trusted Marketplace</span>
+              <span className="mt-1.5 text-xs text-secondary-foreground/65">Kenya's trusted marketplace</span>
             )}
           </div>
         </div>
@@ -101,11 +102,11 @@ export const MobileNav = ({
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 border-b border-border text-sm font-medium transition-colors group",
                     isActive(link.path)
-                      ? "bg-muted text-primary"
-                      : "text-foreground hover:bg-muted"
+                      ? "bg-sunken text-foreground shadow-[inset_3px_0_0_hsl(var(--primary))]"
+                      : "text-foreground hover:bg-sunken"
                   )}
                 >
-                  <Icon size={20} strokeWidth={1.5} className={cn("shrink-0", isActive(link.path) ? "text-primary" : "text-muted-foreground")} />
+                  <Icon size={20} strokeWidth={1.5} className={cn("shrink-0", isActive(link.path) ? "text-[hsl(40_62%_33%)] dark:text-primary" : "text-muted-foreground")} />
                   {link.name}
                   <ChevronRight size={16} strokeWidth={1.5} className="ml-auto text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
                 </Link>
@@ -121,7 +122,7 @@ export const MobileNav = ({
             <Link
               to="/cart"
               onClick={close}
-              className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-sunken transition-colors"
             >
               <ShoppingCart size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
               Cart
@@ -140,7 +141,7 @@ export const MobileNav = ({
             <Link
               to="/wishlist"
               onClick={close}
-              className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-sunken transition-colors"
             >
               <Heart size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
               Wishlist
@@ -153,7 +154,7 @@ export const MobileNav = ({
             <Link
               to="/messages"
               onClick={close}
-              className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-sunken transition-colors"
             >
               <MessageCircle size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
               Messages
@@ -191,7 +192,7 @@ export const MobileNav = ({
                 vendor dashboard header. isAdmin defaults to false until the
                 roles query returns, so regular users never render this. */}
             {isAdmin && (
-              <Link to="/admin" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors">
+              <Link to="/admin" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-sunken transition-colors">
                 <Shield size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
                 Admin
                 <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
@@ -203,7 +204,7 @@ export const MobileNav = ({
                 <Link
                   to={`/auth?redirect=${location.pathname}`}
                   onClick={close}
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-sunken transition-colors"
                 >
                   Login
                   <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
@@ -211,7 +212,7 @@ export const MobileNav = ({
                 <Link
                   to="/auth?redirect=/vendor/register"
                   onClick={close}
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-primary hover:bg-primary/10 transition-colors"
+                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-[hsl(40_62%_33%)] dark:text-primary hover:bg-cream transition-colors"
                 >
                   <Tag size={16} strokeWidth={1.5} className=" shrink-0" />
                   Become a Vendor
@@ -220,7 +221,7 @@ export const MobileNav = ({
             ) : isVendor ? (
               isVendorPage ? (
                 <>
-                  <Link to="/orders" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                  <Link to="/orders" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-sunken transition-colors">
                     <ShoppingBag size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
                     My Purchases
                     <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
@@ -232,17 +233,17 @@ export const MobileNav = ({
                 </>
               ) : (
                 <>
-                  <Link to="/vendor/dashboard" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                  <Link to="/vendor/dashboard" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-sunken transition-colors">
                     <LayoutDashboard size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
                     Dashboard
                     <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
                   </Link>
-                  <Link to="/vendor/orders" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                  <Link to="/vendor/orders" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-sunken transition-colors">
                     <ShoppingBag size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
                     Vendor Orders
                     <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
                   </Link>
-                  <Link to="/orders" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                  <Link to="/orders" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-sunken transition-colors">
                     <ShoppingBag size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
                     My Purchases
                     <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
@@ -255,7 +256,7 @@ export const MobileNav = ({
               )
             ) : (
               <>
-                <Link to="/orders" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                <Link to="/orders" onClick={close} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-sunken transition-colors">
                   <ShoppingBag size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
                   My Orders
                   <ChevronRight size={14} strokeWidth={1.5} className=" ml-auto text-muted-foreground/50" />
@@ -274,7 +275,7 @@ export const MobileNav = ({
         </div>
 
         {/* ── Footer ── */}
-        <div className="border-t border-border px-4 py-3 bg-muted/30">
+        <div className="border-t border-border px-4 py-3 bg-sunken">
           <a
             href={`mailto:${supportEmail}`}
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"

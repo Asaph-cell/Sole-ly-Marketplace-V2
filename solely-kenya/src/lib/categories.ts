@@ -7,7 +7,6 @@ export interface Category {
   key: string;
   icon: string;      // emoji icon for tiles
   subcategories: { name: string; key: string }[];
-  kycRequired?: boolean; // true = enhanced KYC needed to list
   coverGradient: string; // Tailwind gradient classes for category tile
 }
 
@@ -117,7 +116,6 @@ export const ALL_CATEGORIES: Category[] = [
     key: "electronics",
     icon: "📱",
     coverGradient: "from-gray-700 to-gray-600",
-    kycRequired: true,
     subcategories: [
       { name: "Phones", key: "phones" },
       { name: "Laptops & Tablets", key: "laptops" },

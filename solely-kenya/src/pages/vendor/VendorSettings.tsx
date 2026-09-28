@@ -200,7 +200,7 @@ const VendorSettings = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="whatsapp_number">WhatsApp Number</Label>
+                    <Label htmlFor="whatsapp_number">Store contact number (WhatsApp)</Label>
                     <div className="relative">
                       <Phone size={16} strokeWidth={1.5} className="absolute left-3 top-3  text-muted-foreground" />
                       <Input
@@ -213,7 +213,7 @@ const VendorSettings = () => {
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      International format without + (e.g., 254712345678)
+                      Buyers with an order reach you here on WhatsApp. International format without + (e.g. 254712345678).
                     </p>
                   </div>
                 </CardContent>
@@ -284,7 +284,7 @@ const VendorSettings = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="store_phone">
-                      Store Phone Number <span className="text-muted-foreground font-normal">(optional)</span>
+                      Public call number <span className="text-muted-foreground font-normal">(optional)</span>
                     </Label>
                     <div className="relative">
                       <Phone size={16} strokeWidth={1.5} className="absolute left-3 top-3 text-muted-foreground" />
@@ -299,7 +299,7 @@ const VendorSettings = () => {
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Shown publicly on your storefront so shoppers can call you before buying.
-                      Leave blank to keep it private, this is separate from your WhatsApp number,
+                      Leave blank to keep it private, this is separate from your store contact number,
                       which is only shared with buyers who already have an order.
                     </p>
                   </div>

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { ListSkeleton } from "@/components/skeletons";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { StatusPill, EmptyState } from "@/components/admin/AdminShared";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +22,7 @@ import {
 } from "lucide-react";
 import { DisputeChat } from "@/components/disputes/DisputeChat";
 import { cn } from "@/lib/utils";
+import { useSignedEvidence } from "@/lib/disputeEvidence";
 import { formatDistanceToNow } from "date-fns";
 
 interface Dispute {
@@ -48,12 +48,14 @@ interface Dispute {
 type ResolutionType = 'full_refund_penalty' | 'partial_refund' | 'release_funds' | 'close_dismiss';
 
 const AdminDisputes = () => {
-    const { user } = useAuth();
     const { toast } = useToast();
     const [searchParams] = useSearchParams();
     const [disputes, setDisputes] = useState<Dispute[]>([]);
     const [loadingData, setLoadingData] = useState(true);
     const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
+    // Evidence is private; these are short-lived signed URLs for the open dispute.
+    const buyerEvidence = useSignedEvidence(selectedDispute?.buyer_evidence_urls);
+    const vendorEvidence = useSignedEvidence(selectedDispute?.vendor_evidence_urls);
     const [resolving, setResolving] = useState(false);
     const [resolutionNotes, setResolutionNotes] = useState("");
     const [filter, setFilter] = useState("all");
@@ -298,7 +300,7 @@ const AdminDisputes = () => {
                                                     Buyer evidence
                                                 </p>
                                                 <div className="flex gap-1.5 overflow-x-auto">
-                                                    {selectedDispute.buyer_evidence_urls.map((url, i) => (
+                                                    {buyerEvidence.map((url, i) => (
                                                         <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="shrink-0">
                                                             <img src={url} alt={`Buyer evidence ${i + 1}`} className="w-16 h-16 rounded-lg object-cover border border-border" />
                                                         </a>
@@ -312,7 +314,7 @@ const AdminDisputes = () => {
                                                     Vendor evidence
                                                 </p>
                                                 <div className="flex gap-1.5 overflow-x-auto">
-                                                    {selectedDispute.vendor_evidence_urls.map((url, i) => (
+                                                    {vendorEvidence.map((url, i) => (
                                                         <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="shrink-0">
                                                             <img src={url} alt={`Vendor evidence ${i + 1}`} className="w-16 h-16 rounded-lg object-cover border border-border" />
                                                         </a>
@@ -338,7 +340,7 @@ const AdminDisputes = () => {
 
                                 {/* Chat thread */}
                                 <div className="flex-1 min-h-[300px] flex flex-col">
-                                    <DisputeChat disputeId={selectedDispute.id} currentUserRole="admin" currentUserId={user?.id || ""} />
+                                    <DisputeChat disputeId={selectedDispute.id} currentUserRole="admin" />
                                 </div>
 
                                 {/* Resolution actions */}

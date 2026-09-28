@@ -2,8 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Heart, Truck, RefreshCcw, Recycle, Play, Star, Check } from "lucide-react";
 import { motion } from "framer-motion";
-import { LazyLoadImage } from 'react-lazy-load-image-component';
-import 'react-lazy-load-image-component/src/effects/blur.css';
+
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useAuth } from "@/hooks/useAuth";
@@ -218,7 +217,7 @@ const ProductCard = ({
               </span>
             )}
             {videoUrl && (
-              <span className="flex items-center justify-center w-7 h-7 bg-white/80 backdrop-blur text-gray-900 rounded-full shadow-sm">
+              <span className="flex items-center justify-center w-7 h-7 bg-white/90 text-gray-900 rounded-full shadow-sm">
                 <Play size={12} strokeWidth={2.5} className="ml-0.5" />
               </span>
             )}
@@ -226,7 +225,7 @@ const ProductCard = ({
 
           {/* Wishlist button */}
           <button
-            className={`wishlist absolute bottom-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 backdrop-blur shadow-sm transition-[transform,background-color,color] duration-150 ease-out hover:bg-white active:scale-90 ${wished ? "text-rose-500" : "text-gray-400 hover:text-rose-400"}`}
+            className={`wishlist absolute bottom-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow-sm transition-[transform,background-color,color] duration-150 ease-out hover:bg-white active:scale-90 ${wished ? "text-rose-500" : "text-gray-400 hover:text-rose-400"}`}
             onClick={handleWishlist}
             aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
             aria-pressed={wished}
@@ -243,12 +242,14 @@ const ProductCard = ({
             </motion.span>
           </button>
 
-          <LazyLoadImage
+          {/* Native lazy loading fetches well ahead of the viewport, so fast
+              scrolls land on loaded images instead of blurred placeholders. */}
+          <img
             src={image}
             alt={name}
-            effect="blur"
-            className={`w-full h-full object-cover transition-[transform,opacity] duration-300 ease-out-strong group-hover:scale-105 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"}`}
-            wrapperClassName="w-full h-full"
+            loading="lazy"
+            decoding="async"
+            className={`w-full h-full bg-gray-100 object-cover transition-[transform,opacity] duration-300 ease-out-strong group-hover:scale-105 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"}`}
           />
 
           {videoUrl && (
@@ -265,7 +266,7 @@ const ProductCard = ({
 
           {videoUrl && isMobile && !isPlaying && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-              <div className="bg-black/50 rounded-full p-3 backdrop-blur-sm">
+              <div className="bg-black/55 rounded-full p-3">
                 <Play strokeWidth={2} size={24} className="text-white fill-white" />
               </div>
             </div>

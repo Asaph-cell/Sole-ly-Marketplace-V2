@@ -16,9 +16,9 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.png", "apple-touch-icon.png", "robots.txt"],
       manifest: {
-        name: "Sole-ly Shoes - Kenya's Shoe Marketplace",
-        short_name: "Sole-ly",
-        description: "Buy & sell quality shoes in Kenya. Trusted vendors, secure payments, Kenya-wide delivery.",
+        name: "Solely - Safe Online Buying and Selling in Kenya",
+        short_name: "Solely",
+        description: "Buy and sell safely online in Kenya. Pay with M-Pesa and we hold the money until your order arrives.",
         theme_color: "#c8b34d",
         background_color: "#ffffff",
         display: "standalone",

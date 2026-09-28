@@ -9,13 +9,13 @@ import { ALL_CATEGORIES } from "@/lib/categories";
 import { toast } from "@/lib/toast";
 import { PricingCalculator } from "@/components/vendor/PricingCalculator";
 import {
-  ChevronLeft, ChevronRight, Upload, X, ImagePlus,
+  ChevronLeft, ChevronRight, Upload, X, ImagePlus, Loader2,
   Footprints, Shirt, Baby, Sparkles, ShoppingBag,
   Dumbbell, Smartphone, Home, LucideIcon
 } from "lucide-react";
 import { VideoUploader } from "@/components/VideoUploader";
-import { usePersistentState, clearDraft } from "@/hooks/usePersistentState";
-import { saveDraftFiles, loadDraftFiles, clearDraftFiles } from "@/lib/draftFiles";
+import { parseSizesInput } from "@/lib/sizes";
+import { usePersistentState } from "@/hooks/usePersistentState";
 
 // ── Category icon + gradient map ─────────────────────────────────────────────
 const CAT_META: Record<string, { icon: LucideIcon; from: string; to: string; text: string }> = {
@@ -242,520 +242,487 @@ const SelectInput = ({ value, onChange, options, placeholder }: { value: string;
   </select>
 );
 
+// ── Draft shape ────────────────────────────────────────────────────────────────
+// One object per in-progress listing. It's kept in localStorage for an instant
+// restore and mirrored to the seller's account (product_drafts) so a listing
+// started on a phone can be finished on a laptop. Photos upload the moment
+// they're picked, so the draft only ever holds URLs.
+type Draft = {
+  step: 1 | 2 | 3;
+  images: string[];
+  category: string;
+  subcategory: string;
+  name: string;
+  description: string;
+  price: string;
+  stock: string;
+  brand: string;
+  condition: string;
+  conditionNotes: string;
+  freeDelivery: boolean;
+  keyFeatures: string;
+  videoUrl: string | null;
+  specs: Record<string, string>;
+  updatedAt: number;
+};
+
+const EMPTY_DRAFT: Draft = {
+  step: 1, images: [], category: "", subcategory: "", name: "", description: "", price: "", stock: "1",
+  brand: "", condition: "new", conditionNotes: "", freeDelivery: false, keyFeatures: "", videoUrl: null,
+  specs: {}, updatedAt: 0,
+};
+
+const hasContent = (d: Draft) => d.images.length > 0 || !!d.category || !!d.name || !!d.price;
+const MAX_PHOTOS = 4;
+const MAX_PRICE = 300000;
+
+// ── Listing strength ──────────────────────────────────────────────────────────
+// Only photos, category, name and price are required. Everything else raises
+// the score, and the top tip names the most valuable thing still missing.
+const listingStrength = (d: Draft, specFields: SpecField[]) => {
+  const photoPts = [0, 15, 22, 27, 30][Math.min(d.images.length, 4)];
+  const filledSpecs = specFields.filter((f) => (d.specs[f.key] || "").trim()).length;
+  // Detail-type points only count once there is a category to describe.
+  const specPts = !d.category ? 0 : specFields.length ? Math.round((12 * filledSpecs) / specFields.length) : 12;
+  const descLen = d.description.trim().length;
+  const priceOk = parseInt(d.price) > 0 && parseInt(d.price) <= MAX_PRICE;
+
+  const parts = [
+    { pts: photoPts, max: 30, tip: d.images.length === 0 ? "Add photos of the item" : `Add ${Math.max(3 - d.images.length, 1)} more photo${3 - d.images.length > 1 ? "s" : ""}: buyers want to see every angle` },
+    { pts: d.category ? 8 : 0, max: 8, tip: "Pick a category" },
+    { pts: d.subcategory ? 4 : 0, max: 4, tip: "Choose a type so it shows up in the right filter" },
+    { pts: d.name.trim().length >= 10 ? 8 : d.name.trim() ? 4 : 0, max: 8, tip: "Give it a fuller name, like brand, model and colour" },
+    { pts: priceOk ? 8 : 0, max: 8, tip: "Add a price" },
+    { pts: descLen >= 60 ? 14 : descLen >= 20 ? 7 : 0, max: 14, tip: "Describe it in a sentence or two: fit, flaws, what's included" },
+    { pts: specPts, max: 12, tip: "Fill in sizes and details so buyers can filter for it" },
+    { pts: d.brand.trim() || d.specs.brand || d.specs.model ? 4 : 0, max: 4, tip: "Add the brand" },
+    { pts: d.category && (d.condition === "new" || d.conditionNotes.trim().length >= 10) ? 4 : 0, max: 4, tip: "Note any wear or marks so there are no surprises" },
+    { pts: d.videoUrl ? 4 : 0, max: 4, tip: "Add a short video" },
+    { pts: d.keyFeatures.trim() ? 4 : 0, max: 4, tip: "List a few key features" },
+  ];
+  const percent = parts.reduce((s, p) => s + p.pts, 0);
+  const next = parts
+    .filter((p) => p.pts < p.max)
+    .sort((a, b) => (b.max - b.pts) - (a.max - a.pts))[0];
+  return { percent, tip: next?.tip ?? null };
+};
+
+const storagePathFromUrl = (url: string) => url.split("/product-images/")[1] ?? null;
+
 // ── Main component ─────────────────────────────────────────────────────────────
-// Every field is saved as the vendor types, so a call, a dead battery or the
-// app being closed never costs them a half-finished listing.
-const DRAFT_FIELDS = ["step", "category", "subcategory", "name", "description", "price", "stock", "brand", "condition", "conditionNotes", "freeDelivery", "keyFeatures", "videoUrl", "specs"] as const;
-
-const VendorListItem = () => {
-  const { user, loading } = useAuth();
+// userId comes from the page wrapper, which waits for auth. useAuth() isn't
+// shared state, so reading it here would start as "no user", mount the draft
+// under the wrong key, and wipe the real draft when the id arrived.
+const VendorListItem = ({ userId }: { userId: string }) => {
   const navigate = useNavigate();
-  const draftKey = `list-item:${user?.id ?? "anon"}`;
-  const d = (field: string) => `${draftKey}:${field}`;
-  const [step, setStep, { restored: stepRestored }] = usePersistentState<1|2|3|4>(d("step"), 1);
+  const [draft, setDraft] = usePersistentState<Draft>(`list-item-draft:${userId}`, EMPTY_DRAFT);
+  const [serverChecked, setServerChecked] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "offline">("idle");
+  const [showRestored, setShowRestored] = useState(false);
+  const [uploadingCount, setUploadingCount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
-  // Core fields
-  const [category, setCategory, { restored: catRestored }] = usePersistentState(d("category"), "");
-  const [subcategory, setSubcategory] = usePersistentState(d("subcategory"), "");
-  const [name, setName] = usePersistentState(d("name"), "");
-  const [description, setDescription] = usePersistentState(d("description"), "");
-  const [price, setPrice] = usePersistentState(d("price"), "");
-  const [stock, setStock] = usePersistentState(d("stock"), "1");
-  const [brand, setBrand] = usePersistentState(d("brand"), "");
-  const [condition, setCondition] = usePersistentState(d("condition"), "new");
-  const [conditionNotes, setConditionNotes] = usePersistentState(d("conditionNotes"), "");
-  const [freeDelivery, setFreeDelivery] = usePersistentState(d("freeDelivery"), false);
-  const [keyFeatures, setKeyFeatures] = usePersistentState(d("keyFeatures"), "");
-  const [videoUrl, setVideoUrl] = usePersistentState<string | null>(d("videoUrl"), null);
-  const [specs, setSpecs] = usePersistentState<Record<string, string>>(d("specs"), {});
+  // Update helper: every change stamps the draft so the newer copy wins.
+  const update = (patch: Partial<Draft> | ((d: Draft) => Partial<Draft>)) =>
+    setDraft((d) => ({ ...d, ...(typeof patch === "function" ? patch(d) : patch), updatedAt: Date.now() }));
 
-  // Images (kept in IndexedDB, since localStorage can't hold photos)
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [filesLoaded, setFilesLoaded] = useState(false);
-  const [showRestored, setShowRestored] = useState(stepRestored || catRestored);
-
+  // On open, take whichever copy is newer: this device's or the account's.
   useEffect(() => {
     let cancelled = false;
-    loadDraftFiles(draftKey).then((files) => {
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("product_drafts").select("data").eq("vendor_id", userId).maybeSingle();
       if (cancelled) return;
-      if (files.length) {
-        setImageFiles(files);
-        setImagePreviews(files.map((f) => URL.createObjectURL(f)));
+      const remote = data?.data as Draft | undefined;
+      if (remote && hasContent(remote) && (remote.updatedAt ?? 0) > (draft.updatedAt ?? 0)) {
+        setDraft({ ...EMPTY_DRAFT, ...remote });
+        setShowRestored(true);
+      } else if (hasContent(draft)) {
         setShowRestored(true);
       }
-      setFilesLoaded(true);
-    });
+      setServerChecked(true);
+    })();
     return () => { cancelled = true; };
-  }, [draftKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
+  // Mirror to the account a moment after the seller stops typing.
   useEffect(() => {
-    if (filesLoaded) void saveDraftFiles(draftKey, imageFiles);
-  }, [imageFiles, filesLoaded, draftKey]);
+    if (!serverChecked || !draft.updatedAt) return;
+    setSaveState("saving");
+    const t = setTimeout(async () => {
+      const { error } = await (supabase as any).from("product_drafts").upsert({
+        vendor_id: userId, data: draft, updated_at: new Date().toISOString(),
+      });
+      setSaveState(error ? "offline" : "saved");
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [draft, serverChecked, userId]);
 
-  const discardDraft = () => {
-    DRAFT_FIELDS.forEach((f) => clearDraft(d(f)));
-    void clearDraftFiles(draftKey);
-    setStep(1); setCategory(""); setSubcategory(""); setName(""); setDescription(""); setPrice("");
-    setStock("1"); setBrand(""); setCondition("new"); setConditionNotes(""); setFreeDelivery(false);
-    setKeyFeatures(""); setVideoUrl(null); setSpecs({}); setImageFiles([]); setImagePreviews([]);
-    setShowRestored(false);
-  };
-
-  useEffect(() => { if (!loading && !user) navigate("/auth"); }, [user, loading, navigate]);
-
-  const selectedCat = ALL_CATEGORIES.find(c => c.key === category);
-  const specFields  = category ? getSpecFields(category, subcategory) : [];
-  const isElec      = isElectronics(category, subcategory);
-  const conditions  = isElec ? CONDITIONS_ELECTRONICS : CONDITIONS_GENERAL;
-  // For electronics the spec fields include Brand/Model, hide the top-level brand input
+  const selectedCat = ALL_CATEGORIES.find((c) => c.key === draft.category);
+  const specFields = draft.category ? getSpecFields(draft.category, draft.subcategory) : [];
+  const isElec = isElectronics(draft.category, draft.subcategory);
+  const conditions = isElec ? CONDITIONS_ELECTRONICS : CONDITIONS_GENERAL;
   const showBrandField = !isElec;
+  const strength = listingStrength(draft, specFields);
 
-  const setSpec = (key: string, val: string) => setSpecs(prev => ({ ...prev, [key]: val }));
-
+  const priceNum = parseInt(draft.price);
+  const priceOk = priceNum > 0 && priceNum <= MAX_PRICE;
+  const stockOk = parseInt(draft.stock) > 0;
+  const canPublish = draft.images.length > 0 && !!draft.category && !!draft.name.trim() && priceOk && stockOk && uploadingCount === 0;
 
   const handleImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length + imageFiles.length > 4) { toast.error("Max 4 images"); return; }
+    e.target.value = "";
+    if (!files.length) return;
+    const room = MAX_PHOTOS - draft.images.length - uploadingCount;
+    if (files.length > room) toast.error(`You can add ${room} more photo${room === 1 ? "" : "s"}`);
+    const batch = files.slice(0, Math.max(room, 0));
+    if (!batch.length) return;
+    setUploadingCount((n) => n + batch.length);
     try {
-      const compressed = await compressImages(files);
-      setImageFiles(prev => [...prev, ...compressed]);
-      setImagePreviews(prev => [...prev, ...compressed.map(f => URL.createObjectURL(f))]);
-    } catch { toast.error("Failed to process images"); }
-  };
-
-  const removeImage = (i: number) => {
-    setImageFiles(prev => prev.filter((_, idx) => idx !== i));
-    setImagePreviews(prev => prev.filter((_, idx) => idx !== i));
-  };
-
-  const canNext = () => {
-    if (step === 1) return !!category;
-    if (step === 2) return true;
-    if (step === 3) return !!name && !!price && parseInt(price) > 0 && parseInt(price) <= 300000 && !!stock;
-    return true;
-  };
-
-  const handleSubmit = async () => {
-    if (parseInt(price) > 300000) { toast.error("Price cannot exceed KES 300,000."); return; }
-    if (imageFiles.length === 0) { toast.error("Please add at least one image"); return; }
-    setSubmitting(true);
-    try {
-      setUploading(true);
-      const imageUrls: string[] = [];
-      for (const file of imageFiles) {
-        const ext = file.name.split(".").pop();
-        const path = `${user?.id}/${Date.now()}-${Math.random()}.${ext}`;
+      const compressed = await compressImages(batch);
+      for (const file of compressed) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
         const { error } = await supabase.storage.from("product-images").upload(path, file);
-        if (error) throw error;
+        setUploadingCount((n) => n - 1);
+        if (error) { toast.error(error); continue; }
         const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(path);
-        imageUrls.push(publicUrl);
+        update((d) => ({ images: [...d.images, publicUrl].slice(0, MAX_PHOTOS) }));
       }
-      setUploading(false);
-
-      // Build sizes / colors arrays from specs for backward compat
-      const variantRaw = specs.sizes || specs.size || specs.storage || specs.volume || specs.capacity || specs.waist || "";
-      const sizesArr = variantRaw.split(",").map(s => s.trim()).filter(Boolean);
-      const colorsArr = (specs.colors || "").split(",").map(s => s.trim()).filter(Boolean);
-
-      // Build clean specs object (exclude sizes/colors already stored separately)
-      const cleanSpecs: Record<string, string> = {};
-      Object.entries(specs).forEach(([k, v]) => {
-        if (v && k !== "sizes" && k !== "colors") cleanSpecs[k] = v;
-      });
-
-      // Sanitise condition, map form values to DB-allowed values
-      // DB constraint: new | like_new | good | fair
-      const conditionMap: Record<string, string> = {
-        thrifted:    "good",
-        refurbished: "like_new",
-      };
-      const safeCondition = conditionMap[condition] ?? condition;
-
-      // For electronics brand comes from spec fields, not the top-level brand input
-      const effectiveBrand = isElec ? (specs.brand || brand || null) : (brand || null);
-
-      // Core insert, only original schema columns that are guaranteed to exist
-      const { data: inserted, error: insertErr } = await supabase.from("products").insert({
-        vendor_id: user?.id,
-        name,
-        description,
-        price_ksh: parseInt(price),
-        stock: parseInt(stock),
-        brand: effectiveBrand,
-        category,
-        condition: safeCondition,
-        sizes: sizesArr,
-        colors: colorsArr,
-        images: imageUrls,
-        status: "draft",
-      }).select("id").single();
-
-
-      if (insertErr) throw insertErr;
-
-      // Save newer columns separately, silently skipped if schema cache not yet refreshed
-      // This means listing ALWAYS succeeds; these fields save once cache is reloaded
-      try {
-        const extras: Record<string, any> = {};
-        if (subcategory) extras.subcategory = subcategory;
-        if (conditionNotes) extras.condition_notes = conditionNotes;
-        if (freeDelivery) extras.free_delivery = freeDelivery;
-        if (keyFeatures) extras.key_features = keyFeatures.split(",").map(s => s.trim()).filter(Boolean);
-        if (videoUrl) extras.video_url = videoUrl;
-        if (Object.keys(cleanSpecs).length > 0) extras.specs = cleanSpecs;
-        if (Object.keys(extras).length > 0) {
-          await supabase.from("products").update(extras).eq("id", inserted.id);
-        }
-      } catch {
-        // Schema cache not yet refreshed, go to Supabase Dashboard → Settings → API → Reload Schema Cache
-      }
-
-      await supabase.rpc("publish_product", { product_id_to_publish: inserted.id });
-      DRAFT_FIELDS.forEach((f) => clearDraft(d(f)));
-      void clearDraftFiles(draftKey);
-      toast.success("Item listed! It's now live 🎉");
-      navigate("/vendor/products");
-    } catch (e: any) {
-      // The draft is still saved, so a retry picks up exactly where they left off.
-      toast.error(e, { retry: handleSubmit, description: "Your listing is saved as a draft on this device." });
-    } finally {
-      setSubmitting(false);
-      setUploading(false);
+    } catch {
+      setUploadingCount(0);
+      toast.error("Couldn't process those photos. Try again.");
     }
   };
 
-  if (loading) return <FormSkeleton fields={6} />;
+  const removeImage = (url: string) => {
+    update((d) => ({ images: d.images.filter((u) => u !== url) }));
+    const path = storagePathFromUrl(url);
+    if (path) void supabase.storage.from("product-images").remove([path]);
+  };
 
-  // ── Step indicators ──────────────────────────────────────────────────────
-  const steps = ["Category", "Type", "Details", "Photos"];
+  const makeCover = (url: string) => update((d) => ({ images: [url, ...d.images.filter((u) => u !== url)] }));
+
+  const resetDraft = async (removePhotos: boolean) => {
+    if (removePhotos) {
+      const paths = draft.images.map(storagePathFromUrl).filter(Boolean) as string[];
+      if (paths.length) void supabase.storage.from("product-images").remove(paths);
+    }
+    await (supabase as any).from("product_drafts").delete().eq("vendor_id", userId);
+    setDraft(EMPTY_DRAFT);
+    setShowRestored(false);
+  };
+
+  const handleSubmit = async () => {
+    if (!canPublish) return;
+    setSubmitting(true);
+    try {
+      const { specs, condition } = draft;
+      const variantRaw = specs.sizes || specs.size || specs.storage || specs.volume || specs.capacity || specs.waist || "";
+      const sizesArr = parseSizesInput(variantRaw); // "38-45" becomes 38, 39 … 45
+      const colorsArr = (specs.colors || "").split(",").map((s) => s.trim()).filter(Boolean);
+      const cleanSpecs: Record<string, string> = {};
+      Object.entries(specs).forEach(([k, v]) => { if (v && k !== "sizes" && k !== "colors") cleanSpecs[k] = v; });
+      // DB constraint: new | like_new | good | fair
+      const safeCondition = ({ thrifted: "good", refurbished: "like_new" } as Record<string, string>)[condition] ?? condition;
+      const effectiveBrand = isElec ? (specs.brand || draft.brand || null) : (draft.brand || null);
+
+      const { data: inserted, error: insertErr } = await supabase.from("products").insert({
+        vendor_id: userId,
+        name: draft.name.trim(),
+        description: draft.description.trim(),
+        price_ksh: priceNum,
+        stock: parseInt(draft.stock),
+        brand: effectiveBrand,
+        category: draft.category,
+        condition: safeCondition,
+        sizes: sizesArr,
+        colors: colorsArr,
+        images: draft.images,
+        status: "draft",
+      }).select("id").single();
+      if (insertErr) throw insertErr;
+
+      // Newer columns saved separately so listing still succeeds if the schema cache lags.
+      try {
+        const extras: Record<string, any> = {};
+        if (draft.subcategory) extras.subcategory = draft.subcategory;
+        if (draft.conditionNotes) extras.condition_notes = draft.conditionNotes;
+        if (draft.freeDelivery) extras.free_delivery = true;
+        if (draft.keyFeatures) extras.key_features = draft.keyFeatures.split(",").map((s) => s.trim()).filter(Boolean);
+        if (draft.videoUrl) extras.video_url = draft.videoUrl;
+        if (Object.keys(cleanSpecs).length) extras.specs = cleanSpecs;
+        if (Object.keys(extras).length) await supabase.from("products").update(extras).eq("id", inserted.id);
+      } catch { /* schema cache not refreshed yet */ }
+
+      await supabase.rpc("publish_product", { product_id_to_publish: inserted.id });
+      await resetDraft(false);
+      toast.success(`Listed. Listing strength ${strength.percent}%`);
+      navigate("/vendor/products");
+    } catch (e: any) {
+      toast.error(e, { retry: handleSubmit, description: "Your listing is still saved as a draft." });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const STEPS = ["Photos", "What is it?", "Details"];
+  const goBack = () => (draft.step === 1 ? navigate("/vendor/products") : update({ step: (draft.step - 1) as Draft["step"] }));
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div data-layout="designed" className="min-h-screen bg-sunken">
       <div className="flex">
         <VendorSidebar />
         <main className="flex-1 min-w-0">
-          <div className="max-w-xl mx-auto px-4 sm:px-6 py-6">
+          <div className="max-w-xl mx-auto px-4 sm:px-6 py-6 pb-28">
 
           {/* Header */}
-          <div className="flex items-center gap-3 mb-6">
-            <button
-              onClick={() => step === 1 ? navigate("/vendor/products") : setStep(s => (s - 1) as any)}
-              className="h-8 w-8 rounded-full bg-muted hover:bg-muted/70 flex items-center justify-center text-muted-foreground transition-colors"
-            >
-              <ChevronLeft size={16} strokeWidth={1.5}  />
+          <div className="flex flex-nowrap items-center gap-3 mb-4">
+            <button onClick={goBack} aria-label="Back"
+              className="h-11 w-11 shrink-0 rounded-full bg-card hover:bg-background flex items-center justify-center text-muted-foreground transition-colors">
+              <ChevronLeft size={18} strokeWidth={1.75} />
             </button>
-            <div className="flex-1">
-              <h1 className="text-lg font-bold">List an Item</h1>
-              <p className="text-xs text-muted-foreground">Step {step} of 4 - {steps[step - 1]}</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="font-display text-2xl leading-tight">List an item</h1>
+              <p className="text-xs text-muted-foreground">
+                Step {draft.step} of 3 · {STEPS[draft.step - 1]}
+                <span className="mx-1.5">·</span>
+                {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved to your account" : saveState === "offline" ? "Saved on this device" : "Drafts save automatically"}
+              </p>
             </div>
+          </div>
+
+          {/* Listing strength meter */}
+          <div className="mb-5 rounded-2xl bg-card p-4 shadow-card">
+            <div className="flex items-baseline justify-between">
+              <p className="text-sm font-semibold">Listing strength</p>
+              <p className="font-display text-2xl tabular-nums leading-none">{strength.percent}%</p>
+            </div>
+            <div className="mt-2.5 h-2 rounded-full bg-foreground/10 overflow-hidden">
+              <div className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out" style={{ width: `${strength.percent}%` }} />
+            </div>
+            {strength.tip && <p className="mt-2 text-xs text-muted-foreground">Next: {strength.tip}</p>}
           </div>
 
           {showRestored && (
-            <div className="mb-4 flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-3.5 py-2.5 text-sm animate-fade-in">
-              <span className="flex-1">Welcome back, we saved your unfinished listing.</span>
-              <button onClick={discardDraft} className="text-xs font-semibold text-muted-foreground hover:text-foreground underline underline-offset-2">
+            <div className="mb-4 flex flex-nowrap items-center gap-3 rounded-2xl border border-primary/25 bg-cream px-4 py-3 text-sm animate-fade-in">
+              <span className="flex-1">Welcome back. We kept your unfinished listing.</span>
+              <button onClick={() => resetDraft(true)} className="py-2 -my-2 text-xs font-semibold text-muted-foreground hover:text-foreground underline underline-offset-2">
                 Start over
               </button>
-              <button onClick={() => setShowRestored(false)} className="text-xs font-semibold text-primary">
-                OK
-              </button>
+              <button onClick={() => setShowRestored(false)} className="py-2 -my-2 text-xs font-semibold">OK</button>
             </div>
           )}
 
-          {/* Step progress bar */}
-          <div className="flex gap-1 mb-6">
-            {steps.map((_, i) => (
-              <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i < step ? "bg-primary" : "bg-border"}`} />
-            ))}
-          </div>
-
-          {/* ── STEP 1: Category picker ── */}
-          {step === 1 && (
-            <div>
-              <h2 className="text-base font-semibold mb-4">What are you selling?</h2>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-                {ALL_CATEGORIES.map(cat => {
-                  const meta = CAT_META[cat.key];
-                  const Icon = meta?.icon ?? ShoppingBag;
-                  const isSelected = category === cat.key;
-                  return (
-                    <button
-                      key={cat.key}
-                      onClick={() => { setCategory(cat.key); setSubcategory(""); setStep(2); }}
-                      className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl h-20 w-full transition active:scale-95 ${
-                        isSelected ? "ring-2 ring-primary ring-offset-2" : "hover:opacity-90"
-                      }`}
-                      style={{
-                        background: meta
-                          ? `linear-gradient(135deg, ${meta.from}, ${meta.to})`
-                          : "linear-gradient(135deg,#94a3b8,#64748b)",
-                      }}
-                    >
-                      <Icon className="h-6 w-6 text-white" strokeWidth={1.5} />
-                      <span className="text-[10px] font-bold text-white text-center leading-tight px-1 drop-shadow-sm">
-                        {cat.name}
-                      </span>
-                      {cat.kycRequired && (
-                        <span className="absolute top-1.5 right-1.5 text-[8px] font-black px-1 py-0.5 rounded-full bg-white/30 text-white">KYC</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ── STEP 2: Subcategory ── */}
-          {step === 2 && selectedCat && (() => {
-            const meta = CAT_META[selectedCat.key];
-            const Icon = meta?.icon ?? ShoppingBag;
-            return (
-            <div>
-              <div className="flex items-center gap-3 mb-5 p-4 rounded-2xl" style={{ background: meta ? `linear-gradient(135deg,${meta.from},${meta.to})` : undefined }}>
-                <Icon className="h-6 w-6 text-white shrink-0" strokeWidth={1.5} />
-                <h2 className="text-base font-bold text-white">{selectedCat.name}</h2>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {selectedCat.subcategories.map(sub => (
-                  <button
-                    key={sub.key}
-                    onClick={() => setSubcategory(sub.key)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium border transition ${
-                      subcategory === sub.key
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card border-border hover:border-primary/50"
-                    }`}
-                  >
-                    {sub.name}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setSubcategory("")}
-                  className={`px-4 py-2 rounded-full text-sm font-medium border transition ${
-                    subcategory === "" ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border hover:border-primary/50"
-                  }`}
-                >
-                  Other / General
-                </button>
-              </div>
-
-              <button
-                onClick={() => setStep(3)}
-                className="mt-6 w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
-              >
-                Continue <ChevronRight size={16} strokeWidth={1.5}  />
-              </button>
-            </div>
-            );
-          })()}
-
-          {/* ── STEP 3: Details ── */}
-          {step === 3 && (
-            <div className="space-y-4">
-              <Field label="Item Name *">
-                <TextInput value={name} onChange={setName} placeholder={`e.g. ${selectedCat?.name} listing`} />
-              </Field>
-
-              <Field label="Description *">
-                <textarea
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  placeholder="Describe your item honestly. Good descriptions attract more buyers."
-                  rows={3}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition resize-none"
-                />
-              </Field>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Price (KES) *">
-                  <TextInput value={price} onChange={setPrice} placeholder="e.g. 3500" />
-                  {parseInt(price) > 300000 && (
-                    <p className="text-xs text-red-500 font-medium mt-1">Maximum allowed price is 300,000.</p>
-                  )}
-                </Field>
-                <Field label="Stock *">
-                  <TextInput value={stock} onChange={setStock} placeholder="1" />
-                </Field>
-              </div>
-              
-              <PricingCalculator price={parseFloat(price)} />
-
-              {showBrandField && (
-                <Field label="Brand (optional)">
-                  <TextInput value={brand} onChange={setBrand} placeholder="e.g. Nike, Samsung, Zara…" />
-                </Field>
-              )}
-
-              {/* Dynamic spec fields */}
-              {specFields.length > 0 && (
-                <div className="rounded-2xl border border-border bg-card p-4 space-y-4">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Item Specifics</p>
-                  {specFields.map(f => (
-                    <Field key={f.key} label={f.label}>
-                      {f.type === "select" && f.options
-                        ? <SelectInput value={specs[f.key] || ""} onChange={v => setSpec(f.key, v)} options={f.options} />
-                        : <TextInput value={specs[f.key] || ""} onChange={v => setSpec(f.key, v)} placeholder={f.placeholder || ""} />
-                      }
-                    </Field>
-                  ))}
-                </div>
-              )}
-
-              {/* Condition - 2 clean pill buttons */}
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Condition *</p>
-                <div className="flex gap-2">
-                  {conditions.map(c => (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() => setCondition(c.value)}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 text-sm font-semibold transition ${
-                        condition === c.value
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-card hover:border-primary/50"
-                      }`}
-                    >
-                      <span className={`h-2 w-2 rounded-full ${c.dot}`} />
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {condition !== "new" && (
-                <Field label="Condition Details (Optional)">
-                  <textarea
-                    value={conditionNotes}
-                    onChange={e => setConditionNotes(e.target.value)}
-                    placeholder="Describe any wear, scuffs, or defects."
-                    rows={2}
-                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition resize-none"
-                  />
-                </Field>
-              )}
-
-              <Field label="Key Features (comma-separated)">
-                <textarea
-                  value={keyFeatures}
-                  onChange={e => setKeyFeatures(e.target.value)}
-                  placeholder="e.g. 5G, 120Hz display, 5000mAh battery"
-                  rows={2}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition resize-none"
-                />
-              </Field>
-
-              <div className="flex flex-col justify-center space-y-2 rounded-xl border border-border bg-card p-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="free_delivery"
-                    checked={freeDelivery}
-                    onChange={(e) => setFreeDelivery(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                  <label htmlFor="free_delivery" className="font-medium text-sm cursor-pointer">Offers Free Delivery</label>
-                </div>
-                <p className="text-xs text-muted-foreground ml-6">
-                  Check this if you are covering the delivery cost for the buyer.
-                </p>
-              </div>
-
-              <button
-                onClick={() => { if (canNext()) setStep(4); else toast.error("Fill in all required fields"); }}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
-              >
-                Continue to Photos <ChevronRight size={16} strokeWidth={1.5}  />
-              </button>
-            </div>
-          )}
-
-          {/* ── STEP 4: Images ── */}
-          {step === 4 && (
+          {/* ── STEP 1: Photos ── */}
+          {draft.step === 1 && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-base font-semibold mb-1">Add Photos</h2>
-                <p className="text-xs text-muted-foreground">Up to 4 photos. Clear, well-lit shots sell faster.</p>
+                <h2 className="text-base font-semibold">Start with photos</h2>
+                <p className="text-sm text-muted-foreground">Up to 4. The first one is the cover. Daylight shots look best.</p>
               </div>
-
-              {/* Image grid */}
               <div className="grid grid-cols-2 gap-3">
-                {imagePreviews.map((src, i) => (
-                  <div key={i} className="relative rounded-2xl overflow-hidden aspect-square bg-muted">
-                    <img src={src} alt="" className="w-full h-full object-cover" />
-                    <button
-                      onClick={() => removeImage(i)}
-                      className="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center text-xs"
-                    >
-                      <X size={14} strokeWidth={1.5}  />
+                {draft.images.map((src, i) => (
+                  <div key={src} className="relative rounded-2xl overflow-hidden aspect-square bg-card">
+                    <img src={src} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                    <button onClick={() => removeImage(src)} aria-label={`Remove photo ${i + 1}`}
+                      className="absolute top-2 right-2 h-8 w-8 rounded-full bg-black/60 text-white flex items-center justify-center">
+                      <X size={15} strokeWidth={2} />
                     </button>
-                    {i === 0 && (
-                      <span className="absolute bottom-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">Cover</span>
+                    {i === 0 ? (
+                      <span className="absolute bottom-2 left-2 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">Cover</span>
+                    ) : (
+                      <button onClick={() => makeCover(src)} className="absolute bottom-2 left-2 text-[11px] font-medium px-2 py-1 rounded-full bg-black/55 text-white">
+                        Make cover
+                      </button>
                     )}
                   </div>
                 ))}
-                {imagePreviews.length < 4 && (
-                  <label className="rounded-2xl border-2 border-dashed border-border aspect-square flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition">
+                {Array.from({ length: uploadingCount }).map((_, i) => (
+                  <div key={`up-${i}`} className="rounded-2xl aspect-square bg-card grid place-items-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ))}
+                {draft.images.length + uploadingCount < MAX_PHOTOS && (
+                  <label className="rounded-2xl border-2 border-dashed border-foreground/20 bg-card/50 aspect-square flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/60 hover:bg-card transition">
                     <ImagePlus strokeWidth={1.5} className="h-7 w-7 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground font-medium">Add Photo</span>
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleImages} />
+                    <span className="text-sm text-muted-foreground font-medium">{draft.images.length ? "Add another" : "Add photos"}</span>
+                    <input type="file" accept="image/*" multiple className="sr-only" onChange={handleImages} />
                   </label>
                 )}
               </div>
 
-              {user && (
-                <div className="mt-4">
-                  <VideoUploader
-                    vendorId={user.id}
-                    videoUrl={videoUrl}
-                    onVideoChange={setVideoUrl}
-                  />
-                </div>
-              )}
-
-              {/* Summary card */}
-              <div className="rounded-2xl border border-border bg-card p-4 space-y-1.5">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Listing Summary</p>
-                <p className="text-sm font-semibold">{name}</p>
-                <p className="text-sm text-primary font-bold">KES {parseInt(price || "0").toLocaleString()}</p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs bg-muted px-2 py-0.5 rounded-full">{selectedCat?.name}</span>
-                  {subcategory && <span className="text-xs bg-muted px-2 py-0.5 rounded-full">{subcategory}</span>}
-                  <span className="text-xs bg-muted px-2 py-0.5 rounded-full capitalize">{condition.replace("_", " ")}</span>
-                </div>
-              </div>
+              <VideoUploader vendorId={userId} videoUrl={draft.videoUrl} onVideoChange={(v: string | null) => update({ videoUrl: v })} />
 
               <button
-                onClick={handleSubmit}
-                disabled={submitting || uploading || imageFiles.length === 0}
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 disabled:opacity-60 transition-colors"
+                onClick={() => update({ step: 2 })}
+                disabled={!draft.images.length || uploadingCount > 0}
+                className="w-full flex items-center justify-center gap-2 h-12 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary-hover disabled:opacity-50 transition-colors active:scale-[0.98]"
               >
-                {uploading ? (
-                  <><span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Uploading…</>
-                ) : submitting ? (
-                  <><span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Listing…</>
-                ) : (
-                  <><Upload size={16} strokeWidth={1.5}  /> Publish Listing</>
-                )}
+                {uploadingCount > 0 ? "Uploading…" : draft.images.length ? "Continue" : "Add at least one photo"}
+                {draft.images.length > 0 && uploadingCount === 0 && <ChevronRight size={16} strokeWidth={2} />}
               </button>
             </div>
           )}
 
+          {/* ── STEP 2: Category + type ── */}
+          {draft.step === 2 && (
+            <div className="space-y-5">
+              <h2 className="text-base font-semibold">What are you selling?</h2>
+              <div className="grid grid-cols-3 gap-2.5">
+                {ALL_CATEGORIES.map((cat) => {
+                  const meta = CAT_META[cat.key];
+                  const Icon = meta?.icon ?? ShoppingBag;
+                  const isSelected = draft.category === cat.key;
+                  return (
+                    <button
+                      key={cat.key}
+                      onClick={() => update({ category: cat.key, subcategory: "" })}
+                      aria-pressed={isSelected}
+                      className={`relative flex flex-col items-center justify-center gap-2 rounded-2xl h-20 w-full transition active:scale-95 ${isSelected ? "ring-2 ring-foreground ring-offset-2 ring-offset-sunken" : "hover:opacity-90"}`}
+                      style={{ background: meta ? `linear-gradient(135deg, ${meta.from}, ${meta.to})` : "linear-gradient(135deg,#94a3b8,#64748b)" }}
+                    >
+                      <Icon className="h-6 w-6 text-white" strokeWidth={1.5} />
+                      <span className="text-[11px] font-semibold text-white text-center leading-tight px-1 drop-shadow-sm">{cat.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {selectedCat && (
+                <div className="animate-fade-in">
+                  <p className="text-sm font-medium mb-2.5">Type <span className="text-muted-foreground font-normal">(optional)</span></p>
+                  <div className="flex flex-wrap gap-2">
+                    {[...selectedCat.subcategories, { key: "", name: "Other / General" }].map((sub) => (
+                      <button
+                        key={sub.key || "general"}
+                        onClick={() => update({ subcategory: sub.key })}
+                        aria-pressed={draft.subcategory === sub.key}
+                        className={`px-4 h-10 rounded-full text-sm font-medium border transition ${draft.subcategory === sub.key ? "bg-foreground text-background border-foreground" : "bg-card border-border hover:border-foreground/40"}`}
+                      >
+                        {sub.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={() => update({ step: 3 })}
+                disabled={!draft.category}
+                className="w-full flex items-center justify-center gap-2 h-12 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary-hover disabled:opacity-50 transition-colors active:scale-[0.98]"
+              >
+                {draft.category ? <>Continue <ChevronRight size={16} strokeWidth={2} /></> : "Pick a category"}
+              </button>
+            </div>
+          )}
+
+          {/* ── STEP 3: Details ── */}
+          {draft.step === 3 && (
+            <div className="space-y-4">
+              <div className="rounded-2xl bg-card p-4 sm:p-5 shadow-card space-y-4">
+                <p className="text-sm font-semibold">The essentials</p>
+                <Field label="Item name">
+                  <TextInput value={draft.name} onChange={(v) => update({ name: v })} placeholder={`e.g. ${selectedCat?.name ?? "Item"} in black, size 42`} />
+                </Field>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Price (KES)">
+                    <TextInput value={draft.price} onChange={(v) => update({ price: v.replace(/[^\d]/g, "") })} placeholder="e.g. 3500" />
+                    {priceNum > MAX_PRICE && <p className="text-xs text-destructive font-medium mt-1">The maximum price is KES 300,000.</p>}
+                  </Field>
+                  <Field label="In stock">
+                    <TextInput value={draft.stock} onChange={(v) => update({ stock: v.replace(/[^\d]/g, "") })} placeholder="1" />
+                  </Field>
+                </div>
+                <PricingCalculator price={parseFloat(draft.price)} />
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Condition</p>
+                  <div className="flex gap-2">
+                    {conditions.map((c) => (
+                      <button key={c.value} type="button" onClick={() => update({ condition: c.value })} aria-pressed={draft.condition === c.value}
+                        className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border text-sm font-semibold transition ${draft.condition === c.value ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:border-foreground/40"}`}>
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-card p-4 sm:p-5 shadow-card space-y-4">
+                <div>
+                  <p className="text-sm font-semibold">Make it stronger</p>
+                  <p className="text-xs text-muted-foreground">Optional. Each one raises your listing strength.</p>
+                </div>
+                <Field label="Description">
+                  <textarea value={draft.description} onChange={(e) => update({ description: e.target.value })} rows={3}
+                    placeholder="Fit, flaws, what's included. Honest details mean fewer returns."
+                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition resize-none" />
+                </Field>
+                {showBrandField && (
+                  <Field label="Brand">
+                    <TextInput value={draft.brand} onChange={(v) => update({ brand: v })} placeholder="e.g. Nike, Samsung, Zara" />
+                  </Field>
+                )}
+                {specFields.map((f) => (
+                  <Field key={f.key} label={f.label}>
+                    {f.type === "select" && f.options
+                      ? <SelectInput value={draft.specs[f.key] || ""} onChange={(v) => update((d) => ({ specs: { ...d.specs, [f.key]: v } }))} options={f.options} />
+                      : <TextInput value={draft.specs[f.key] || ""} onChange={(v) => update((d) => ({ specs: { ...d.specs, [f.key]: v } }))} placeholder={f.placeholder || ""} />}
+                  </Field>
+                ))}
+                {draft.condition !== "new" && (
+                  <Field label="Wear or marks">
+                    <textarea value={draft.conditionNotes} onChange={(e) => update({ conditionNotes: e.target.value })} rows={2}
+                      placeholder="e.g. Light creasing on the toe, no stains"
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition resize-none" />
+                  </Field>
+                )}
+                <Field label="Key features (comma-separated)">
+                  <TextInput value={draft.keyFeatures} onChange={(v) => update({ keyFeatures: v })} placeholder="e.g. Waterproof, padded collar, original box" />
+                </Field>
+                <label className="flex items-start gap-3 cursor-pointer rounded-xl bg-sunken p-3.5">
+                  <input type="checkbox" checked={draft.freeDelivery} onChange={(e) => update({ freeDelivery: e.target.checked })} className="mt-0.5 h-4 w-4 rounded" />
+                  <span className="text-sm">
+                    <span className="font-medium">I'll cover delivery</span>
+                    <span className="block text-xs text-muted-foreground">Shows a "Free delivery" label on the listing.</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+          )}
           </div>
+
+          {/* Sticky publish bar on the details step */}
+          {draft.step === 3 && (
+            <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 pl-4 pr-[5.5rem] sm:pr-4 py-3 lg:pl-64">
+              {/* Right padding on phones keeps Publish clear of the floating chat button */}
+              <div className="max-w-xl mx-auto flex flex-nowrap items-center gap-3">
+                <div className="min-w-0 flex-1 text-xs text-muted-foreground">
+                  {canPublish ? "Ready to publish. You can edit it any time." : !draft.name.trim() ? "Add a name to publish" : !priceOk ? "Add a price to publish" : !stockOk ? "Add how many you have" : "Finish the essentials to publish"}
+                </div>
+                <button onClick={handleSubmit} disabled={!canPublish || submitting}
+                  className="shrink-0 inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary-hover disabled:opacity-50 transition-colors active:scale-[0.98]">
+                  {submitting ? <><Loader2 size={16} className="animate-spin" /> Publishing…</> : <><Upload size={16} strokeWidth={2} /> Publish</>}
+                </button>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>
   );
 };
 
-// Remount per account so drafts are always read for the signed-in vendor.
+// Waits for auth, then mounts the form keyed to the signed-in seller so their
+// draft is read under the right key from the very first render.
 const VendorListItemPage = () => {
   const { user, loading } = useAuth();
-  if (loading) return <FormSkeleton fields={6} />;
-  return <VendorListItem key={user?.id ?? "anon"} />;
+  const navigate = useNavigate();
+  useEffect(() => { if (!loading && !user) navigate("/auth"); }, [user, loading, navigate]);
+  if (loading || !user) return <FormSkeleton fields={6} />;
+  return <VendorListItem key={user.id} userId={user.id} />;
 };
 
 export default VendorListItemPage;

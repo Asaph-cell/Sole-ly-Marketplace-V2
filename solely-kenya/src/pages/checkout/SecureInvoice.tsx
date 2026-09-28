@@ -66,14 +66,15 @@ const SecureInvoice = () => {
         setVendor(prof);
 
         // Fetch vendor stats
-        const { data: reviews } = await supabase
-          .from("reviews")
-          .select("rating")
-          .eq("vendor_id", link.vendor_id);
-          
-        if (reviews && reviews.length > 0) {
-          const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
-          setVendorStats({ rating: Number(avg.toFixed(1)), reviews: reviews.length });
+        // Seller ratings are aggregated in vendor_rating_stats (reviews has no vendor_id).
+        const { data: ratingStats } = await supabase
+          .from("vendor_rating_stats")
+          .select("avg_rating, rating_count")
+          .eq("vendor_id", link.vendor_id)
+          .maybeSingle();
+
+        if (ratingStats?.rating_count) {
+          setVendorStats({ rating: Number(Number(ratingStats.avg_rating).toFixed(1)), reviews: ratingStats.rating_count });
         }
 
       } catch (e) {
@@ -171,7 +172,7 @@ const SecureInvoice = () => {
         <h1 className="text-xl font-bold">Secure Link Not Found</h1>
         <p className="text-slate-500 text-sm">This link may be inactive, paid, or deleted.</p>
         <button onClick={() => isEmbed && window.parent !== window ? window.parent.postMessage({ type: 'solely-checkout-close' }, '*') : navigate("/")} className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-semibold">
-          {isEmbed ? "Close" : "Go to Sole-ly Homepage"}
+          {isEmbed ? "Close" : "Go to Solely Homepage"}
         </button>
       </div>
     );
@@ -186,13 +187,13 @@ const SecureInvoice = () => {
 
   return (
     <div className={`min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 pb-8 ${isEmbed ? 'solely-embed-mode' : ''}`}>
-      <SEO title={`Secure Checkout: ${title}`} description={`Pay safely for ${title} via Sole-ly.`} />
+      <SEO title={`Secure Checkout: ${title}`} description={`Pay safely for ${title} via Solely.`} />
 
       {/* Header Banner, hidden in embed mode */}
       {!isEmbed && (
         <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white py-2 px-4 flex items-center justify-center gap-2 shadow-md sticky top-0 z-10 print:hidden">
           <Shield className="h-4 w-4" />
-          <span className="text-xs font-semibold">Protected by Sole-ly Escrow</span>
+          <span className="text-xs font-semibold">Protected by Solely Escrow</span>
         </div>
       )}
 
@@ -420,7 +421,7 @@ const SecureInvoice = () => {
               <p className="text-sm text-gray-900">
                 I agree to the <a href="/terms" className="text-blue-600 hover:underline font-medium">Terms & Conditions</a> and <a href="/privacy" className="text-blue-600 hover:underline font-medium">Privacy Policy</a>
               </p>
-              <p className="text-xs text-gray-500 mt-1">✓ Sole-ly Escrow protects both buyer and seller</p>
+              <p className="text-xs text-gray-500 mt-1">✓ Solely Escrow protects both buyer and seller</p>
             </div>
           </label>
 
@@ -452,7 +453,7 @@ const SecureInvoice = () => {
           {/* Trustmark */}
           <div className="text-center space-y-2 pb-6 print:hidden">
             <p className="text-xs text-gray-600">
-              🔒 Encrypted & Secure • <span className="font-semibold">Sole-ly Escrow Protected</span>
+              🔒 Encrypted & Secure • <span className="font-semibold">Solely Escrow Protected</span>
             </p>
             <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
               <Zap className="h-3.5 w-3.5 text-amber-500" />

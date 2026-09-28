@@ -45,6 +45,10 @@ export const OrderReviewDialog = ({
     vendor: any | null;
   }>({ products: {}, vendor: null });
 
+  // Orders paid through a payment link have no product listing behind them
+  // (product_id is null), so only the vendor can be rated for those items.
+  const reviewableItems = order?.order_items?.filter((item) => item.product_id) ?? [];
+
   useEffect(() => {
     if (open && order) {
       checkExistingReviews();
@@ -55,7 +59,7 @@ export const OrderReviewDialog = ({
     if (!user || !order) return;
 
     // Check for existing product reviews
-    const productIds = order.order_items?.map((item) => item.product_id) || [];
+    const productIds = reviewableItems.map((item) => item.product_id);
     if (productIds.length > 0) {
       const { data: productReviewsData } = await supabase
         .from("reviews")
@@ -97,10 +101,10 @@ export const OrderReviewDialog = ({
     }
 
     // Validate at least one product rating
-    const hasProductRating = order.order_items?.some(
+    const hasProductRating = reviewableItems.some(
       (item) => productRatings[item.product_id] > 0
     );
-    if (!hasProductRating) {
+    if (reviewableItems.length > 0 && !hasProductRating) {
       toast.error("Please rate at least one product");
       return;
     }
@@ -108,8 +112,8 @@ export const OrderReviewDialog = ({
     setSubmitting(true);
     try {
       // Submit product reviews
-      const productReviewPromises = order.order_items
-        ?.filter((item) => productRatings[item.product_id] > 0)
+      const productReviewPromises = reviewableItems
+        .filter((item) => productRatings[item.product_id] > 0)
         .map(async (item) => {
           const existingReview = existingReviews.products[item.product_id];
           const reviewData = {
@@ -122,15 +126,16 @@ export const OrderReviewDialog = ({
           };
 
           if (existingReview) {
-            // Update existing review
-            return supabase
-              .from("reviews")
-              .update(reviewData)
-              .eq("id", existingReview.id);
-          } else {
-            // Create new review
-            return supabase.from("reviews").insert(reviewData);
+            return supabase.from("reviews").update(reviewData).eq("id", existingReview.id);
           }
+          const inserted = await supabase.from("reviews").insert(reviewData);
+          // One review per order + product: if it already exists (e.g. a
+          // retry after a partial failure), update it instead of failing.
+          if (inserted.error?.code === "23505") {
+            return supabase.from("reviews").update(reviewData)
+              .eq("order_id", order.id).eq("product_id", item.product_id);
+          }
+          return inserted;
         }) || [];
 
       // Submit vendor rating using upsert to handle both insert and update
@@ -150,9 +155,13 @@ export const OrderReviewDialog = ({
 
       const results = await Promise.all([...productReviewPromises, vendorPromise]);
 
-      const hasError = results.some((result) => result.error);
-      if (hasError) {
-        toast.error("Failed to submit some reviews. Please try again.");
+      const failed = results.find((result) => result.error);
+      if (failed?.error) {
+        const which = failed === results[results.length - 1] ? "vendor rating" : "product review";
+        console.error(`Review submit failed (${which}):`, failed.error);
+        // Show the real reason (humanised by toast) instead of a generic message.
+        toast.error(failed.error, { description: `Your ${which} wasn't saved. Please try again.` });
+        await checkExistingReviews();
         return;
       }
 
@@ -175,15 +184,16 @@ export const OrderReviewDialog = ({
         <DialogHeader>
           <DialogTitle>Review Your Order</DialogTitle>
           <DialogDescription>
-            Share your experience with the products and vendor from order #{order.id.slice(0, 8)}
+            Share your experience with {reviewableItems.length > 0 ? "the products and seller" : "the seller"} from order #{order.id.slice(0, 8)}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
-          {/* Product Reviews */}
+          {/* Product Reviews (only items that are real product listings) */}
+          {reviewableItems.length > 0 && (
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">Rate Products</h3>
-            {order.order_items.map((item) => {
+            {reviewableItems.map((item) => {
               const existingReview = existingReviews.products[item.product_id];
               const currentRating = productRatings[item.product_id] || existingReview?.rating || 0;
               const currentReview = productReviews[item.product_id] || existingReview?.comment || "";
@@ -260,9 +270,10 @@ export const OrderReviewDialog = ({
               );
             })}
           </div>
+          )}
 
           {/* Vendor Rating */}
-          <div className="border-t pt-4 space-y-4">
+          <div className={`space-y-4 ${reviewableItems.length > 0 ? "border-t pt-4" : ""}`}>
             <h3 className="font-semibold text-lg">Rate Vendor</h3>
             <div className="border rounded-lg p-4 space-y-3">
               {existingReviews.vendor && (

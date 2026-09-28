@@ -1,219 +1,199 @@
-import { Shield, Lock, Package, Zap, ShoppingBag, Tag, CheckCircle, Truck, ArrowRight } from "lucide-react";
+import { Lock, Package, KeyRound, Wallet, Check, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
 import { SEO } from "@/components/SEO";
+import { Eyebrow, Accent, SectionIntro, CtaPanel, FaqList } from "@/components/Marketing";
 
 const steps = [
   {
-    step: "01",
-    icon: ShoppingBag,
-    title: "Browse & Order",
+    icon: Wallet,
+    title: "Order and pay",
     details: [
-      "Browse verified sellers across 9 categories",
-      "Add items to cart, no account needed to browse",
+      "Browse sellers on Solely, or open a seller's payment link",
       "Choose delivery or pickup at checkout",
-      "Pay securely via M-Pesa",
+      "Pay with M-Pesa. No account needed to browse",
     ],
   },
   {
-    step: "02",
     icon: Lock,
-    title: "Your Money is Protected",
+    title: "We hold the money",
     details: [
-      "Your payment is immediately held in a protected account",
-      "The vendor is notified and prepares your order",
-      "Vendor accepts or declines within 24 hours",
-      "If declined, funds are returned instantly",
+      "Your payment goes into a Solely holding account, not to the seller",
+      "The seller accepts or declines within 24 hours",
+      "If they decline, you get your money back straight away",
     ],
   },
   {
-    step: "03",
     icon: Package,
-    title: "Receive Your Package",
+    title: "Receive and check",
     details: [
-      "Vendor dispatches and a 3-digit PIN is generated",
-      "PIN is written on your physical package",
-      "You enter the PIN in the app to confirm receipt",
-      "A 6-digit release code is then generated for you",
+      "The seller dispatches and writes a 3-digit PIN on your package",
+      "Check the item, then enter the PIN to confirm you have it",
+      "Solely then gives you a 6-digit release code",
     ],
   },
   {
-    step: "04",
-    icon: Zap,
-    title: "Confirm & Release",
+    icon: KeyRound,
+    title: "Release the payment",
     details: [
-      "Show the 6-digit code to the vendor (in-person or screenshot)",
-      "Vendor enters the code in their app",
-      "Funds are released to vendor's wallet instantly",
-      "If vendor is absent, funds auto-release after 6 hours",
+      "Show the release code to the seller, in person or as a screenshot",
+      "The seller enters it and gets paid on the spot",
+      "If you don't share it, the money releases 6 hours after your PIN",
     ],
   },
 ];
 
 const pickupSteps = [
-  { title: "Pay via M-Pesa, money is protected" },
-  { title: "Vendor prepares your item for pickup" },
-  { title: "Collect item in person" },
-  { title: "App generates your 6-digit release code" },
-  { title: "Show code to vendor → funds released" },
+  "Pay with M-Pesa. We hold the money",
+  "The seller gets your item ready",
+  "Collect it and check it in person",
+  "Show the release code and the seller is paid",
 ];
 
 const faqs = [
   {
-    q: "What if I enter the PIN but the vendor never comes?",
-    a: "After 6 hours, the funds are automatically released to the vendor. If you believe the item was stolen, you can file a stolen item report and our team will investigate and may ban the buyer.",
+    q: "What if my order never arrives?",
+    a: "Your money stays locked until you enter the delivery PIN. Open a dispute and we'll refund you in full if the seller can't prove they dispatched it.",
   },
   {
-    q: "What if the item doesn't arrive?",
-    a: "If delivery hasn't happened and you haven't entered any PIN, your funds stay locked. You can open a dispute and we'll mediate, including a full refund if the vendor can't prove dispatch.",
+    q: "What if it's damaged or not as described?",
+    a: "Open a dispute any time before the money is released. Our team reviews every dispute within 24 hours and can refund you or release the payment to the seller.",
   },
   {
-    q: "Can I file a dispute?",
-    a: "Yes. At any point before funds are released, you can open a dispute (broken item, not as described, etc.). Our admin team reviews within 24 hours and can refund you or release to the vendor.",
+    q: "I entered the PIN. What happens if I never share the release code?",
+    a: "The money releases to the seller automatically 6 hours after you enter the PIN. Only enter it once the item is in your hands and you've checked it.",
   },
   {
-    q: "What about pickup orders?",
-    a: "For pickup, no PIN is needed on the package. The buyer collects the item and the release code is generated directly. They show it to the vendor and funds are released.",
+    q: "How long does the seller have to dispatch?",
+    a: "Sellers must dispatch within the time shown on the product page. If they don't, you can cancel and get a full refund.",
   },
   {
-    q: "How long does the vendor have to dispatch?",
-    a: "Vendors must accept and dispatch within the timeframe shown on the product page. If they fail to dispatch, you can cancel and receive a full refund.",
+    q: "How do pickup orders work?",
+    a: "There's no PIN on a package. You collect the item, Solely gives you the release code, and you show it to the seller.",
   },
 ];
 
 const HowItWorks = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div data-layout="designed" className="min-h-screen bg-background">
       <SEO
-        title="How Sole.ly Works - Trusted Checkout for Kenya"
-        description="Learn how Sole.ly protects every transaction. Your money stays safe until delivery. No more pay-and-pray. Both buyers and sellers are protected."
+        title="How Solely Protects Your Money"
+        description="See how Solely holds your M-Pesa payment until your order arrives and pays the seller when you confirm. Full refund if it never comes."
         canonical="https://solelymarketplace.com/how-it-works"
       />
 
       {/* Hero */}
-      <section className="bg-gradient-hero text-primary-foreground py-14 sm:py-20">
-        <div className="container mx-auto px-4 text-center">
-          <Badge className="mb-4 bg-black/20 text-primary-foreground border-0 text-xs font-bold uppercase tracking-widest">
-            100% Buyer Protection
-          </Badge>
-          <h1 className="text-3xl sm:text-5xl font-extrabold mb-4 leading-tight">
-            Shopping Without Stress
+      <section className="pt-10 pb-12 sm:pt-14 lg:pt-20 lg:pb-16">
+        <div className="container mx-auto px-6 max-w-5xl">
+          <Eyebrow className="mb-7">Buyer protection on every order</Eyebrow>
+          <h1 className="font-display text-[2.75rem] sm:text-6xl lg:text-7xl leading-[1] [text-wrap:balance]">
+            Your money waits <Accent>until your order arrives.</Accent>
           </h1>
-          <p className="text-base sm:text-xl max-w-2xl mx-auto opacity-90">
-            Your money stays safe at every step, protected until you receive exactly what you ordered.
+          <p className="mt-7 max-w-[36rem] text-lg md:text-xl text-muted-foreground leading-relaxed [text-wrap:pretty]">
+            You pay with M-Pesa, we hold it, and the seller is paid only after you've checked the item.
+            If it never comes, you get it all back.
           </p>
-          <div className="flex flex-wrap gap-3 justify-center mt-8">
-            <Button size="lg" variant="secondary" className="rounded-full font-bold" asChild>
-              <Link to="/shop"><ShoppingBag size={16} strokeWidth={1.5} className=" mr-2" /> Start Shopping</Link>
+          <div className="mt-10 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-7">
+            <Button
+              size="lg"
+              asChild
+              className="h-14 rounded-full px-8 text-base font-semibold hover:bg-primary-hover transition-[transform,background-color] duration-200 active:scale-[0.97]"
+            >
+              <Link to="/shop">Start shopping <ArrowRight className="ml-2 w-4 h-4" strokeWidth={2} /></Link>
             </Button>
-            <Button size="lg" variant="outline" className="rounded-full border-2 border-primary-foreground/60 text-primary-foreground bg-transparent hover:bg-primary-foreground hover:text-primary font-bold" asChild>
-              <Link to="/vendor"><Tag size={16} strokeWidth={1.5} className=" mr-2" /> Start Selling</Link>
-            </Button>
+            <Link
+              to="/vendor"
+              className="inline-flex items-center justify-center py-3 -my-3 text-base font-medium text-muted-foreground hover:text-foreground underline decoration-foreground/20 underline-offset-[6px] hover:decoration-foreground transition-colors"
+            >
+              I'm a seller
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Delivery flow */}
-      <section className="py-14 sm:py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-3 text-xs font-bold uppercase tracking-widest">Delivery Orders</Badge>
-            <h2 className="text-2xl sm:text-3xl font-extrabold">4-Step Delivery Escrow</h2>
-            <p className="text-muted-foreground mt-2 max-w-lg mx-auto">
-              The 3-digit PIN on your package is your proof of receipt. No PIN entry = no payment released.
-            </p>
-          </div>
-
-          <div className="relative flex flex-col gap-0 max-w-2xl mx-auto mt-8 text-left">
-            <div className="absolute left-[17px] top-[18px] bottom-[18px] w-[2px] bg-border" />
+      <section className="py-14 sm:py-16 lg:py-20 bg-sunken">
+        <div className="container mx-auto px-6">
+          <SectionIntro eyebrow="Delivery orders" title="Four steps, and the seller is paid last">
+            The PIN on your package is your proof of receipt. Until you enter it, the seller can't touch the money.
+          </SectionIntro>
+          <ol className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {steps.map((step, i) => {
               const Icon = step.icon;
               return (
-                <motion.div
-                  key={step.step}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.12 }}
-                  className="relative z-10 flex flex-nowrap items-start gap-4 pb-8 last:pb-0"
-                >
-                  <div className="w-9 h-9 flex-shrink-0 rounded-full border-2 border-primary bg-background flex items-center justify-center text-sm font-medium text-primary">
-                    {i + 1}
+                <li key={step.title} className="rounded-3xl bg-card p-5 lg:p-7 shadow-card flex flex-col">
+                  <div className="flex items-center justify-between">
+                    <span className="font-display text-5xl text-[hsl(40_62%_33%)] dark:text-primary tabular-nums">{i + 1}</span>
+                    <Icon size={20} strokeWidth={1.75} className="text-foreground/40" aria-hidden="true" />
                   </div>
-                  <div className="pt-1.5">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Icon size={14} strokeWidth={1.5} className="text-primary" />
-                      <p className="text-sm font-semibold text-foreground">{step.title}</p>
-                    </div>
-                    <ul className="space-y-2 mt-2">
-                      {step.details.map((d) => (
-                        <li key={d} className="flex items-start gap-2 text-sm text-muted-foreground leading-relaxed">
-                          <CheckCircle size={14} strokeWidth={1.5} className="mt-0.5 shrink-0 text-primary/60" />
-                          {d}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </motion.div>
+                  <h3 className="mt-3 lg:mt-6 text-lg font-semibold text-foreground">{step.title}</h3>
+                  <ul className="mt-3 space-y-2.5">
+                    {step.details.map((d) => (
+                      <li key={d} className="flex items-start gap-2.5 text-sm text-muted-foreground leading-relaxed">
+                        <Check size={14} strokeWidth={2.25} className="mt-1 shrink-0 text-foreground/35" aria-hidden="true" />
+                        {d}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
               );
             })}
-          </div>
+          </ol>
         </div>
       </section>
 
       {/* Pickup flow */}
-      <section className="py-12 sm:py-16 bg-muted/40">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto text-center mb-10">
-            <Badge variant="secondary" className="mb-3 text-xs font-bold uppercase tracking-widest">Pickup Orders</Badge>
-            <h2 className="text-2xl sm:text-3xl font-extrabold">Simpler - But Still Protected</h2>
-            <p className="text-muted-foreground mt-2">No PIN on the package needed. Just collect, confirm, release.</p>
+      <section className="py-14 sm:py-16 lg:py-20 bg-cream border-b border-primary/25">
+        <div className="container mx-auto px-6 grid lg:grid-cols-12 gap-6 lg:gap-16 items-start">
+          <div className="lg:col-span-5">
+            <Eyebrow className="mb-5">Pickup orders</Eyebrow>
+            <h2 className="font-display text-4xl md:text-5xl leading-[1.04] [text-wrap:balance]">
+              Simpler, <Accent>still protected.</Accent>
+            </h2>
+            <p className="mt-5 text-muted-foreground text-lg leading-relaxed max-w-md">
+              No PIN needed. Collect, check and release, all in one visit.
+            </p>
           </div>
-          <div className="relative flex flex-col gap-0 max-w-2xl mx-auto text-left">
-            <div className="absolute left-[17px] top-[18px] bottom-[18px] w-[2px] bg-border" />
+          <ol className="lg:col-span-7 divide-y divide-primary/25 border-y border-primary/25">
             {pickupSteps.map((s, i) => (
-              <div key={i} className="relative z-10 flex flex-nowrap items-start gap-4 pb-8 last:pb-0">
-                <div className="w-9 h-9 flex-shrink-0 rounded-full border-2 border-primary bg-background flex items-center justify-center text-sm font-medium text-primary">
-                  {i + 1}
-                </div>
-                <div className="pt-1.5">
-                  <p className="text-sm font-semibold text-foreground mb-1">{s.title}</p>
-                </div>
-              </div>
+              <li key={s} className="grid grid-cols-[2.5rem_1fr] items-baseline gap-3 py-4">
+                <span className="font-display text-2xl text-foreground/30 tabular-nums">{i + 1}</span>
+                <span className="text-foreground/85">{s}</span>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="py-12 sm:py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-center mb-10">Common Questions</h2>
-          <div className="space-y-4">
-            {faqs.map((faq) => (
-              <div key={faq.q} className="border border-border rounded-xl p-6 bg-card">
-                <h3 className="font-bold mb-2">{faq.q}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
-              </div>
-            ))}
-          </div>
+      <section className="py-14 sm:py-16 lg:py-20">
+        <div className="container mx-auto px-6">
+          <h2 className="font-display text-4xl md:text-5xl leading-[1.04] mb-6 lg:mb-8">Questions buyers ask</h2>
+          <FaqList items={faqs} />
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-12 sm:py-16 bg-gradient-hero text-primary-foreground text-center">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl sm:text-4xl font-extrabold mb-3">Convinced? Start Shopping.</h2>
-          <p className="text-sm sm:text-lg mb-6 opacity-90 max-w-md mx-auto">
-            Every order. Every time. Escrow protection included.
-          </p>
-          <Button size="lg" variant="secondary" className="rounded-full font-bold" asChild>
-            <Link to="/shop"><ShoppingBag size={16} strokeWidth={1.5} className=" mr-2" /> Browse All Items</Link>
-          </Button>
+      <CtaPanel>
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-end">
+          <div className="lg:col-span-7">
+            <Eyebrow tone="inverse" className="mb-6">Every order, protected</Eyebrow>
+            <h2 className="font-display text-4xl sm:text-5xl leading-[1.04] [text-wrap:balance]">
+              Shop sellers you found online, <Accent onDark>without the gamble.</Accent>
+            </h2>
+          </div>
+          <div className="lg:col-span-5 flex flex-wrap items-center gap-x-7 gap-y-4 lg:justify-end">
+            <Button size="lg" className="h-12 rounded-full px-7 font-semibold hover:bg-primary-hover active:scale-[0.97]" asChild>
+              <Link to="/shop">Browse the shop</Link>
+            </Button>
+            <Link
+              to="/vendors"
+              className="inline-flex items-center gap-1 py-3 -my-3 text-sm font-medium text-secondary-foreground/75 hover:text-secondary-foreground transition-colors"
+            >
+              See all stores
+            </Link>
+          </div>
         </div>
-      </section>
+      </CtaPanel>
     </div>
   );
 };

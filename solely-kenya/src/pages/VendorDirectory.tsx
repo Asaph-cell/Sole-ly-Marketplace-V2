@@ -150,8 +150,10 @@ const VendorDirectory = () => {
         .order("store_name", { ascending: true });
 
       if (!error && data) {
+        // Stores appear here once their public profile (setup level 2) is
+        // done. The pickup address is private, so it isn't checked here.
         const activeVendors = data
-          .filter((v) => v.store_name)
+          .filter((v) => v.store_name && v.store_logo_url && v.store_description && v.vendor_city)
           .map((v) => ({ ...v, products: productsByVendor.get(v.id) || [] }));
         setVendors(activeVendors);
       }
@@ -167,12 +169,12 @@ const VendorDirectory = () => {
 
   return (
     <div className="min-h-screen bg-muted/20 pb-20">
-      <SEO title="All Stores & Vendors | Sole-ly" description="Browse all verified sellers and stores on Sole-ly. Every purchase is protected, your money is safe until delivery." />
+      <SEO title="Sellers and Stores in Kenya" description="Browse sellers on Solely. Every order is buyer-protected: we hold your money until the order arrives." />
 
       {/* Header */}
       <div className="bg-primary/5 border-b border-primary/10">
         <div className="container mx-auto px-4 py-12 md:py-16 text-center">
-          <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight mb-4">Official Stores & Vendors</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight mb-4">Sellers and stores</h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
             Shop directly from your favorite Instagram sellers and local brands with full Escrow protection.
           </p>

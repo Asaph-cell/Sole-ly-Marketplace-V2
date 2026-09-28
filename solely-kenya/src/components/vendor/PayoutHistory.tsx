@@ -1,22 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Download, Clock, CheckCircle, XCircle } from 'lucide-react';
 
-interface Payout {
-    id: string;
-    amount_ksh: number;
-    status: string;
-    method: string;
-    reference: string | null;
-    trigger_type: string;
-    balance_before: number | null;
-    fee_paid_by: string;
-    requested_at: string;
-    processed_at: string | null;
-}
+// Row type straight from the database schema, so it can't drift from the table.
+type Payout = Tables<"payouts">;
 
 export function PayoutHistory({ vendorId }: { vendorId: string }) {
     const { data: payouts, isLoading } = useQuery<Payout[]>({

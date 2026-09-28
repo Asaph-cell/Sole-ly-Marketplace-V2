@@ -13,7 +13,7 @@ export default function Maintenance() {
                 </h1>
 
                 <p className="text-neutral-600 mb-8 leading-relaxed">
-                    Sole-ly Kenya is currently undergoing scheduled maintenance to improve your shopping experience. We apologize for the inconvenience.
+                    Solely Kenya is currently undergoing scheduled maintenance to improve your shopping experience. We apologize for the inconvenience.
                 </p>
 
                 <div className="space-y-4">
@@ -33,7 +33,7 @@ export default function Maintenance() {
                 </div>
 
                 <div className="mt-8 text-xs text-neutral-400">
-                    &copy; {new Date().getFullYear()} Sole-ly Kenya. All rights reserved.
+                    &copy; {new Date().getFullYear()} Solely Kenya. All rights reserved.
                 </div>
             </div>
         </div>

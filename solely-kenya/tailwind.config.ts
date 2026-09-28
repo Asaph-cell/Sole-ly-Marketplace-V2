@@ -18,6 +18,15 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        // DM Sans for all UI and body copy.
+        sans: ['"DM Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
+        // DM Serif Display for headlines. It ships a single weight (400), so
+        // never pair it with font-bold: browsers would fake-bold it.
+        display: ['"DM Serif Display"', "ui-serif", "Georgia", "serif"],
+        // The gold italic accent on key phrases uses the same face, italic.
+        serif: ['"DM Serif Display"', "ui-serif", "Georgia", "serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -53,6 +62,8 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        sunken: "hsl(var(--surface-sunken))",
+        cream: "hsl(var(--surface-cream))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar))",
           foreground: "hsl(var(--sidebar-foreground))",

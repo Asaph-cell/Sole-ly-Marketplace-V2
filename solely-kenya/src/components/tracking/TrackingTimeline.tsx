@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useSignedEvidence } from "@/lib/disputeEvidence";
 import { Loader2, Package, Truck, CheckCircle, Clock } from "lucide-react";
 
 type TrackingEvent = {
@@ -46,6 +47,11 @@ export function TrackingTimeline({ orderId }: { orderId: string }) {
       supabase.removeChannel(channel);
     };
   }, [orderId]);
+
+  // Proof photos are private; resolve them to short-lived signed URLs.
+  const proofEvents = events.filter((e) => e.proof_image_url);
+  const proofIndex = new Map(proofEvents.map((e, i) => [e.id, i]));
+  const proofUrls = useSignedEvidence(proofEvents.map((e) => e.proof_image_url));
 
   if (loading) {
     return <div className="flex justify-center p-4 mt-4"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -109,10 +115,10 @@ export function TrackingTimeline({ orderId }: { orderId: string }) {
                   </p>
                 )}
 
-                {event.proof_image_url && (
+                {event.proof_image_url && proofUrls[proofIndex.get(event.id) ?? -1] && (
                   <div className="mt-2">
-                    <img 
-                      src={event.proof_image_url} 
+                    <img
+                      src={proofUrls[proofIndex.get(event.id) ?? -1]}
                       alt="Proof" 
                       className="rounded-lg border border-border max-h-32 max-w-full object-cover"
                       loading="lazy"

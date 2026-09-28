@@ -170,14 +170,14 @@ const VendorPaymentLinks = () => {
     const price = link.product_id ? link.product?.price_ksh : link.custom_price_ksh;
     
     const msg = encodeURIComponent(
-      `Hey! Here is the secure payment link for *${title}* (KES ${price.toLocaleString()}) 🛍️\n\nYour payment will be held securely in Sole-ly Escrow until you confirm delivery 🔒\n\nPay here: 👉 ${url}`
+      `Hey! Here is the secure payment link for *${title}* (KES ${price.toLocaleString()}) 🛍️\n\nYour payment will be held securely in Solely Escrow until you confirm delivery 🔒\n\nPay here: 👉 ${url}`
     );
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
 
   return (
     <div className="min-h-screen bg-muted/30 overflow-x-hidden">
-      <SEO title="Payment Links - Vendor Dashboard" />
+      <SEO title="Payment links" description="Create and share protected Solely payment links for your WhatsApp, Instagram and TikTok customers." />
       <VendorNavbar />
       
       <div className="flex">

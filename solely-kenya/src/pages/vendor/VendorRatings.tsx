@@ -97,7 +97,7 @@ const VendorRatings = () => {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            <SEO title="My Ratings - Vendor Dashboard" />
+            <SEO title="My ratings" description="See what buyers say about your store and your average rating on Solely." />
             <VendorNavbar />
             
             <div className="flex flex-1 overflow-hidden">

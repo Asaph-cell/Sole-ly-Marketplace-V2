@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { FormSkeleton } from "@/components/skeletons";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,7 @@ import { VideoUploader } from "@/components/VideoUploader";
 import { PricingCalculator } from "@/components/vendor/PricingCalculator";
 import { AlertTriangle } from "lucide-react";
 import { CATEGORIES, ALL_CATEGORIES } from "@/lib/categories";
+import { parseSizesInput } from "@/lib/sizes";
 import { compressImages } from "@/lib/compressImage";
 
 const VendorEditProduct = () => {
@@ -25,6 +26,7 @@ const VendorEditProduct = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const originalPrice = useRef<number | null>(null); // price when the page loaded
   const [loadingProduct, setLoadingProduct] = useState(true);
 
   const [formData, setFormData] = useState({
@@ -72,6 +74,7 @@ const VendorEditProduct = () => {
       if (error) throw error;
 
       if (data) {
+        originalPrice.current = data.price_ksh;
         setFormData({
           name: data.name,
           description: data.description || "",
@@ -168,7 +171,7 @@ const VendorEditProduct = () => {
     setSubmitting(true);
 
     try {
-      const sizesArray = formData.sizes.split(",").map((s) => s.trim()).filter(Boolean);
+      const sizesArray = parseSizesInput(formData.sizes); // "38-45" becomes 38, 39 … 45
       const colorsArray = formData.colors.split(",").map((c) => c.trim()).filter(Boolean);
       const keyFeaturesArray = formData.key_features.split(",").map((s) => s.trim()).filter(Boolean);
 
@@ -202,6 +205,11 @@ const VendorEditProduct = () => {
         .eq("vendor_id", user?.id);
 
       if (error) throw error;
+
+      // Price went down: let buyers with a price alert know (runs in the background).
+      if (originalPrice.current != null && parseInt(formData.price_ksh) < originalPrice.current) {
+        supabase.functions.invoke("notify-price-drop", { body: { productId: id } }).catch(() => {});
+      }
 
       toast.success("Product updated successfully!");
       navigate("/vendor/products");

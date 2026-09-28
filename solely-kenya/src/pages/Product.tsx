@@ -4,7 +4,7 @@ import { ProductDetailSkeleton } from "@/components/skeletons";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shield, ArrowLeft, Bell, BellOff, X, ChevronRight, Share2, Copy, BarChart2, Flag } from "lucide-react";
+import { Shield, ShieldCheck, Store, ArrowLeft, Bell, BellOff, X, ChevronRight, Share2, Copy, BarChart2, Flag } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/lib/toast";
@@ -35,17 +35,18 @@ import 'swiper/css';
 import 'swiper/css/free-mode';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
+import { expandSizes } from "@/lib/sizes";
 import { recordProductView } from "@/lib/productViews";
 
 // Condition labels for display - with footwear and accessory-specific descriptions
 const conditionLabels: Record<string, { label: string; color: string; footwearDesc: string; accessoryDesc: string }> = {
-  new:         { label: "New",          color: "bg-emerald-500", footwearDesc: "Brand new, never worn",        accessoryDesc: "Sealed, never used" },
-  thrifted:    { label: "Thrifted",     color: "bg-purple-500",  footwearDesc: "Pre-owned, honestly described", accessoryDesc: "Pre-owned, good condition" },
-  refurbished: { label: "Refurbished",  color: "bg-blue-500",   footwearDesc: "Tested & fully working",        accessoryDesc: "Tested & fully working" },
+  new:         { label: "New",          color: "bg-[#1a5138]", footwearDesc: "Brand new, never worn",        accessoryDesc: "Sealed, never used" },
+  thrifted:    { label: "Thrifted",     color: "bg-[#5b3671]",  footwearDesc: "Pre-owned, honestly described", accessoryDesc: "Pre-owned, good condition" },
+  refurbished: { label: "Refurbished",  color: "bg-[#2b4162]",   footwearDesc: "Tested & fully working",        accessoryDesc: "Tested & fully working" },
   // Legacy fallbacks for older listings
-  like_new:    { label: "Refurbished",  color: "bg-blue-500",   footwearDesc: "Used once or twice, no wear",   accessoryDesc: "Tested & fully working" },
-  good:        { label: "Thrifted",     color: "bg-purple-500", footwearDesc: "Pre-owned, honestly described", accessoryDesc: "Pre-owned, good condition" },
-  fair:        { label: "Thrifted",     color: "bg-purple-500", footwearDesc: "Pre-owned, honestly described", accessoryDesc: "Pre-owned, good condition" },
+  like_new:    { label: "Refurbished",  color: "bg-[#2b4162]",   footwearDesc: "Used once or twice, no wear",   accessoryDesc: "Tested & fully working" },
+  good:        { label: "Thrifted",     color: "bg-[#5b3671]", footwearDesc: "Pre-owned, honestly described", accessoryDesc: "Pre-owned, good condition" },
+  fair:        { label: "Thrifted",     color: "bg-[#5b3671]", footwearDesc: "Pre-owned, honestly described", accessoryDesc: "Pre-owned, good condition" },
 };
 
 
@@ -111,7 +112,8 @@ const Product = () => {
         return;
       }
 
-      setProduct(productData);
+      // Sizes typed as a range ("38-45") become individual choices.
+      setProduct({ ...productData, sizes: expandSizes(productData.sizes) });
 
       // Track for personalization
       trackProductView(productData.category, productData.brand);
@@ -361,7 +363,7 @@ const Product = () => {
       {product && (
         <SEO
           title={product.name}
-          description={product.description || `Buy ${product.name} online in Kenya for KES ${product.price_ksh.toLocaleString()}. ${product.brand ? `Brand: ${product.brand}.` : ''} Escrow-protected payment. Verified seller.`}
+          description={product.description || `Buy ${product.name} online in Kenya for KES ${product.price_ksh.toLocaleString()}. ${product.brand ? `Brand: ${product.brand}.` : ''} Your money is held until your order arrives.`}
           image={product.images?.[0]}
           type="product"
           price={product.price_ksh}
@@ -457,7 +459,7 @@ const Product = () => {
                             className="w-full h-full object-cover opacity-80"
                           />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                            <div className="bg-purple-500 rounded-full p-1">
+                            <div className="bg-[#5b3671] rounded-full p-1">
                               <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M8 5v14l11-7z" />
                               </svg>
@@ -540,7 +542,7 @@ const Product = () => {
                       loading="lazy"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                      <div className="bg-purple-500 rounded-full p-1.5">
+                      <div className="bg-[#5b3671] rounded-full p-1.5">
                         <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M8 5v14l11-7z" />
                         </svg>
@@ -592,7 +594,7 @@ const Product = () => {
                       <div className="flex items-center justify-center gap-4 mb-4">
                         <WhatsappShareButton
                           url={window.location.href}
-                          title={`Check out ${product.name} on Sole-ly! KES ${product.price_ksh.toLocaleString()}`}
+                          title={`Check out ${product.name} on Solely! KES ${product.price_ksh.toLocaleString()}`}
                           className="hover:scale-110 transition-transform"
                         >
                           <WhatsappIcon size={40} round />
@@ -606,7 +608,7 @@ const Product = () => {
                         </FacebookShareButton>
                         <TwitterShareButton
                           url={window.location.href}
-                          title={`Check out ${product.name} on Sole-ly!`}
+                          title={`Check out ${product.name} on Solely!`}
                           hashtags={["Solely", "SolelyKenya"]}
                           className="hover:scale-110 transition-transform"
                         >
@@ -622,7 +624,7 @@ const Product = () => {
                           className="w-full justify-start h-auto py-2"
                           onClick={() => {
                             navigator.clipboard.writeText(window.location.href);
-                            toast.success("Link copied to clipboard!");
+                            toast.success("Link copied");
                             setShowShareMenu(false);
                           }}
                         >
@@ -648,11 +650,11 @@ const Product = () => {
                 {product.stock > 0 ? (
                   <Badge variant="default">In Stock ({product.stock} available)</Badge>
                 ) : (
-                  <Badge variant="secondary">Out of Stock</Badge>
+                  <Badge variant="secondary">Out of stock</Badge>
                 )}
                 {product.free_delivery && (
-                  <Badge className="bg-gradient-to-r from-emerald-400 to-green-600 hover:from-emerald-500 hover:to-green-700 text-white border-none shadow-md shadow-green-500/30 px-3 py-1 uppercase tracking-wider font-bold">
-                    🚚 Free Delivery
+                  <Badge className="bg-[#1a5138] hover:bg-[#1a5138] text-white border-none px-3 py-1 font-medium">
+                    Free delivery
                   </Badge>
                 )}
               </div>
@@ -811,28 +813,33 @@ const Product = () => {
                   try {
                     if (priceAlertActive) {
                       // Remove alert
-                      await supabase
+                      const { error } = await supabase
                         .from("price_alerts")
                         .delete()
                         .eq("user_id", user.id)
                         .eq("product_id", id);
+                      if (error) throw error;
                       setPriceAlertActive(false);
                       toast.success("Price alert removed");
                     } else {
                       // Add alert
-                      await supabase
+                      // One alert per buyer per product: re-arming reuses the old row,
+                      // resets it to today's price and clears the "already sent" mark.
+                      const { error } = await supabase
                         .from("price_alerts")
                         .upsert({
                           user_id: user.id,
                           product_id: id,
                           original_price: product.price_ksh,
                           is_active: true,
-                        });
+                          notified_at: null,
+                        }, { onConflict: "user_id,product_id" });
+                      if (error) throw error;
                       setPriceAlertActive(true);
-                      toast.success("You'll be notified when the price drops!");
+                      toast.success("We'll tell you when the price drops");
                     }
                   } catch (error: any) {
-                    toast.error("Failed to set price alert");
+                    toast.error(error, { description: "Your price alert wasn't changed." });
                   } finally {
                     setAlertLoading(false);
                   }
@@ -856,15 +863,24 @@ const Product = () => {
                   <p className="text-xs text-muted-foreground">Payment held until delivery</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Shield strokeWidth={1.5} className="h-8 w-8 text-primary" />
-                <div>
-                  <p className="font-semibold text-sm">Verified Seller</p>
-                  <p className="text-xs text-muted-foreground">
-                    {vendorProfile?.store_name || "Trusted seller"}
-                  </p>
+              {/* Only sellers whose ID check was approved get the Verified claim */}
+              {vendorProfile?.kyc_status === "approved" ? (
+                <div className="flex items-center gap-3">
+                  <ShieldCheck strokeWidth={1.5} className="h-8 w-8 text-primary" />
+                  <div>
+                    <p className="font-semibold text-sm">Verified seller</p>
+                    <p className="text-xs text-muted-foreground">{vendorProfile.store_name}</p>
+                  </div>
                 </div>
-              </div>
+              ) : vendorProfile?.store_name ? (
+                <Link to={`/store/${vendorProfile.store_link || vendorProfile.id}`} className="group flex items-center gap-3">
+                  <Store strokeWidth={1.5} className="h-8 w-8 text-foreground/50" />
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm">Sold by</p>
+                    <p className="text-xs text-muted-foreground truncate group-hover:text-foreground group-hover:underline">{vendorProfile.store_name}</p>
+                  </div>
+                </Link>
+              ) : null}
             </div>
 
             {/* Deliberately understated, but present on every listing: this is
@@ -886,7 +902,7 @@ const Product = () => {
       {similarProducts.length > 0 && (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 border-t border-border mt-8">
           <div className="flex items-center justify-between mb-5 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold">Similar Products</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">Similar products</h2>
             <Link to={product?.brand ? `/shop?search=${encodeURIComponent(product.brand)}` : `/shop?category=${product?.category || ''}`} className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
               View All <ChevronRight size={16} strokeWidth={1.5}  />
             </Link>

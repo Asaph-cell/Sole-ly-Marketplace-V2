@@ -24,6 +24,7 @@ interface VendorDetails {
   id: string;
   full_name: string | null;
   created_at: string;
+  kyc_status?: string | null;
   rating?: number;
   total_sales?: number;
   status: string;
@@ -61,7 +62,7 @@ const AdminVendors = () => {
       }
 
       const [{ data: profiles, error: profilesError }, { data: ratingStats }, { data: completedOrders }] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, created_at").in("id", allVendorIds),
+        supabase.from("profiles").select("id, full_name, created_at, kyc_status").in("id", allVendorIds),
         supabase.from("vendor_rating_stats").select("vendor_id, avg_rating, rating_count").in("vendor_id", allVendorIds),
         supabase.from("orders").select("vendor_id").eq("status", "completed").in("vendor_id", allVendorIds),
       ]);
@@ -84,6 +85,8 @@ const AdminVendors = () => {
         };
       });
 
+      // Sellers waiting on a verification review float to the top.
+      vendorsData.sort((a, b) => Number(b.kyc_status === "pending") - Number(a.kyc_status === "pending"));
       setVendors(vendorsData);
     } catch (error) {
       console.error("Error loading vendors:", error);
@@ -123,8 +126,15 @@ const AdminVendors = () => {
     return fullName.includes(searchQuery.toLowerCase()) || v.id.includes(searchQuery);
   });
 
+  const pendingReviews = vendors.filter(v => v.kyc_status === "pending").length;
+
   return (
     <AdminLayout pageTitle="Vendors">
+      {pendingReviews > 0 && (
+        <div className="mb-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-xs text-foreground">
+          {pendingReviews} {pendingReviews === 1 ? "seller is" : "sellers are"} waiting for a verification review. They're at the top of the list.
+        </div>
+      )}
       <SearchBar 
         placeholder="Search vendors..." 
         value={searchQuery}
@@ -156,6 +166,11 @@ const AdminVendors = () => {
                 <Link to={`/admin/vendors/${v.id}`} className="text-xs font-medium text-foreground truncate hover:text-primary transition-colors block">
                   {v.full_name || "Unknown Vendor"}
                 </Link>
+                {v.kyc_status === "pending" && (
+                  <Link to={`/admin/vendors/${v.id}`} className="mt-0.5 inline-block rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium text-foreground">
+                    Review verification
+                  </Link>
+                )}
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-[11px] text-muted-foreground">
                     {v.total_sales} sales

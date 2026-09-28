@@ -54,14 +54,16 @@ const VendorStorefront = () => {
       if (prods) setProducts(prods);
 
       // 3. Fetch ratings
-      const { data: reviews } = await supabase
-        .from("reviews")
-        .select("rating")
-        .eq("vendor_id", prof.id);
-        
-      if (reviews && reviews.length > 0) {
-        const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
-        setStats({ rating: avg, reviews: reviews.length });
+      // Seller ratings live in vendor_ratings; this view aggregates them.
+      // (reviews has no vendor_id, so the old query here always failed.)
+      const { data: ratingStats } = await supabase
+        .from("vendor_rating_stats")
+        .select("avg_rating, rating_count")
+        .eq("vendor_id", prof.id)
+        .maybeSingle();
+
+      if (ratingStats?.rating_count) {
+        setStats({ rating: Number(ratingStats.avg_rating) || 0, reviews: ratingStats.rating_count });
       }
 
     } catch (e) {
@@ -91,7 +93,7 @@ const VendorStorefront = () => {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-center px-4">
         <AlertTriangle className="h-12 w-12 text-muted-foreground" />
-        <h1 className="text-2xl font-bold">Store Not Found</h1>
+        <h1 className="text-2xl font-bold">Store not found</h1>
         <p className="text-muted-foreground">This vendor may have closed their store or the link is broken.</p>
         <button onClick={() => navigate("/shop")} className="mt-4 px-6 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl">
           Browse Shop
@@ -106,8 +108,8 @@ const VendorStorefront = () => {
   return (
     <div className="min-h-screen bg-muted/20 pb-20">
       <SEO 
-        title={`${storeName} | Sole-ly`} 
-        description={`Shop ${products.length} items from ${storeName} on Sole-ly. Escrow protected.`} 
+        title={`${storeName}: Shop on Solely`}
+        description={`Shop ${products.length} items from ${storeName} on Solely. Your money is held until your order arrives.`}
       />
       
       {/* Cover/Header area */}
@@ -137,7 +139,7 @@ const VendorStorefront = () => {
                   </span>
                 )}
                 <span className="flex items-center gap-1.5">
-                  <Package size={16} /> {products.length} Products
+                  <Package size={16} /> {products.length} {products.length === 1 ? "product" : "products"}
                 </span>
                 {/* Only when the vendor opted in by filling it on their
                     settings page - a blank one simply shows nothing. */}
@@ -156,9 +158,12 @@ const VendorStorefront = () => {
                 )}
               </div>
 
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wider rounded-lg border border-emerald-100">
-                <Store size={14} /> Official Partner
-              </div>
+              {/* Only claim verification for sellers who passed KYC */}
+              {vendor.kyc_status === 'approved' && (
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#1a5138]/10 text-[#1a5138] dark:text-emerald-300 text-sm font-medium rounded-lg">
+                  <Store size={14} /> Verified seller
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -167,7 +172,7 @@ const VendorStorefront = () => {
       {/* Products Grid */}
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold tracking-tight">All Products ({products.length})</h2>
+          <h2 className="text-xl font-bold tracking-tight">All products ({products.length})</h2>
         </div>
         
         {products.length === 0 ? (

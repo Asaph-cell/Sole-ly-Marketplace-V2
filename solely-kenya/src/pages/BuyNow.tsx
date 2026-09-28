@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SEO } from "@/components/SEO";
+import { expandSizes } from "@/lib/sizes";
 import { recordProductView } from "@/lib/productViews";
 
 const BuyNow = () => {
@@ -63,7 +64,7 @@ const BuyNow = () => {
         .single();
 
       if (error || !p) { setLoading(false); return; }
-      setProduct(p);
+      setProduct({ ...p, sizes: expandSizes(p.sizes) });
 
       // Attribute the visit to the shared link, so the vendor can tell traffic
       // they drove from traffic that found them by browsing.

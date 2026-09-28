@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ListSkeleton } from "@/components/skeletons";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import type { Enums } from "@/integrations/supabase/types";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SearchBar, StatusPill, EmptyState } from "@/components/admin/AdminShared";
 import { ClipboardList, ChevronDown, ChevronUp } from "lucide-react";
@@ -37,9 +38,11 @@ interface AdminOrder {
 
 const PAGE_SIZE = 20;
 
-const STATUS_OPTIONS = [
-  "pending_payment", "pending_vendor_confirmation", "accepted", "shipped",
-  "arrived", "completed", "disputed", "cancelled_by_vendor", "cancelled_by_customer", "refunded",
+type OrderStatus = Enums<"order_status">;
+
+const STATUS_OPTIONS: OrderStatus[] = [
+  "pending_payment", "pending_vendor_confirmation", "accepted", "dispatched", "shipped",
+  "arrived", "delivered", "completed", "disputed", "cancelled_by_vendor", "cancelled_by_customer", "refunded",
 ];
 
 const AdminOrders = () => {
@@ -49,7 +52,7 @@ const AdminOrders = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -116,7 +119,7 @@ const AdminOrders = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as OrderStatus | "all")}>
           <SelectTrigger className="w-full sm:w-[200px] mb-3 text-xs">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>

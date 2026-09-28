@@ -13,6 +13,7 @@ import { MaintenanceBanner } from "./components/MaintenanceBanner";
 import { AdminGuard } from "./components/admin/AdminGuard";
 import { usePlatformSettings } from "./hooks/usePlatformSettings";
 import { captureFirstTouchSource } from "./lib/attribution";
+import { PresenceProvider } from "@/hooks/usePresence";
 import { useAuth } from "./hooks/useAuth";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const VendorEditProduct = lazyRetry(() => import("./pages/vendor/VendorEditProdu
 const VendorEditAccessory = lazyRetry(() => import("./pages/vendor/VendorEditAccessory"), "VendorEditAccessory");
 // Subscription flow removed in commission model
 const VendorSettings = lazyRetry(() => import("./pages/vendor/VendorSettings"), "VendorSettings");
+const VendorSetup = lazyRetry(() => import("./pages/vendor/VendorSetup"), "VendorSetup");
 const VendorOrders = lazyRetry(() => import("./pages/vendor/VendorOrders"), "VendorOrders");
 const VendorRatings = lazyRetry(() => import("./pages/vendor/VendorRatings"), "VendorRatings");
 const VendorDisputes = lazyRetry(() => import("./pages/vendor/VendorDisputes"), "VendorDisputes");
@@ -172,6 +174,7 @@ const AnimatedRoutes = () => {
       <Route path="/vendor/disputes" element={<PageWrapper><VendorDisputes /></PageWrapper>} />
       <Route path="/vendor/payment-links" element={<PageWrapper><VendorPaymentLinks /></PageWrapper>} />
       <Route path="/vendor/settings" element={<PageWrapper><VendorSettings /></PageWrapper>} />
+      <Route path="/vendor/setup" element={<PageWrapper><VendorSetup /></PageWrapper>} />
       <Route path="/vendor/messages" element={<PageWrapper><VendorMessages /></PageWrapper>} />
       <Route path="/admin" element={<PageWrapper><AdminGuard><AdminDashboard /></AdminGuard></PageWrapper>} />
       <Route path="/admin/dashboard" element={<PageWrapper><AdminGuard><AdminDashboard /></AdminGuard></PageWrapper>} />
@@ -252,7 +255,9 @@ const App = () => {
           <Sonner />
           <CelebrationHost />
           <BrowserRouter basename={import.meta.env.BASE_URL}>
-            <AppLayout />
+            <PresenceProvider>
+              <AppLayout />
+            </PresenceProvider>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>

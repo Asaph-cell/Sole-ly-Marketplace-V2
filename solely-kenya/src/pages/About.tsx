@@ -21,7 +21,7 @@ const About = () => {
   return (
     <div className="min-h-screen py-12">
       <SEO
-        title="About Us"
+        title="About Solely: Safe Online Payments in Kenya"
         description="Solely is the safest way to buy and sell online in Kenya. We protect every transaction; your money is safe until you get what you ordered."
         canonical="https://solelymarketplace.com/about"
         breadcrumbs={[
@@ -37,24 +37,24 @@ const About = () => {
             alt="Solely - Buy & Sell Safely"
             className="h-14 sm:h-20 w-auto mx-auto mb-6"
           />
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">About Sole.ly Kenya</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">About Solely Kenya</h1>
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed font-medium">
-            Sole.ly makes online buying and selling safe in Kenya. We're not another shop. We're the checkout system that protects you when buying from Instagram, WhatsApp, and TikTok sellers.
+            Solely makes online buying and selling safe in Kenya. We're not another shop. We're the checkout system that protects you when buying from Instagram, WhatsApp, and TikTok sellers.
           </p>
         </div>
 
         {/* Mission / About Section */}
-        <div className="bg-gradient-hero text-primary-foreground rounded-2xl p-8 md:p-12 mb-20 shadow-xl">
+        <div className="bg-grain relative overflow-hidden bg-secondary text-secondary-foreground rounded-[2rem] p-8 md:p-14 mb-20">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <p className="text-base sm:text-lg md:text-xl leading-relaxed opacity-95">
-              We built Sole.ly because online sellers in Kenya lose customers every day, not because their products are bad, but because buyers are afraid of being scammed. When a buyer sees a Sole.ly payment link, they know their money is protected until they receive exactly what they ordered.
+              We built Solely because online sellers in Kenya lose customers every day, not because their products are bad, but because buyers are afraid of being scammed. When a buyer sees a Solely payment link, they know their money is protected until they receive exactly what they ordered.
             </p>
             <p className="text-base sm:text-lg md:text-xl leading-relaxed opacity-95">
               For sellers, this means more conversions, fewer "I'll think about it" responses, and a professional checkout experience that builds trust from the first transaction. For buyers, it means shopping from social media sellers with complete peace of mind.
             </p>
-            <div className="pt-4 border-t border-primary-foreground/20">
-              <p className="text-lg sm:text-2xl font-bold tracking-tight">
-                At Sole.ly Kenya, trust isn't assumed. It's built into every transaction.
+            <div className="pt-4 border-t border-secondary-foreground/15">
+              <p className="font-display text-2xl sm:text-3xl text-primary">
+                At Solely Kenya, trust isn't assumed. It's built into every transaction.
               </p>
             </div>
           </div>
@@ -62,7 +62,7 @@ const About = () => {
 
         {/* Values */}
         <div className="mb-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10 sm:mb-12">Our Values</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10 sm:mb-12">What we stand for</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <div className="text-center p-6 bg-card rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -98,9 +98,9 @@ const About = () => {
 
         {/* CTA Section */}
         <div className="text-center max-w-2xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Join Our Community</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Join the community</h2>
           <p className="text-muted-foreground mb-6 sm:mb-8 text-base sm:text-lg">
-            Whether you're here to shop or sell, we're excited to have you as part of the Sole-ly family.
+            Whether you're here to shop or sell, we're excited to have you as part of the Solely family.
           </p>
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center">
             <Button size="lg" asChild>

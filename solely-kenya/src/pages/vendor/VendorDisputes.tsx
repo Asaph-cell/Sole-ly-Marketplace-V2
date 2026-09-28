@@ -24,6 +24,7 @@ import {
     ShieldAlert, CheckCircle2, CircleDot, ArrowRight, ImageIcon,
     FileText, X, Sparkles, Scale
 } from "lucide-react";
+import { uploadEvidence, useSignedEvidence } from "@/lib/disputeEvidence";
 import { toast } from "@/lib/toast";
 
 interface Dispute {
@@ -163,6 +164,8 @@ const VendorDisputes = () => {
     const [submitting, setSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState("open");
     const [lightboxUrls, setLightboxUrls] = useState<string[] | null>(null);
+    // Evidence is private; signed URLs for the open dispute.
+    const vendorEvidence = useSignedEvidence(selectedDispute?.vendor_evidence_urls);
 
     useEffect(() => {
         if (!loading && !user) navigate("/auth");
@@ -198,24 +201,18 @@ const VendorDisputes = () => {
         try {
             const uploadedUrls: string[] = [];
             if (evidenceFiles.length > 0) {
+                // Stored as private object paths; shown via signed URLs.
                 for (const file of evidenceFiles) {
-                    const fileName = `${Date.now()}-${file.name}`;
-                    const { data: uploadData, error: uploadError } = await supabase.storage
-                        .from("dispute-evidence")
-                        .upload(`vendor/${selectedDispute.id}/${fileName}`, file);
-                    if (uploadError) {
+                    try {
+                        uploadedUrls.push(await uploadEvidence("vendor", selectedDispute.id, file));
+                    } catch (uploadError) {
                         console.warn("Upload error:", uploadError);
-                    } else if (uploadData) {
-                        const { data: urlData } = supabase.storage
-                            .from("dispute-evidence")
-                            .getPublicUrl(uploadData.path);
-                        uploadedUrls.push(urlData.publicUrl);
                     }
                 }
             }
 
             const existingNotes = selectedDispute.resolution_notes || "";
-            const vendorResponseText = `[VENDOR RESPONSE - ${new Date().toLocaleDateString()}]\n${response}\n${uploadedUrls.length > 0 ? `\nEvidence: ${uploadedUrls.join(", ")}` : ""}`;
+            const vendorResponseText = `[VENDOR RESPONSE - ${new Date().toLocaleDateString()}]\n${response}\n${uploadedUrls.length > 0 ? `\nEvidence: ${uploadedUrls.length} file${uploadedUrls.length === 1 ? "" : "s"} attached` : ""}`;
 
             const { error } = await supabase
                 .from("disputes")
@@ -562,10 +559,10 @@ const VendorDisputes = () => {
                                         <div>
                                             <Label className="text-sm font-medium mb-2 block">Your Evidence</Label>
                                             <div className="grid grid-cols-3 gap-2">
-                                                {selectedDispute.vendor_evidence_urls.map((url, idx) => (
+                                                {vendorEvidence.map((url, idx) => (
                                                     <button
                                                         key={idx}
-                                                        onClick={() => setLightboxUrls(selectedDispute.vendor_evidence_urls)}
+                                                        onClick={() => setLightboxUrls(vendorEvidence)}
                                                         className="relative aspect-square rounded-lg overflow-hidden border hover:ring-2 ring-primary/50 transition group"
                                                     >
                                                         {/\.(jpg|jpeg|png|gif|webp)/i.test(url) ? (

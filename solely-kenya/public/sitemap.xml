@@ -59,20 +59,8 @@
     <priority>0.8</priority>
     <changefreq>weekly</changefreq>
   </url>
-  <url>
-    <loc>https://solelymarketplace.com/vendor/register</loc>
-    <lastmod>2026-06-06</lastmod>
-    <priority>0.6</priority>
-    <changefreq>monthly</changefreq>
-  </url>
 
   <!-- Auth -->
-  <url>
-    <loc>https://solelymarketplace.com/auth</loc>
-    <lastmod>2026-06-06</lastmod>
-    <priority>0.5</priority>
-    <changefreq>monthly</changefreq>
-  </url>
 
   <!-- Legal -->
   <url>

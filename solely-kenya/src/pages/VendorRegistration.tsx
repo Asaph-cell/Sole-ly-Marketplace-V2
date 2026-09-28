@@ -6,30 +6,23 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/lib/toast";
-import logo from "@/assets/solely-logo.svg";
-import { AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Check, Loader2 } from "lucide-react";
 
 const VendorRegistration = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  // Level 1 only: everything else (logo, location, verification) lives in
+  // /vendor/setup and can be done after the first sale.
   const [formData, setFormData] = usePersistentState("vendor-registration", {
+    storeName: "",
     phone: "",
     mpesaNumber: "",
-    storeName: "",
-    storeDescription: "",
-    addressLine1: "",
-    addressLine2: "",
-    city: "",
-    county: "",
-    postalCode: "",
   });
+  const [mpesaSameAsPhone, setMpesaSameAsPhone] = useState(true);
 
   useEffect(() => {
     const checkVendorStatus = async () => {
@@ -72,8 +65,9 @@ const VendorRegistration = () => {
       return;
     }
 
-    if (!formData.phone || !formData.mpesaNumber || !formData.storeName || !formData.addressLine1 || !formData.city) {
-      toast.error("Please fill in all required fields (Phone, M-Pesa, Store Name, Location)");
+    const mpesaNumber = mpesaSameAsPhone ? formData.phone : formData.mpesaNumber;
+    if (!formData.storeName.trim() || !formData.phone.trim() || !mpesaNumber.trim()) {
+      toast.error("Add your store name, WhatsApp number and M-Pesa number");
       return;
     }
 
@@ -89,15 +83,9 @@ const VendorRegistration = () => {
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
-          whatsapp_number: formData.phone,
-          mpesa_number: formData.mpesaNumber,
-          store_name: formData.storeName,
-          store_description: formData.storeDescription || null,
-          vendor_city: formData.city,
-          vendor_county: formData.county,
-          vendor_address_line1: formData.addressLine1,
-          vendor_address_line2: formData.addressLine2 || null,
-          vendor_postal_code: formData.postalCode || null,
+          whatsapp_number: formData.phone.trim(),
+          mpesa_number: mpesaNumber.trim(),
+          store_name: formData.storeName.trim(),
         })
         .eq("id", user.id);
 
@@ -127,9 +115,9 @@ const VendorRegistration = () => {
         console.warn('Failed to send welcome email:', err);
       });
 
-      toast.success("Vendor registration successful! You can now start selling.");
+      toast.success("You're in. List your first item.");
       clearDraft("vendor-registration");
-      navigate("/vendor/dashboard");
+      navigate("/vendor/list-item");
     } catch (error: any) {
       console.error("Registration error:", error);
       toast.error(error.message || "Failed to complete vendor registration");
@@ -138,214 +126,104 @@ const VendorRegistration = () => {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p>Loading...</p>
-        </div>
+      <div className="min-h-screen grid place-items-center">
+        <Loader2 className="animate-spin text-muted-foreground" />
       </div>
     );
   }
 
-  if (!user) {
-    return null;
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-muted/20">
-      <Card className="w-full max-w-2xl">
-        <CardHeader className="text-center">
-          <img src={logo} alt="Solely" className="h-16 w-auto mx-auto mb-4" />
-          <CardTitle className="text-2xl">Become a Vendor</CardTitle>
-          <CardDescription>
-            Register to start selling on Sole-ly. Complete the form below to get started.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <Alert>
-              <AlertCircle size={16} strokeWidth={1.5}  />
-              <AlertDescription>
-                <strong>Important:</strong> Delivery is fulfilled by you directly. Buyers will pay the product price to Solely, and you will arrange delivery and collect any delivery fees directly from the buyer.
-              </AlertDescription>
-            </Alert>
+    <div className="min-h-screen bg-sunken py-10 sm:py-16 px-4">
+      <div className="mx-auto w-full max-w-lg">
+        {/* Where this sits in the overall setup */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium text-foreground">Step 1 of 3 · about a minute</span>
+            <span className="text-muted-foreground tabular-nums">40% when done</span>
+          </div>
+          <div className="mt-2 h-1.5 rounded-full bg-foreground/10 overflow-hidden">
+            <div className="h-full w-[40%] rounded-full bg-primary/40" />
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            You can sell as soon as this step is done. Your logo, location and verification can wait.
+          </p>
+        </div>
 
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="phone">Phone Number (WhatsApp) *</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="254700000000"
-                  value={formData.phone}
-                  onChange={handleInputChange("phone")}
-                  required
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  This will be used for customer communication and order notifications
-                </p>
+        <form onSubmit={handleSubmit} className="rounded-3xl bg-card shadow-card p-6 sm:p-8 space-y-6">
+          <div>
+            <h1 className="font-display text-3xl sm:text-4xl leading-tight">Open your store</h1>
+            <p className="mt-2 text-muted-foreground">Three details and you can start listing.</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="storeName">Store name</Label>
+            <Input id="storeName" value={formData.storeName} onChange={handleInputChange("storeName")}
+              placeholder="e.g. Mtaa Kicks" autoComplete="organization" required />
+            <p className="text-xs text-muted-foreground">Buyers see this on your listings and store link.</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Store contact number</Label>
+            <Input id="phone" type="tel" inputMode="tel" value={formData.phone} onChange={handleInputChange("phone")}
+              placeholder="0712 345 678" autoComplete="tel" required />
+            <p className="text-xs text-muted-foreground">Buyers with an order reach you here on WhatsApp. Use a number you check often.</p>
+          </div>
+
+          <div className="space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <Checkbox checked={mpesaSameAsPhone} onCheckedChange={(c) => setMpesaSameAsPhone(c === true)} />
+              <span className="text-sm">Use the same number for M-Pesa payouts</span>
+            </label>
+            {!mpesaSameAsPhone && (
+              <div className="space-y-2">
+                <Label htmlFor="mpesaNumber">M-Pesa number for payouts</Label>
+                <Input id="mpesaNumber" type="tel" inputMode="tel" value={formData.mpesaNumber} onChange={handleInputChange("mpesaNumber")}
+                  placeholder="0712 345 678" required />
               </div>
-              <div>
-                <Label htmlFor="mpesaNumber">M-Pesa Number (for Payouts) *</Label>
-                <Input
-                  id="mpesaNumber"
-                  type="tel"
-                  placeholder="254700000000"
-                  value={formData.mpesaNumber}
-                  onChange={handleInputChange("mpesaNumber")}
-                  required
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  <strong>Required:</strong> This M-Pesa number will receive your sales payouts (94% of order value). Must be a valid Kenyan M-Pesa number.
-                </p>
-              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Payouts go here: 94% of the product price, plus the full delivery fee. You deliver orders yourself.
+            </p>
+          </div>
 
-              <div>
-                <Label htmlFor="storeName">Store Name *</Label>
-                <Input
-                  id="storeName"
-                  type="text"
-                  placeholder="e.g., My Store"
-                  value={formData.storeName}
-                  onChange={handleInputChange("storeName")}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="storeDescription">Store Description</Label>
-                <Textarea
-                  id="storeDescription"
-                  placeholder="Tell customers about your store..."
-                  value={formData.storeDescription}
-                  onChange={handleInputChange("storeDescription")}
-                  rows={4}
-                />
-              </div>
-
-              <div className="border-t pt-4">
-                <h3 className="font-semibold mb-4">Store Location *</h3>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="city">City / Town *</Label>
-                    <Input
-                      id="city"
-                      type="text"
-                      placeholder="e.g., Nairobi"
-                      value={formData.city}
-                      onChange={handleInputChange("city")}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="county">County *</Label>
-                    <Input
-                      id="county"
-                      type="text"
-                      placeholder="e.g., Nairobi"
-                      value={formData.county}
-                      onChange={handleInputChange("county")}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="addressLine1">Specific Address *</Label>
-                    <Input
-                      id="addressLine1"
-                      type="text"
-                      placeholder="e.g., Moi Avenue, CBD"
-                      value={formData.addressLine1}
-                      onChange={handleInputChange("addressLine1")}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
-                    <Input
-                      id="addressLine2"
-                      type="text"
-                      placeholder="Apartment, suite, unit, etc."
-                      value={formData.addressLine2}
-                      onChange={handleInputChange("addressLine2")}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="postalCode">Postal Code</Label>
-                    <Input
-                      id="postalCode"
-                      type="text"
-                      placeholder="00100"
-                      value={formData.postalCode}
-                      onChange={handleInputChange("postalCode")}
-                    />
-                  </div>
-
-                  <p className="text-xs text-muted-foreground">
-                    💡 Your location helps buyers know where the product is coming from.
-                  </p>
-                </div>
+          <div className="rounded-2xl bg-sunken p-4">
+            <div className="flex items-start gap-3">
+              <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(checked === true)} className="mt-0.5" />
+              <div className="space-y-2 min-w-0">
+                <Label htmlFor="terms" className="text-sm font-medium leading-snug cursor-pointer">
+                  I accept the{" "}
+                  <Link to="/terms" target="_blank" className="underline underline-offset-2 hover:no-underline">Terms and Conditions</Link>
+                </Label>
+                <ul className="text-xs text-muted-foreground space-y-1.5">
+                  {[
+                    "Respond to orders within 48 hours or they're cancelled automatically",
+                    "You handle delivery of your orders",
+                    "Solely takes 6% of the product price on each sale",
+                    "Payments are held until the buyer confirms delivery",
+                    "Your listings are accurate, authentic and yours to sell",
+                    "You indemnify Solely Kenya against intellectual property claims from your listings",
+                    "Solely is a platform and isn't liable for sellers' products",
+                  ].map((t) => (
+                    <li key={t} className="flex items-start gap-2">
+                      <Check size={12} strokeWidth={2.5} className="mt-0.5 shrink-0 text-foreground/40" /> {t}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
+          </div>
 
-            <div className="border-t pt-4">
-              <div className="flex items-start space-x-3">
-                <Checkbox
-                  id="terms"
-                  checked={termsAccepted}
-                  onCheckedChange={(checked) => setTermsAccepted(checked === true)}
-                  className="mt-1"
-                />
-                <div className="space-y-1">
-                  <Label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    I accept the{" "}
-                    <Link to="/terms" target="_blank" className="text-primary underline hover:no-underline">
-                      Terms and Conditions
-                    </Link>{" "}
-                    *
-                  </Label>
-                  <div className="text-xs text-muted-foreground mt-2">
-                    By checking this box, you agree to Sole-ly's Terms and Conditions, including:
-                    <ul className="list-disc list-inside mt-2 space-y-1">
-                      <li className="text-destructive font-medium">You must respond to orders within 48 hours or they will be auto-cancelled</li>
-                      <li>You are responsible for all product deliveries</li>
-                      <li>Sole-ly takes a 6% commission on each sale</li>
-                      <li>Payments are held in escrow until delivery is confirmed</li>
-                      <li>You must provide accurate product information</li>
-                      <li className="font-bold text-amber-800">You certify that you have the right to sell these items and they are authentic</li>
-                      <li className="font-bold text-amber-800">You agree to indemnify Sole-ly Kenya against any intellectual property claims arising from your listings</li>
-                      <li>Sole-ly Kenya acts only as a platform and is not liable for vendor products</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/")}
-                className="flex-1"
-                disabled={submitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="flex-1"
-                disabled={submitting || !termsAccepted}
-              >
-                {submitting ? "Registering..." : "Complete Registration"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          <Button type="submit" disabled={submitting || !termsAccepted} className="w-full h-12 rounded-full text-base font-semibold active:scale-[0.98]">
+            {submitting ? <><Loader2 size={18} className="mr-2 animate-spin" /> Opening your store…</> : "Open my store"}
+          </Button>
+          <button type="button" onClick={() => navigate("/")} disabled={submitting}
+            className="block w-full py-2 text-sm text-muted-foreground hover:text-foreground">
+            Not now
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

@@ -36,10 +36,16 @@ All colors MUST be HSL.
     --secondary-foreground: 0 0% 98%;
     /* Text on secondary buttons */
 
+    /* Section surfaces: a warm grey for bands that hold white cards, and a
+       buttercream for seller/highlight bands. Distinct enough from white to
+       read as separate sections. */
+    --surface-sunken: 36 18% 93%;
+    --surface-cream: 44 68% 91%;
+
     /* Surfaces */
     --muted: 0 0% 96%;
     /* Muted background */
-    --muted-foreground: 0 0% 45%;
+    --muted-foreground: 0 0% 40%;
     /* Text on muted bg */
 
     /* Borders & Inputs */
@@ -119,6 +125,9 @@ All colors MUST be HSL.
 
     --secondary: 0 0% 14.9%;
     --secondary-foreground: 0 0% 98%;
+
+    --surface-sunken: 0 0% 7.5%;
+    --surface-cream: 38 24% 10%;
 
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 55%;
@@ -210,6 +219,15 @@ All colors MUST be HSL.
     }
   }
 
+  /* Page headings use the display serif site-wide (the admin console keeps
+     its own sans look). DM Serif Display has one weight, so override any
+     font-bold/extrabold utilities that would otherwise fake-bold it. */
+  :where(h1, h2):not(.admin-shell *) {
+    font-family: theme("fontFamily.display");
+    font-weight: 400 !important;
+    letter-spacing: -0.01em;
+  }
+
   body {
     @apply bg-background text-foreground;
     /* Prevent horizontal overflow */
@@ -234,6 +252,19 @@ All colors MUST be HSL.
   /* Safe gutters - prevent text touching edges */
   .safe-gutter {
     @apply px-4 sm:px-6 md:px-8;
+  }
+
+  /* Fine film grain to break up flat surfaces. Sits on a pseudo-element so
+     it never intercepts clicks; parent needs position: relative. */
+  .bg-grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    /* Plain opacity, no blend mode: blending forces a repaint of
+       everything beneath it while the page scrolls. */
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   /* Touch-friendly minimum sizes */
@@ -566,8 +597,9 @@ a {
 @media (max-width: 639px) {
 
 
-  /* Ensure grids stack properly */
-  .grid:not(.grid-cols-1):not(.grid-cols-2) {
+  /* Ensure grids stack properly. Pages marked data-layout="designed" set
+     their own mobile layouts, so these blanket fixes skip them. */
+  .grid:not(.grid-cols-1):not(.grid-cols-2):not([data-layout="designed"] *) {
     grid-template-columns: 1fr !important;
   }
 
@@ -597,13 +629,10 @@ a {
     overflow: hidden;
   }
 
-  /* Main content areas can wrap, but NOT navigation/header */
-  main .flex:not(.flex-nowrap),
-  section .flex:not(.flex-nowrap),
-  article .flex:not(.flex-nowrap) {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
+  /* (Removed a blanket "every flex row wraps" rule: it pushed icons onto
+     their own line above the text next to them on every page. A scan of
+     all public, seller and admin pages at 375px found no horizontal
+     overflow without it. Rows that should wrap use flex-wrap directly.) */
 
   /* Horizontal scrolling elements - add touch scrolling */
   [class*="overflow-x"],
@@ -618,21 +647,23 @@ a {
    mobile to prevent text overflow/breaking
    ========================================== */
 
+/* Headings set in the display face (.font-display) size themselves with
+   mobile-first utilities, so they opt out of these blanket clamps. */
 /* Hero / Page title headings (text-5xl, text-4xl) */
 @media (max-width: 639px) {
-  h1 {
+  h1:not(.font-display) {
     font-size: clamp(1.5rem, 6vw, 2.5rem) !important;
     line-height: 1.15 !important;
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
 
-  h2 {
+  h2:not(.font-display) {
     font-size: clamp(1.25rem, 5vw, 2rem) !important;
     line-height: 1.2 !important;
   }
 
-  h3 {
+  h3:not(.font-display) {
     font-size: clamp(1rem, 3.5vw, 1.5rem) !important;
     line-height: 1.25 !important;
   }
@@ -647,15 +678,15 @@ a {
 
 /* Even tighter for very small screens (320px) */
 @media (max-width: 359px) {
-  h1 {
+  h1:not(.font-display) {
     font-size: clamp(1.25rem, 7vw, 1.75rem) !important;
   }
 
-  h2 {
+  h2:not(.font-display) {
     font-size: clamp(1.1rem, 5.5vw, 1.5rem) !important;
   }
 
-  h3 {
+  h3:not(.font-display) {
     font-size: clamp(0.9rem, 4vw, 1.25rem) !important;
   }
 }

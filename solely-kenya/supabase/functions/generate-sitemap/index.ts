@@ -11,12 +11,24 @@ const SITE_URL = 'https://solelymarketplace.com'
 const STATIC_PAGES = [
     { loc: '/', changefreq: 'daily', priority: '1.0' },
     { loc: '/shop', changefreq: 'daily', priority: '0.9' },
+    { loc: '/how-it-works', changefreq: 'monthly', priority: '0.8' },
+    { loc: '/vendor', changefreq: 'monthly', priority: '0.8' },
+    { loc: '/vendors', changefreq: 'daily', priority: '0.7' },
+    { loc: '/blog', changefreq: 'weekly', priority: '0.6' },
     { loc: '/about', changefreq: 'monthly', priority: '0.6' },
     { loc: '/contact', changefreq: 'monthly', priority: '0.5' },
-    { loc: '/auth', changefreq: 'monthly', priority: '0.5' },
-    { loc: '/vendor', changefreq: 'monthly', priority: '0.7' },
     { loc: '/privacy-policy', changefreq: 'monthly', priority: '0.3' },
     { loc: '/terms', changefreq: 'monthly', priority: '0.3' },
+]
+
+// Blog posts live in the frontend bundle (src/data/blogPosts.ts), not the
+// database, so their slugs are listed here. Add new posts to both places.
+const BLOG_SLUGS = [
+    'matatu-hustle-sneakers',
+    'escrow-explained-trust',
+    'kamukunji-to-kenya-wholesale',
+    'suede-care-guide-nairobi',
+    'nairobi-sneaker-trends-2024',
 ]
 
 Deno.serve(async (req) => {
@@ -43,6 +55,17 @@ Deno.serve(async (req) => {
             throw new Error('Failed to fetch products')
         }
 
+        // Vendor storefronts (profiles with a store name are sellers)
+        const { data: stores, error: storesError } = await supabase
+            .from('public_vendor_profiles')
+            .select('id, store_link')
+            .not('store_name', 'is', null)
+
+        if (storesError) {
+            // Storefronts are a bonus; don't fail the whole sitemap over them
+            console.error('Error fetching storefronts:', storesError)
+        }
+
         // Build XML sitemap
         let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
@@ -54,6 +77,24 @@ Deno.serve(async (req) => {
     <loc>${SITE_URL}${page.loc}</loc>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
+  </url>`
+        }
+
+        for (const slug of BLOG_SLUGS) {
+            xml += `
+  <url>
+    <loc>${SITE_URL}/blog/${slug}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>`
+        }
+
+        for (const store of stores || []) {
+            xml += `
+  <url>
+    <loc>${SITE_URL}/store/${encodeURIComponent(store.store_link || store.id)}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>`
         }
 
@@ -77,7 +118,7 @@ Deno.serve(async (req) => {
         xml += `
 </urlset>`
 
-        console.log(`Generated sitemap with ${STATIC_PAGES.length} static pages and ${products?.length || 0} products`)
+        console.log(`Generated sitemap with ${STATIC_PAGES.length} static pages, ${BLOG_SLUGS.length} posts, ${stores?.length || 0} stores and ${products?.length || 0} products`)
 
         return new Response(xml, {
             headers: {

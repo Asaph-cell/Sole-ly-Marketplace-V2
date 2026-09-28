@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Store, Scale, Package, Megaphone, Mail, History,
-  ClipboardList, Settings, Menu, Search, TrendingUp, ShieldAlert,
+  ClipboardList, Settings, Menu, Search, TrendingUp, ShieldAlert, type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 interface NavItem {
   label: string;
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  icon: LucideIcon;
   href: string;
   badge?: number;
 }

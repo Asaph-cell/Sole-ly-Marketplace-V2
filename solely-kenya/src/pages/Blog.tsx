@@ -11,15 +11,15 @@ const Blog = () => {
     return (
         <div className="min-h-screen py-12 bg-background">
             <SEO 
-                title="Solely Blog | Safe Online Selling & Shopping Guide"
+                title="Safe Online Selling and Shopping Guides"
                 description="Tips on selling safely online, growing your social media shop, and protecting yourself as a buyer. Real stories from Kenya's online sellers."
                 canonical="https://solelymarketplace.com/blog"
             />
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="max-w-3xl mx-auto text-center mb-16">
-                    <h1 className="text-4xl md:text-6xl font-black mb-4 pb-6 pt-2 bg-gradient-to-r from-primary via-primary/95 to-primary/80 bg-clip-text text-transparent italic leading-[1.2]">
-                        Solely Blog
+                    <h1 className="font-display text-5xl md:text-6xl mb-5 leading-[1.05]">
+                        The Solely <span className="font-serif italic text-[hsl(40_62%_33%)] dark:text-primary">journal</span>
                     </h1>
                     <p className="text-lg text-muted-foreground">
                         Your street-smart guide to the Nairobi footwear scene, from the hustle to the heat.

@@ -87,7 +87,22 @@ Deno.serve(async (req: Request) => {
         const buyerName = order?.order_shipping_details?.recipient_name || buyer?.full_name || "Customer";
         const vendorName = vendor?.store_name || vendor?.full_name || "Vendor";
         const orderAmount = order?.total_ksh || 0;
-        const buyerEvidenceUrls = dispute.buyer_evidence_urls || [];
+        // Evidence is in a private bucket. Rows hold object paths (or, for
+        // older disputes, public URLs); the support email gets signed links
+        // that stay valid long enough to review the case.
+        const toPath = (stored: string) => {
+            const marker = "/dispute-evidence/";
+            const i = stored.indexOf(marker);
+            return i === -1 ? stored : decodeURIComponent(stored.slice(i + marker.length).split("?")[0]);
+        };
+        const storedEvidence: string[] = dispute.buyer_evidence_urls || [];
+        let buyerEvidenceUrls: string[] = [];
+        if (storedEvidence.length) {
+            const { data: signed } = await supabase.storage
+                .from("dispute-evidence")
+                .createSignedUrls(storedEvidence.map(toPath), 60 * 60 * 24 * 7);
+            buyerEvidenceUrls = (signed || []).map((x) => x.signedUrl).filter(Boolean) as string[];
+        }
 
         // Format dispute reason for display
         const reasonLabels: Record<string, string> = {

@@ -33,6 +33,7 @@ import {
 type OrderRecord = Tables<"orders"> & {
   order_items: Tables<"order_items">[];
   order_shipping_details: Tables<"order_shipping_details"> | null;
+  disputes?: Tables<"disputes">[];
   payments?: Array<{
     id: string;
     status: string;

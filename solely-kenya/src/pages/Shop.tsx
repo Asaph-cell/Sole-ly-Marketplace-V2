@@ -29,10 +29,10 @@ const getMaxPrice = (cat: string) =>
 
 // ─── Condition badge colours ───────────────────────────────────────────────────
 const CONDITION_DOT: Record<string, string> = {
-  new:         "bg-emerald-500",
-  thrifted:    "bg-purple-500",
-  refurbished: "bg-blue-500",
-  like_new:    "bg-blue-400", // kept for legacy compat
+  new:         "bg-[#1a5138]",
+  thrifted:    "bg-[#5b3671]",
+  refurbished: "bg-[#2b4162]",
+  like_new:    "bg-[#2b4162]", // kept for legacy compat
   good:        "bg-amber-400", // kept for legacy compat
   fair:        "bg-orange-500", // kept for legacy compat
 };
@@ -264,8 +264,8 @@ const Shop = () => {
   const headingSub  = selectedSub !== "all" ? getCategoryName(selectedSub) : null;
   const heading     = headingSub ?? headingCat;
 
-  const seoTitle       = `${heading} for Sale in Kenya | Solely`;
-  const seoDescription = `Browse ${totalCount} ${heading.toLowerCase()} from verified sellers. Your money is protected until you get what you ordered.`;
+  const seoTitle       = `${heading} for Sale in Kenya`;
+  const seoDescription = `Browse ${totalCount} ${heading.toLowerCase()} from sellers across Kenya. Your money is protected until you get what you ordered.`;
   const seoCanonical   = selectedCategory !== "all"
     ? `https://solelymarketplace.com/shop?category=${selectedCategory}${selectedSub !== "all" ? `&sub=${selectedSub}` : ""}`
     : "https://solelymarketplace.com/shop";
@@ -432,7 +432,7 @@ const Shop = () => {
                 <span className="text-muted-foreground font-normal mx-2">›</span>
                 {headingSub}
               </>
-            ) : heading === "All Items" ? "Shop All Items" : `Shop ${heading}`}
+            ) : heading === "All Items" ? "Shop all items" : `Shop ${heading.toLowerCase()}`}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
             <Shield strokeWidth={1.5} className="h-3 w-3 text-primary shrink-0" />

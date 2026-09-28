@@ -1,29 +1,28 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { format, isToday, isYesterday, differenceInDays } from "date-fns";
+import { Check, CheckCheck, Truck, Handshake, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { formatDistanceToNow } from "date-fns";
-import { ExternalLink } from "lucide-react";
+import { getChatUserId } from "@/lib/chat";
+import { useIsOnline } from "@/hooks/usePresence";
+
+interface LastMessage {
+  message: string;
+  created_at: string;
+  is_read: boolean;
+  sender_id: string;
+  message_type: string | null;
+  metadata: any;
+}
 
 interface Conversation {
   id: string;
   vendor_id: string;
   buyer_id: string | null;
-  created_at: string;
   updated_at: string;
   delivery_agreement_id: string | null;
-  last_message?: {
-    message: string;
-    created_at: string;
-    is_read: boolean;
-  };
-  other_user?: {
-    full_name: string | null;
-    store_name: string | null;
-  };
+  other_id: string | null;
+  other_name: string;
+  last_message: LastMessage | null;
   unread_count: number;
   delivery_status: string | null;
 }
@@ -34,296 +33,190 @@ interface ConversationListProps {
   isVendor: boolean;
 }
 
-export const ConversationList = ({ 
-  onSelectConversation, 
-  selectedConversationId,
-  isVendor 
-}: ConversationListProps) => {
+const timeLabel = (iso: string) => {
+  const d = new Date(iso);
+  if (isToday(d)) return format(d, "h:mm a").toLowerCase();
+  if (isYesterday(d)) return "Yesterday";
+  if (differenceInDays(new Date(), d) < 7) return format(d, "EEE");
+  return format(d, "d MMM");
+};
+
+const preview = (m: LastMessage) => {
+  if (m.message_type === "delivery_proposal") {
+    const fee = Number(m.metadata?.delivery_fee ?? 0);
+    return fee === 0 ? "Delivery offer: pick up" : `Delivery offer: KES ${fee.toLocaleString()}`;
+  }
+  if (m.message_type === "delivery_accepted") return "Delivery fee agreed";
+  return m.message.replace(/^[✅❌]\s*/, "");
+};
+
+const Avatar = ({ name, userId }: { name: string; userId: string | null }) => {
+  const online = useIsOnline(userId);
+  return (
+    <div className="relative shrink-0">
+      <div className="grid h-11 w-11 place-items-center rounded-full bg-foreground text-background font-display text-lg">
+        {name.charAt(0).toUpperCase()}
+      </div>
+      {online && <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-background bg-emerald-500" aria-label="Online" />}
+    </div>
+  );
+};
+
+export const ConversationList = ({ onSelectConversation, selectedConversationId }: ConversationListProps) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [meId, setMeId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "unread">("all");
 
-  useEffect(() => {
-    loadConversations();
-
-    // Subscribe to conversation updates
-    const channel = supabase
-      .channel('conversations-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'conversations'
-        },
-        () => {
-          loadConversations();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages'
-        },
-        () => {
-          loadConversations();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages'
-        },
-        () => {
-          // Re-fetch when is_read status changes so badges update
-          loadConversations();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const loadConversations = async () => {
+  const load = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      // Use guestId for unauthenticated users
-      let currentUserId = user?.id as string | undefined;
-      if (!currentUserId) {
-        const existing = localStorage.getItem("guestId");
-        currentUserId = existing || crypto.randomUUID();
-        if (!existing) localStorage.setItem("guestId", currentUserId);
-      }
+      const { id: me } = await getChatUserId();
+      setMeId(me);
 
-      // Fetch conversations where user is a participant (either buyer OR vendor)
-      // The isVendor prop controls display, not filtering, users see ALL their conversations
       const { data: convData, error } = await supabase
-        .from('conversations')
-        .select('*')
-        .or(`buyer_id.eq.${currentUserId},vendor_id.eq.${currentUserId}`)
-        .order('updated_at', { ascending: false });
-
+        .from("conversations")
+        .select("id, vendor_id, buyer_id, updated_at, delivery_agreement_id")
+        .or(`buyer_id.eq.${me},vendor_id.eq.${me}`)
+        .order("updated_at", { ascending: false });
       if (error) throw error;
-      if (!convData || convData.length === 0) {
-        setConversations([]);
-        return;
+      if (!convData?.length) { setConversations([]); return; }
+
+      const ids = convData.map((c) => c.id);
+      const { data: msgs } = await supabase
+        .from("messages")
+        .select("conversation_id, message, created_at, is_read, sender_id, message_type, metadata")
+        .in("conversation_id", ids)
+        .order("created_at", { ascending: false });
+
+      const last: Record<string, LastMessage> = {};
+      const unread: Record<string, number> = {};
+      for (const m of msgs || []) {
+        if (!last[m.conversation_id]) last[m.conversation_id] = m as LastMessage;
+        if (!m.is_read && m.sender_id !== me) unread[m.conversation_id] = (unread[m.conversation_id] || 0) + 1;
       }
 
-      const convIds = convData.map(c => c.id);
-
-      // Batch fetch: last message per conversation
-      // Fetch the 2 most recent messages per conversation so we can pick the latest
-      const { data: allRecentMessages } = await supabase
-        .from('messages')
-        .select('conversation_id, message, created_at, is_read, sender_id')
-        .in('conversation_id', convIds)
-        .order('created_at', { ascending: false });
-
-      // Build lookup: conversation_id -> latest message
-      const lastMessageMap: Record<string, { message: string; created_at: string; is_read: boolean }> = {};
-      // Build lookup: conversation_id -> unread count
-      const unreadCountMap: Record<string, number> = {};
-
-      if (allRecentMessages) {
-        for (const msg of allRecentMessages) {
-          // First message we see for each conversation is the latest (ordered desc)
-          if (!lastMessageMap[msg.conversation_id]) {
-            lastMessageMap[msg.conversation_id] = {
-              message: msg.message,
-              created_at: msg.created_at,
-              is_read: msg.is_read,
-            };
-          }
-          // Count unread from others
-          if (!msg.is_read && msg.sender_id !== currentUserId) {
-            unreadCountMap[msg.conversation_id] = (unreadCountMap[msg.conversation_id] || 0) + 1;
-          }
-        }
+      const otherIds = [...new Set(convData.map((c) => (c.vendor_id === me ? c.buyer_id : c.vendor_id)).filter(Boolean))] as string[];
+      const names: Record<string, { full_name: string | null; store_name: string | null }> = {};
+      if (otherIds.length) {
+        const { data: profiles } = await supabase.from("public_vendor_profiles").select("id, full_name, store_name").in("id", otherIds);
+        for (const p of profiles || []) names[p.id] = p;
       }
 
-      // Batch fetch: other user profiles
-      // For each conversation, the "other user" is whoever ISN'T the current user
-      const otherUserIds = [...new Set(convData.map(c => {
-        if (c.vendor_id === currentUserId) return c.buyer_id;
-        return c.vendor_id;
-      }).filter(Boolean))];
-      const profileMap: Record<string, { full_name: string | null; store_name: string | null }> = {};
-      
-      if (otherUserIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from('public_vendor_profiles')
-          .select('id, full_name, store_name')
-          .in('id', otherUserIds as string[]);
-        
-        if (profiles) {
-          for (const p of profiles) {
-            profileMap[p.id] = { full_name: p.full_name, store_name: p.store_name };
-          }
-        }
+      const agreementIds = [...new Set(convData.map((c) => c.delivery_agreement_id).filter(Boolean))] as string[];
+      const statuses: Record<string, string> = {};
+      if (agreementIds.length) {
+        const { data: agreements } = await supabase.from("delivery_agreements").select("id, status").in("id", agreementIds);
+        for (const a of agreements || []) statuses[a.id] = a.status;
       }
 
-      // Batch fetch: delivery agreement statuses
-      const agreementIds = [...new Set(convData.map(c => c.delivery_agreement_id).filter(Boolean))];
-      const agreementMap: Record<string, string> = {};
-      
-      if (agreementIds.length > 0) {
-        const { data: agreements } = await supabase
-          .from('delivery_agreements')
-          .select('id, status')
-          .in('id', agreementIds as string[]);
-        
-        if (agreements) {
-          for (const a of agreements) {
-            agreementMap[a.id] = a.status;
-          }
-        }
-      }
-
-      // Assemble conversations with all data
-      const conversationsWithDetails: Conversation[] = convData.map(conv => {
-        // Show the other participant's name (not yourself)
-        const otherUserId = conv.vendor_id === currentUserId ? conv.buyer_id : conv.vendor_id;
+      setConversations(convData.map((c) => {
+        const otherIsStore = c.vendor_id !== me;
+        const otherId = otherIsStore ? c.vendor_id : c.buyer_id;
+        const p = otherId ? names[otherId] : undefined;
         return {
-          ...conv,
-          other_user: otherUserId ? profileMap[otherUserId] || null : null,
-          last_message: lastMessageMap[conv.id] || null,
-          unread_count: unreadCountMap[conv.id] || 0,
-          delivery_status: conv.delivery_agreement_id 
-            ? agreementMap[conv.delivery_agreement_id] || null 
-            : null,
+          ...c,
+          other_id: otherId,
+          other_name: (otherIsStore ? p?.store_name : null) || p?.full_name || p?.store_name || (otherIsStore ? "Seller" : otherId ? "Buyer" : "Guest buyer"),
+          last_message: last[c.id] || null,
+          unread_count: c.id === selectedConversationId ? 0 : unread[c.id] || 0,
+          delivery_status: c.delivery_agreement_id ? statuses[c.delivery_agreement_id] || null : null,
         };
-      });
-
-      setConversations(conversationsWithDetails);
-    } catch (error) {
-      console.error('Error loading conversations:', error);
+      }));
+    } catch (e) {
+      console.error("Error loading conversations:", e);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedConversationId]);
 
-  if (loading) {
-    return <div className="p-4 text-muted-foreground">Loading conversations...</div>;
-  }
+  useEffect(() => {
+    void load();
+    const channel = supabase
+      .channel("conversation-list")
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => void load())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => void load())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages" }, () => void load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [load]);
 
-  if (conversations.length === 0) {
-    return (
-      <div className="p-8 text-center text-muted-foreground">
-        No conversations yet
-      </div>
-    );
-  }
+  if (loading) return <div className="p-4 text-sm text-muted-foreground">Loading conversations…</div>;
+
+  const unreadTotal = conversations.filter((c) => c.unread_count > 0).length;
+  const shown = filter === "unread" ? conversations.filter((c) => c.unread_count > 0) : conversations;
 
   return (
-    <div className="space-y-2">
-      {conversations.map((conv) => (
-        <Card
-          key={conv.id}
-          className={`p-4 cursor-pointer transition-colors hover:bg-accent ${
-            selectedConversationId === conv.id ? 'bg-accent' : ''
-          }`}
-          onClick={async () => {
-            // Delivery conversations → go to full negotiation page with propose/accept/counter
-            if (conv.delivery_agreement_id) {
-              // Mark messages as read before navigating away (otherwise the badge never clears)
-              try {
-                const { data: { user } } = await supabase.auth.getUser();
-                let currentUserId = user?.id as string | undefined;
-                if (!currentUserId) {
-                  currentUserId = localStorage.getItem("guestId") || undefined;
-                }
-                if (currentUserId) {
-                  await supabase
-                    .from('messages')
-                    .update({ is_read: true })
-                    .eq('conversation_id', conv.id)
-                    .neq('sender_id', currentUserId)
-                    .eq('is_read', false);
-                  // Update local state so badge clears immediately
-                  setConversations(prev =>
-                    prev.map(c => c.id === conv.id ? { ...c, unread_count: 0 } : c)
-                  );
-                }
-              } catch (err) {
-                console.error('Error marking messages as read:', err);
-              }
-              navigate(`/delivery-negotiation?agreementId=${conv.delivery_agreement_id}`);
-            } else {
-              onSelectConversation(conv.id);
-            }
-          }}
-        >
-          <div className="flex items-start gap-3">
-            <Avatar>
-              <AvatarFallback>
-                {conv.other_user?.full_name?.[0] || conv.other_user?.store_name?.[0] || '?'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1">
-                <p className="font-semibold truncate">
-                  {conv.other_user?.store_name || conv.other_user?.full_name || 'Unknown User'}
-                </p>
-                {conv.last_message && (
-                  <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(conv.last_message.created_at), { addSuffix: true })}
-                  </span>
-                )}
-              </div>
-              {conv.last_message && (
-                <p className="text-sm text-muted-foreground truncate">
-                  {conv.last_message.message}
-                </p>
-              )}
-              <div className="flex items-center gap-2 flex-wrap mt-1">
-                {conv.unread_count > 0 && (
-                  <span className="inline-block px-2 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
-                    {conv.unread_count} new
-                  </span>
-                )}
-                {conv.delivery_status && (
-                  <Badge
-                    variant={conv.delivery_status === 'agreed' ? 'default' : 'secondary'}
-                    className={`text-[10px] ${
-                      conv.delivery_status === 'agreed'
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
-                        : conv.delivery_status === 'negotiating'
-                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
-                        : ''
-                    }`}
-                  >
-                    {conv.delivery_status === 'negotiating' && '💬 Negotiating'}
-                    {conv.delivery_status === 'agreed' && '✅ Fee Agreed'}
-                    {conv.delivery_status === 'used' && '📦 Order Placed'}
-                    {conv.delivery_status === 'expired' && '⏰ Expired'}
-                  </Badge>
-                )}
-                {/* Issue #8: Link to negotiation page for delivery conversations */}
-                {conv.delivery_agreement_id && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-5 px-1.5 text-[10px] text-primary gap-1"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/delivery-negotiation?agreementId=${conv.delivery_agreement_id}`);
-                    }}
-                  >
-                    <ExternalLink size={10} strokeWidth={1.5} />
-                    View Negotiation
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </Card>
-      ))}
+    <div className="flex h-full flex-col">
+      <div className="flex gap-2 border-b border-border px-3 py-2.5">
+        {(["all", "unread"] as const).map((f) => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => setFilter(f)}
+            aria-pressed={filter === f}
+            className={`h-9 rounded-full px-4 text-sm font-medium transition-colors ${filter === f ? "bg-foreground text-background" : "bg-sunken text-foreground hover:bg-sunken/70"}`}
+          >
+            {f === "all" ? "All" : `Unread${unreadTotal ? ` (${unreadTotal})` : ""}`}
+          </button>
+        ))}
+      </div>
+
+      {shown.length === 0 ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center text-muted-foreground">
+          <MessageCircle size={28} strokeWidth={1.5} className="text-foreground/30" />
+          <p className="text-sm">{filter === "unread" ? "You're all caught up" : "No conversations yet"}</p>
+        </div>
+      ) : (
+        <ul className="flex-1 overflow-y-auto">
+          {shown.map((c) => {
+            const unread = c.unread_count > 0;
+            const mine = c.last_message?.sender_id === meId;
+            return (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConversations((cur) => cur.map((x) => (x.id === c.id ? { ...x, unread_count: 0 } : x)));
+                    onSelectConversation(c.id);
+                  }}
+                  className={`flex w-full flex-nowrap items-center gap-3 px-3 py-3 text-left transition-colors ${selectedConversationId === c.id ? "bg-sunken" : "hover:bg-sunken/60"}`}
+                >
+                  <Avatar name={c.other_name} userId={c.other_id} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-nowrap items-baseline justify-between gap-2">
+                      <p className={`truncate ${unread ? "font-semibold text-foreground" : "font-medium text-foreground"}`}>{c.other_name}</p>
+                      {c.last_message && (
+                        <span className={`shrink-0 text-xs ${unread ? "font-semibold text-[hsl(40_62%_33%)] dark:text-primary" : "text-muted-foreground"}`}>
+                          {timeLabel(c.last_message.created_at)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-0.5 flex flex-nowrap items-center gap-2">
+                      <p className={`flex min-w-0 flex-1 items-center gap-1 truncate text-sm ${unread ? "font-medium text-foreground" : "text-muted-foreground"}`}>
+                        {mine && c.last_message && (c.last_message.is_read
+                          ? <CheckCheck size={15} className="shrink-0 text-[hsl(205_80%_45%)]" aria-label="Seen" />
+                          : <Check size={15} className="shrink-0 text-foreground/45" aria-label="Sent" />)}
+                        <span className="truncate">{c.last_message ? preview(c.last_message) : "No messages yet"}</span>
+                      </p>
+                      {unread && (
+                        <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground" aria-label={`${c.unread_count} unread`}>
+                          {c.unread_count}
+                        </span>
+                      )}
+                    </div>
+                    {c.delivery_status && (
+                      <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                        {c.delivery_status === "agreed" ? <Handshake size={12} /> : <Truck size={12} />}
+                        {c.delivery_status === "agreed" ? "Delivery fee agreed" : c.delivery_status === "used" ? "Order placed" : c.delivery_status === "expired" ? "Offer expired" : "Agreeing delivery fee"}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 };

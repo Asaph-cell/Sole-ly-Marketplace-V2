@@ -1,4 +1,17 @@
+import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
+
+// index.html ships homepage defaults (title, description, canonical, OG) so
+// crawlers that don't run JS get something. Once Helmet has rendered this
+// page's own tags, drop those defaults so the page doesn't carry two
+// canonicals or two descriptions.
+const STATIC_HEAD_SELECTORS = [
+    'link[rel="canonical"]:not([data-rh])',
+    'meta[name="description"]:not([data-rh])',
+    'meta[name="keywords"]:not([data-rh])',
+    'meta[property^="og:"]:not([data-rh])',
+    'meta[name^="twitter:"]:not([data-rh])',
+].join(",");
 
 interface ProductSchema {
     name: string;
@@ -58,7 +71,14 @@ export const SEO = ({
     price,
     keywords = [],
 }: SEOProps) => {
-    const currentUrl = url || (typeof window !== 'undefined' ? window.location.href : SITE_URL);
+    // Canonical and og:url always use the production origin and drop the
+    // query string, so /shop?category=shoes doesn't compete with /shop.
+    const path = typeof window !== 'undefined' ? window.location.pathname : '/';
+    const currentUrl = url || `${SITE_URL}${path}`;
+
+    useEffect(() => {
+        document.head.querySelectorAll(STATIC_HEAD_SELECTORS).forEach((el) => el.remove());
+    }, []);
 
     // Build title with buyer-intent keywords for product pages
     let fullTitle: string;

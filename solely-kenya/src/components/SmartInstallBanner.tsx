@@ -85,7 +85,7 @@ export function SmartInstallBanner() {
                                 <Download size={16} strokeWidth={1.5} className=" text-white" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-sm font-medium truncate">Get the Sole-ly App</p>
+                                <p className="text-sm font-medium truncate">Get the Solely App</p>
                                 <p className="text-xs text-slate-400 truncate">Faster, offline access</p>
                             </div>
                         </div>

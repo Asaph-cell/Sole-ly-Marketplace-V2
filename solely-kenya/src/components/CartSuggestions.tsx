@@ -27,8 +27,8 @@ export const CartSuggestions = ({ cartProductIds }: CartSuggestionsProps) => {
 
         let query = supabase
           .from("products")
-          .select("id, name, price_ksh, condition, images, is_active, stock, created_at, category")
-          .eq("is_active", true)
+          .select("id, name, price_ksh, condition, images, stock, created_at, category")
+          .eq("status", "active")
           .gt("stock", 0)
           .not("id", "in", `(${cartProductIds.join(",")})`)
           .limit(4);
@@ -47,8 +47,8 @@ export const CartSuggestions = ({ cartProductIds }: CartSuggestionsProps) => {
         if (!suggestedData || suggestedData.length < 4) {
            const { data: fallback } = await supabase
             .from("products")
-            .select("id, name, price_ksh, condition, images, is_active, stock, created_at, category")
-            .eq("is_active", true)
+            .select("id, name, price_ksh, condition, images, stock, created_at, category")
+            .eq("status", "active")
             .gt("stock", 0)
             .not("id", "in", `(${cartProductIds.join(",")})`)
             .limit(4 - (suggestedData?.length || 0));

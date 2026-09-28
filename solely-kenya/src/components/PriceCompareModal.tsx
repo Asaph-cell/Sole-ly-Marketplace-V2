@@ -13,7 +13,7 @@ import { Star, TrendingDown, ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface CompareProduct {
-    id: number;
+    id: string;
     name: string;
     price_ksh: number;
     images: string[];
@@ -31,7 +31,7 @@ interface PriceCompareModalProps {
     open: boolean;
     onClose: () => void;
     currentProduct: {
-        id: number;
+        id: string;
         name: string;
         price_ksh: number;
         brand?: string;
@@ -41,10 +41,10 @@ interface PriceCompareModalProps {
 }
 
 const conditionLabel: Record<string, { label: string; color: string }> = {
-    new: { label: "Mint", color: "bg-green-500" },
-    like_new: { label: "Like New", color: "bg-blue-500" },
-    good: { label: "Thrifted", color: "bg-purple-500" },
-    fair: { label: "Thrifted", color: "bg-purple-500" },
+    new: { label: "Mint", color: "bg-[#1a5138]" },
+    like_new: { label: "Like New", color: "bg-[#2b4162]" },
+    good: { label: "Thrifted", color: "bg-[#5b3671]" },
+    fair: { label: "Thrifted", color: "bg-[#5b3671]" },
 };
 
 export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompareModalProps) => {
@@ -152,8 +152,8 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                     </SheetTitle>
                     <p className="text-xs text-muted-foreground">
                         {currentProduct.brand
-                            ? `Other ${currentProduct.brand} listings on Sole-ly, sorted by lowest price`
-                            : "Similar listings on Sole-ly, sorted by lowest price"}
+                            ? `Other ${currentProduct.brand} listings on Solely, sorted by lowest price`
+                            : "Similar listings on Solely, sorted by lowest price"}
                     </p>
                 </SheetHeader>
 
@@ -185,7 +185,7 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                                     className={`rounded-2xl border-2 transition ${listing.isCurrent
                                         ? "border-primary bg-primary/5"
                                         : isLowest
-                                            ? "border-green-500/50 bg-green-500/5"
+                                            ? "border-green-500/50 bg-[#1a5138]/5"
                                             : "border-border bg-card"
                                         }`}
                                 >
@@ -223,7 +223,7 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                                                     </Badge>
                                                 )}
                                                 {isLowest && !listing.isCurrent && (
-                                                    <Badge className="text-[10px] h-4 px-1.5 py-0 bg-green-500 text-white">
+                                                    <Badge className="text-[10px] h-4 px-1.5 py-0 bg-[#1a5138] text-white">
                                                         Lowest
                                                     </Badge>
                                                 )}

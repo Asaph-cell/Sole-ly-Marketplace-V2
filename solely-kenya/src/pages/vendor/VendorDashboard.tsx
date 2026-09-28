@@ -17,6 +17,7 @@ import {
   CheckCircle, Zap, Share2, Link2, Copy
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { StoreSetupCard } from "@/components/vendor/StoreSetupCard";
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
@@ -196,6 +197,9 @@ const VendorDashboard = () => {
             </div>
           ) : (
             <>
+              {/* ── Store setup progress (hides itself at 100%) ── */}
+              <StoreSetupCard profile={profile} className="mb-4 sm:mb-6" />
+
               {/* ── Quick Actions ── */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {/* Storefront Link Card */}
@@ -214,7 +218,7 @@ const VendorDashboard = () => {
                   <div className="flex items-center gap-2">
                     <div className="bg-muted px-3 py-2 rounded-md flex-1 overflow-hidden">
                       <p className="text-xs font-mono truncate text-muted-foreground">
-                        sole.ly/store/{profile?.store_link || profile?.id?.substring(0, 8)}
+                        solelymarketplace.com/store/{profile?.store_link || profile?.id?.substring(0, 8)}
                       </p>
                     </div>
                     <Button 

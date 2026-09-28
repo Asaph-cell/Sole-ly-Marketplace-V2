@@ -27,7 +27,7 @@ const faqs = [
     answer: "If your order isn't delivered within the expected timeframe, you can open a dispute. Our team will investigate and initiate a refund if the vendor cannot provide proof of delivery."
   },
   {
-    question: "How do I become a vendor on Sole-ly?",
+    question: "How do I become a vendor on Solely?",
     answer: "Simply click 'Sell Your Shoes' and complete the vendor registration form. You'll need to agree to our Terms & Conditions. Once registered, you can start listing your products immediately!"
   },
   {
@@ -45,8 +45,8 @@ const Footer = () => {
 
   const handleShare = async () => {
     const shareData = {
-      title: "Sole-ly - Kenya's Safest Way to Buy & Sell Online",
-      text: "Check out Sole-ly, Kenya's safest way to buy and sell shoes, fashion, electronics & more online.",
+      title: "Solely - Kenya's Safest Way to Buy & Sell Online",
+      text: "Check out Solely, Kenya's safest way to buy and sell shoes, fashion, electronics & more online.",
       url: "https://solelymarketplace.com",
     };
 
@@ -61,7 +61,7 @@ const Footer = () => {
 
     try {
       await navigator.clipboard.writeText(shareData.url);
-      toast.success("Link copied! Share Sole-ly with your friends.");
+      toast.success("Link copied! Share Solely with your friends.");
     } catch {
       toast.error(`Couldn't copy automatically, here's the link: ${shareData.url}`);
     }
@@ -82,7 +82,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-muted border-t border-border mt-20 text-muted-foreground">
+    <footer className="bg-muted border-t border-border mt-12 text-muted-foreground">
       <Helmet>
         <script type="application/ld+json">
           {JSON.stringify(faqSchema)}
@@ -119,7 +119,7 @@ const Footer = () => {
             <Link to="/" className="flex flex-col items-start group">
               <img
                 src={logo}
-                alt="Sole-ly - Buy & Sell Safely"
+                alt="Solely - Buy & Sell Safely"
                 className="h-14 w-auto transition-transform group-hover:scale-105 dark:invert"
               />
               <span className="text-[10px] text-muted-foreground tracking-wide uppercase -mt-3 pl-1">Kenya's Safest Way to Buy & Sell Online</span>
@@ -173,7 +173,7 @@ const Footer = () => {
 
           {/* Why Solely - Advantages */}
           <div>
-            <h3 className="font-semibold mb-4 text-foreground">Why Sole-ly?</h3>
+            <h3 className="font-semibold mb-4 text-foreground">Why Solely?</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span className="text-green-400">✓</span>
@@ -235,7 +235,7 @@ const Footer = () => {
               className="flex items-center gap-2 text-sm mb-4 hover:text-primary transition-colors"
             >
               <Share2 size={16} strokeWidth={1.5} />
-              Share Sole-ly
+              Share Solely
             </button>
             <div className="space-y-2 text-sm">
               <p>
@@ -257,7 +257,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-border mt-8 pt-8 text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} Sole-ly Kenya. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Solely Kenya. All rights reserved.</p>
         </div>
       </div>
     </footer>

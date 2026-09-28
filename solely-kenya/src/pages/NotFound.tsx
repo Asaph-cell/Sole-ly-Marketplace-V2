@@ -2,6 +2,7 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Home, Search } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
 interface Particle {
   x: number;
@@ -215,6 +216,10 @@ const NotFound = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-white">
+      <Helmet>
+        <title>Page not found | Solely Kenya</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" style={{ touchAction: "none" }} />
 
       {/* Score */}
@@ -234,13 +239,12 @@ const NotFound = () => {
               </svg>
             </div>
 
-            <p className="text-sm text-muted-foreground mb-1">Oops!</p>
-            <h1 className="text-4xl sm:text-5xl font-black text-primary mb-2">404</h1>
+                        <h1 className="text-4xl sm:text-5xl font-black text-primary mb-2">404</h1>
             <h2 className="text-lg font-bold mb-1">Page not found</h2>
             <p className="text-muted-foreground text-sm mb-4">This page doesn't exist or has been moved</p>
 
             <div className="bg-primary/5 rounded-xl p-3 mb-6 border border-primary/10">
-              <p className="text-xs text-muted-foreground">Move to attract • Click to pop!</p>
+              <p className="text-xs text-muted-foreground">Move to attract • Click to pop</p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">

@@ -4,9 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { VendorNavbar } from "@/components/vendor/VendorNavbar";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
-import { Card } from "@/components/ui/card";
-import { ConversationList } from "@/components/messaging/ConversationList";
-import { MessageThread } from "@/components/messaging/MessageThread";
+import { ChatInbox } from "@/components/messaging/ChatInbox";
 
 const VendorMessages = () => {
   const { user, loading } = useAuth();
@@ -37,30 +35,18 @@ const VendorMessages = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div data-layout="designed" className="min-h-screen bg-sunken">
       <VendorNavbar />
       <div className="flex">
         <VendorSidebar />
-        <main className="flex-1 p-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Messages</h1>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[calc(100vh-200px)]">
-            <Card className="md:col-span-1 overflow-y-auto">
-              <ConversationList
-                onSelectConversation={setSelectedConversationId}
-                selectedConversationId={selectedConversationId}
-                isVendor={true}
-              />
-            </Card>
-            <Card className="md:col-span-2 flex flex-col">
-              {selectedConversationId ? (
-                <MessageThread conversationId={selectedConversationId} />
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                  Select a conversation to view messages
-                </div>
-              )}
-            </Card>
-          </div>
+        <main className="flex-1 min-w-0 p-3 sm:p-6 lg:p-8">
+          <h1 className="font-display text-3xl mb-4 sm:mb-6">Messages</h1>
+          <ChatInbox
+            selectedId={selectedConversationId}
+            onSelect={setSelectedConversationId}
+            isVendor
+            className="h-[calc(100dvh-170px)] sm:h-[calc(100dvh-200px)]"
+          />
         </main>
       </div>
     </div>
