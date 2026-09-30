@@ -463,8 +463,8 @@ const VendorProducts = () => {
         </main>
       </div>
 
-      {/* ── Single FAB, sits above WhatsApp widget ── */}
-      <div className="fixed bottom-28 right-4 z-40">
+      {/* ── Single FAB ── */}
+      <div className="fixed bottom-6 right-4 z-40">
         <Button onClick={() => navigate("/vendor/list-item")} className="h-12 rounded-full pl-4 pr-5">
           <Plus size={18} strokeWidth={2} /> List item
         </Button>

@@ -13,6 +13,7 @@ import {
   Download,
   Link2,
   MessageCircle,
+  LifeBuoy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -41,6 +42,7 @@ const menuItems = [
   { icon: Star, label: "Ratings", path: "/vendor/ratings", alertKey: null, action: null },
   { icon: AlertTriangle, label: "Disputes", path: "/vendor/disputes", alertKey: "openDisputes" as const, action: null },
   { icon: Settings, label: "Account Settings", path: "/vendor/settings", alertKey: null, action: null },
+  { icon: LifeBuoy, label: "Help & Support", path: "/contact", alertKey: null, action: null },
   { icon: LogOut, label: "Logout", path: "", alertKey: null, action: "logout" as const },
 ];
 

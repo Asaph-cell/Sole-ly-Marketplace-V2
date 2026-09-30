@@ -94,6 +94,10 @@ const HowItWorks = lazyRetry(() => import("./pages/HowItWorks"), "HowItWorks");
 const BuyNow = lazyRetry(() => import("./pages/BuyNow"), "BuyNow");
 const NotFound = lazyRetry(() => import("./pages/NotFound"), "NotFound");
 const ChatBot = lazyRetry(() => import("./components/ChatBot"), "ChatBot");
+
+// Seller dashboard and admin pages (not the public /vendor landing or sign-up).
+const isDashboardRoute = (path: string) =>
+  path.startsWith("/admin") || (path.startsWith("/vendor/") && !path.startsWith("/vendor/register"));
 const Wishlist = lazyRetry(() => import("./pages/Wishlist"), "Wishlist");
 const Messages = lazyRetry(() => import("./pages/Messages"), "Messages");
 const VendorMessages = lazyRetry(() => import("./pages/vendor/VendorMessages"), "VendorMessages");
@@ -238,7 +242,9 @@ const AppLayout = () => {
       <ScrollToTop />
       <React.Suspense fallback={<RouteSkeleton />}>
         <AnimatedRoutes />
-        <ChatBot />
+        {/* Buyers need the support bubble; on the seller dashboard and admin it
+            sat on top of save bars and action buttons. Sellers get Help in the sidebar. */}
+        {!isDashboardRoute(location.pathname) && <ChatBot />}
       </React.Suspense>
     </div>
   );

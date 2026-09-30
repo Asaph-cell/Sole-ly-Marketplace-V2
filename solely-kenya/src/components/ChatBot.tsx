@@ -29,7 +29,6 @@ const ChatBot = () => {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [currentNode, setCurrentNode] = useState<ChatNode | null>(null);
-  const [hasInteracted, setHasInteracted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -59,7 +58,6 @@ const ChatBot = () => {
   // Open the chat
   const handleOpen = () => {
     setIsOpen(true);
-    setHasInteracted(true);
     initChat();
   };
 
@@ -355,11 +353,6 @@ const ChatBot = () => {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Pulse ring on first load (only if chat hasn't been opened yet) */}
-        {!hasInteracted && (
-          <span className="absolute inset-0 rounded-full border-2 border-[#c2841d] animate-ping opacity-40" />
-        )}
 
         {/* Gold ring accent */}
         <span className="absolute inset-0 rounded-full ring-2 ring-[#c2841d]/30 pointer-events-none" />

@@ -165,7 +165,7 @@ const VendorSettings = () => {
       <VendorNavbar />
       <div className="flex">
         <VendorSidebar />
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto pb-36">
+        <main className="flex-1 overflow-y-auto px-4 pt-4 pb-36 md:px-8 md:pt-8">
           <div className="max-w-4xl mx-auto space-y-8">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
