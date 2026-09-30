@@ -125,49 +125,24 @@ export function PushNotificationPrompt({
     // Banner variant (for top of page)
     if (variant === 'banner') {
         return (
-            <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-3 relative">
-                <div className="max-w-4xl mx-auto flex items-center justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                            <Bell size={20} strokeWidth={1.5}  />
-                        </div>
-                        <div>
-                            <p className="font-medium">
-                                🔔 Enable notifications to never miss new orders!
-                            </p>
-                            <p className="text-sm text-amber-100">
-                                Get instant alerts even when you're not on the website.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-white hover:bg-white/20"
-                            onClick={handleLater}
-                            disabled={isLoading}
-                        >
-                            Later
-                        </Button>
-                        <Button
-                            size="sm"
-                            className="bg-white text-amber-600 hover:bg-amber-50"
-                            onClick={handleEnable}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? 'Enabling...' : 'Enable Now'}
-                        </Button>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-border bg-card px-4 py-3">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 text-foreground">
+                        <Bell size={16} strokeWidth={1.75} />
+                    </span>
+                    <div className="min-w-0">
+                        <p className="text-sm font-semibold">Turn on order alerts</p>
+                        <p className="text-xs text-muted-foreground">Get a ping for every new order, even with this tab closed.</p>
                     </div>
                 </div>
-
-                <button
-                    onClick={handleLater}
-                    className="absolute top-2 right-2 text-white/70 hover:text-white"
-                >
-                    <X size={16} strokeWidth={1.5}  />
-                </button>
+                <div className="flex items-center gap-1 ml-auto">
+                    <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground" onClick={handleLater} disabled={isLoading}>
+                        Not now
+                    </Button>
+                    <Button size="sm" className="rounded-full bg-foreground text-background hover:bg-foreground/85" onClick={handleEnable} disabled={isLoading}>
+                        {isLoading ? 'Turning on…' : 'Turn on'}
+                    </Button>
+                </div>
             </div>
         );
     }
