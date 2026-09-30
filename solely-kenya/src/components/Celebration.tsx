@@ -119,7 +119,7 @@ export function CelebrationHost() {
             {!reduceMotion && <Confetti />}
 
             <motion.div
-              className="relative mx-auto mb-5 h-20 w-20 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30"
+              className="relative mx-auto mb-5 h-20 w-20 rounded-full bg-success flex items-center justify-center shadow-lg shadow-emerald-500/30"
               initial={{ transform: "scale(0.6)" }}
               animate={{ transform: "scale(1)" }}
               transition={{ type: "spring", duration: 0.55, bounce: 0.45, delay: 0.05 }}
@@ -140,7 +140,7 @@ export function CelebrationHost() {
               transition={{ duration: 0.3, ease: EASE_OUT, delay: 0.3 }}
             >
               <h2 className="text-2xl font-bold mb-1.5">{current.title}</h2>
-              {current.amount && <p className="text-3xl font-extrabold text-emerald-600 my-2 tabular-nums">{current.amount}</p>}
+              {current.amount && <p className="text-3xl font-extrabold text-success my-2 tabular-nums">{current.amount}</p>}
               {current.subtitle && <p className="text-muted-foreground text-sm leading-relaxed">{current.subtitle}</p>}
               <Button className="mt-6 w-full" size="lg" onClick={() => setCurrent(null)} autoFocus>
                 {current.cta ?? "Done"}

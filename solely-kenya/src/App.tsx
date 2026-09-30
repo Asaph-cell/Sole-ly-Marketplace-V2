@@ -15,6 +15,7 @@ import { usePlatformSettings } from "./hooks/usePlatformSettings";
 import { captureFirstTouchSource } from "./lib/attribution";
 import { PresenceProvider } from "@/hooks/usePresence";
 import { useAuth } from "./hooks/useAuth";
+import { ThemeProvider } from "next-themes";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,8 @@ const lazyRetry = (componentImport: () => Promise<any>, name: string) =>
 
 const ErrorBoundary = lazyRetry(() => import("./components/ErrorBoundary").then(module => ({ default: module.ErrorBoundary })), "ErrorBoundary");
 const Navbar = lazyRetry(() => import("./components/Navbar"), "Navbar");
+// Dev-only design playground; never bundled into production routes.
+const ButtonLab = import.meta.env.DEV ? lazyRetry(() => import("./pages/dev/ButtonLab"), "ButtonLab") : null;
 const Footer = lazyRetry(() => import("./components/Footer"), "Footer");
 const Home = lazyRetry(() => import("./pages/Home"), "Home");
 const Shop = lazyRetry(() => import("./pages/Shop"), "Shop");
@@ -195,6 +198,7 @@ const AnimatedRoutes = () => {
       <Route path="/pay/:id" element={<PageWrapper><SecureInvoice /></PageWrapper>} />
       <Route path="/track/:orderId" element={<PageWrapper><GuestTracking /></PageWrapper>} />
 
+      {ButtonLab && <Route path="/__buttons" element={<ButtonLab />} />}
       <Route path="*" element={<PageWrapper><MainLayout><NotFound /></MainLayout></PageWrapper>} />
     </Routes>
   );
@@ -247,7 +251,10 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      {/* Honour the OS "reduce motion" setting for every Framer animation. */}
+      {/* Light/dark follows the phone or computer setting until the person
+          picks one in the menu. disableTransitionOnChange stops every colour
+          transition on the page from animating at once when it flips. */}
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <MotionConfig reducedMotion="user">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -262,6 +269,7 @@ const App = () => {
         </TooltipProvider>
       </QueryClientProvider>
       </MotionConfig>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 };

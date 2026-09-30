@@ -8,8 +8,8 @@ import { format } from 'date-fns';
 type Payout = Tables<"payouts">;
 
 const STATUS_TONE: Record<string, string> = {
-    paid: 'bg-emerald-500',
-    completed: 'bg-emerald-500',
+    paid: 'bg-success',
+    completed: 'bg-success',
     processing: 'bg-primary',
     pending: 'bg-primary',
     failed: 'bg-destructive',

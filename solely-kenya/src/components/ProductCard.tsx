@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Heart, Truck, RefreshCcw, Recycle, Play, Star, Check } from "lucide-react";
+import { Heart, Truck, RefreshCcw, Recycle, Play, Pause, Star, Check } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { useCart } from "@/contexts/CartContext";
@@ -39,15 +39,15 @@ const StarDisplay = ({ value, count }: { value?: number | null; count?: number }
             strokeWidth={1.5}
             className={
               star <= Math.floor(rounded)
-                ? "fill-amber-400 text-amber-400"
+                ? "fill-primary-strong text-primary-strong"
                 : star - 0.5 === rounded
-                ? "fill-amber-200 text-amber-400"
-                : "text-gray-300"
+                ? "fill-primary-foreground text-primary-strong"
+                : "text-muted-foreground"
             }
           />
         ))}
       </div>
-      <span className="text-[10px] text-gray-500 font-medium">
+      <span className="text-[10px] text-muted-foreground font-medium">
         {value.toFixed(1)}
         {count ? ` (${count})` : ""}
       </span>
@@ -80,6 +80,8 @@ const ProductCard = ({
   const { user } = useAuth();
   const navigate = useNavigate();
   const wished = isWished(String(id));
+  // Bumped on each like; keys the heart so the pop replays every time.
+  const [likePop, setLikePop] = useState(0);
   const [justAdded, setJustAdded] = useState(false);
   const addedTimer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(addedTimer.current), []);
@@ -152,6 +154,7 @@ const ProductCard = ({
       navigate(`/auth?redirect=/wishlist`);
       return;
     }
+    if (!wished) setLikePop((n) => n + 1);
     toggle(String(id));
   };
 
@@ -183,7 +186,7 @@ const ProductCard = ({
     >
       <Link
         to={`/product/${id}`}
-        className="card block h-full group bg-white border border-gray-100 rounded-[20px] overflow-hidden hover:shadow-xl hover:border-gray-200 hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-200 ease-out-strong flex flex-col relative"
+        className="card block h-full group bg-card border border-border rounded-[20px] overflow-hidden hover:shadow-xl hover:border-border hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-200 ease-out-strong flex flex-col relative"
       >
         {/* ── img-wrap ── */}
         <div
@@ -217,29 +220,24 @@ const ProductCard = ({
               </span>
             )}
             {videoUrl && (
-              <span className="flex items-center justify-center w-7 h-7 bg-white/90 text-gray-900 rounded-full shadow-sm">
-                <Play size={12} strokeWidth={2.5} className="ml-0.5" />
+              <span className="flex items-center justify-center w-7 h-7 bg-card/90 text-foreground rounded-full shadow-sm" aria-hidden>
+                {isPlaying ? <Pause size={12} strokeWidth={2.5} /> : <Play size={12} strokeWidth={2.5} className="ml-0.5" />}
               </span>
             )}
           </div>
 
           {/* Wishlist button */}
           <button
-            className={`wishlist absolute bottom-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 shadow-sm transition-[transform,background-color,color] duration-150 ease-out hover:bg-white active:scale-90 ${wished ? "text-rose-500" : "text-gray-400 hover:text-rose-400"}`}
+            className={`wishlist absolute bottom-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-card/90 shadow-sm transition-[transform,background-color,color] duration-150 ease-out hover:bg-card active:scale-90 ${wished ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
             onClick={handleWishlist}
             aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
             aria-pressed={wished}
           >
-            {/* Keyed on state so saving replays a small spring pop; un-saving just swaps. */}
-            <motion.span
-              key={wished ? "on" : "off"}
-              initial={wished ? { scale: 0.5 } : false}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", duration: 0.45, bounce: 0.55 }}
-              className="flex"
-            >
-              <Heart size={15} strokeWidth={2} className={wished ? "fill-rose-500" : ""} />
-            </motion.span>
+            {/* Hover only darkens the outline, so nobody thinks they liked it by
+                pointing at it. The fill and the pop happen on the click itself. */}
+            <span key={likePop} className={`flex ${likePop && wished ? "fx-like-pop" : ""}`}>
+              <Heart size={15} strokeWidth={2} className={wished ? "fill-destructive" : ""} />
+            </span>
           </button>
 
           {/* Native lazy loading fetches well ahead of the viewport, so fast
@@ -249,7 +247,7 @@ const ProductCard = ({
             alt={name}
             loading="lazy"
             decoding="async"
-            className={`w-full h-full bg-gray-100 object-cover transition-[transform,opacity] duration-300 ease-out-strong group-hover:scale-105 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"}`}
+            className={`w-full h-full bg-muted object-cover transition-[transform,opacity] duration-300 ease-out-strong group-hover:scale-105 ${(isHovering || isPlaying) && videoUrl ? "opacity-0" : "opacity-100"}`}
           />
 
           {videoUrl && (
@@ -264,30 +262,23 @@ const ProductCard = ({
             />
           )}
 
-          {videoUrl && isMobile && !isPlaying && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-              <div className="bg-black/55 rounded-full p-3">
-                <Play strokeWidth={2} size={24} className="text-white fill-white" />
-              </div>
-            </div>
-          )}
         </div>
 
         {/* ── body ── */}
         <div className="body p-3.5 flex flex-col flex-grow gap-1">
           {/* Brand */}
-          <span className="brand text-[10px] font-extrabold text-gray-500 uppercase tracking-widest block truncate">
+          <span className="brand text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest block truncate">
             {brand || "\u00A0"}
           </span>
 
           {/* Product Name */}
-          <p className="name text-[14px] sm:text-[15px] font-bold text-gray-900 leading-tight line-clamp-1">
+          <p className="name text-[14px] sm:text-[15px] font-bold text-foreground leading-tight line-clamp-1">
             {name}
           </p>
 
           {/* Description */}
           {description && (
-            <p className="desc text-[11px] text-gray-400 leading-snug line-clamp-2">
+            <p className="desc text-[11px] text-muted-foreground leading-snug line-clamp-2">
               {description}
             </p>
           )}
@@ -303,7 +294,7 @@ const ProductCard = ({
             <button
               onClick={handleAddToCart}
               aria-live="polite"
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-white rounded-lg active:scale-[0.97] transition-[transform,background-color] duration-150 ease-out text-xs font-bold shadow-sm ${justAdded ? "bg-emerald-600" : "bg-gray-900 hover:bg-gray-700"}`}
+              className={`btn-fx flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm ${justAdded ? "bg-success text-success-foreground" : "bg-foreground text-background hover:bg-foreground/85"}`}
             >
               {justAdded ? (
                 <motion.span

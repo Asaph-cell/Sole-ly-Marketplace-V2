@@ -137,7 +137,7 @@ export const VendorRating = ({ vendorId, productId }: VendorRatingProps) => {
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star size={20} strokeWidth={1.5} key={star}
                     className={` ${star <= Math.round(averageRating)
-                      ? "fill-yellow-400 text-yellow-400"
+                      ? "fill-primary-strong text-primary-strong"
                       : "text-muted-foreground"
                       }`}
                   />
@@ -171,7 +171,7 @@ export const VendorRating = ({ vendorId, productId }: VendorRatingProps) => {
                     className="transition-transform hover:scale-110"
                   >
                     <Star strokeWidth={1.5} className={`h-8 w-8 ${star <= (hoverRating || rating)
-                        ? "fill-yellow-400 text-yellow-400"
+                        ? "fill-primary-strong text-primary-strong"
                         : "text-muted-foreground"
                         }`}
                     />
@@ -224,7 +224,7 @@ export const VendorRating = ({ vendorId, productId }: VendorRatingProps) => {
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star size={16} strokeWidth={1.5} key={star}
                           className={` ${star <= rating.rating
-                            ? "fill-yellow-400 text-yellow-400"
+                            ? "fill-primary-strong text-primary-strong"
                             : "text-muted-foreground"
                             }`}
                         />

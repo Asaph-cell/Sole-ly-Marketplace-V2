@@ -7,6 +7,7 @@ import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import { compressImages } from "@/lib/compressImage";
 import { ALL_CATEGORIES } from "@/lib/categories";
 import { toast } from "@/lib/toast";
+import { celebrate } from "@/components/Celebration";
 import { PricingCalculator } from "@/components/vendor/PricingCalculator";
 import {
   ChevronLeft, ChevronRight, Upload, X, ImagePlus, Loader2,
@@ -32,12 +33,12 @@ const CAT_META: Record<string, { icon: LucideIcon; from: string; to: string; tex
 
 // ── Condition options, simple 2-choice per group ────────────────────────────
 const CONDITIONS_GENERAL = [
-  { value: "new",      label: "New",       dot: "bg-emerald-500" },
-  { value: "thrifted", label: "Thrifted",  dot: "bg-purple-500" },
+  { value: "new",      label: "New",       dot: "bg-success" },
+  { value: "thrifted", label: "Thrifted",  dot: "bg-foreground" },
 ];
 const CONDITIONS_ELECTRONICS = [
-  { value: "new",         label: "Brand New",   dot: "bg-emerald-500" },
-  { value: "refurbished", label: "Refurbished",  dot: "bg-blue-500" },
+  { value: "new",         label: "Brand New",   dot: "bg-success" },
+  { value: "refurbished", label: "Refurbished",  dot: "bg-foreground" },
 ];
 
 // All electronics sub-category keys
@@ -457,9 +458,28 @@ const VendorListItem = ({ userId }: { userId: string }) => {
         if (Object.keys(extras).length) await supabase.from("products").update(extras).eq("id", inserted.id);
       } catch { /* schema cache not refreshed yet */ }
 
-      await supabase.rpc("publish_product", { product_id_to_publish: inserted.id });
+      const { error: publishErr } = await supabase.rpc("publish_product", { product_id_to_publish: inserted.id });
+      // The product row exists either way, so the local draft is done with.
       await resetDraft(false);
-      toast.success(`Listed. Listing strength ${strength.percent}%`);
+      if (publishErr) {
+        toast.error("Saved, but not live yet", { description: "Open it in My Products and tap Publish." });
+        navigate("/vendor/products");
+        return;
+      }
+
+      const { count } = await supabase
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("vendor_id", userId);
+      if (count === 1) {
+        celebrate({
+          title: "You're live",
+          subtitle: "Your first item is in the shop. Share your store link so buyers can find it.",
+          cta: "Done",
+        });
+      } else {
+        toast.success("Item listed", { description: `Listing strength ${strength.percent}%` });
+      }
       navigate("/vendor/products");
     } catch (e: any) {
       toast.error(e, { retry: handleSubmit, description: "Your listing is still saved as a draft." });
@@ -520,7 +540,7 @@ const VendorListItem = ({ userId }: { userId: string }) => {
           {draft.step === 1 && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-base font-semibold">Start with photos</h2>
+                <h2 className="font-sans text-base font-semibold tracking-normal">Start with photos</h2>
                 <p className="text-sm text-muted-foreground">Up to 4. The first one is the cover. Daylight shots look best.</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -570,7 +590,7 @@ const VendorListItem = ({ userId }: { userId: string }) => {
           {/* ── STEP 2: Category + type ── */}
           {draft.step === 2 && (
             <div className="space-y-5">
-              <h2 className="text-base font-semibold">What are you selling?</h2>
+              <h2 className="font-sans text-base font-semibold tracking-normal">What are you selling?</h2>
               <div className="grid grid-cols-3 gap-2.5">
                 {ALL_CATEGORIES.map((cat) => {
                   const meta = CAT_META[cat.key];

@@ -65,9 +65,9 @@ const VendorSettings = () => {
 
       if (updateError) throw updateError;
 
-      toast.success("Logo uploaded and saved successfully!");
-    } catch (error: any) {
-      toast.error(error.message || "Error uploading image");
+      toast.success("Logo saved");
+    } catch (error) {
+      toast.error(error, { description: "Your logo was not changed." });
     } finally {
       setUploadingLogo(false);
     }
@@ -146,13 +146,11 @@ const VendorSettings = () => {
 
       if (error) throw error;
 
-      toast.success("Settings saved successfully!");
+      // The save button itself turns into "Saved" - no toast on top of it.
       setSaveSuccess(true);
-
-      // Auto-clear success state after 2 seconds
       setTimeout(() => setSaveSuccess(false), 2000);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      toast.error(error, { description: "Your changes were not saved." });
     } finally {
       setSaving(false);
     }
@@ -202,7 +200,7 @@ const VendorSettings = () => {
                   <div className="space-y-2">
                     <Label htmlFor="whatsapp_number">Store contact number (WhatsApp)</Label>
                     <div className="relative">
-                      <Phone size={16} strokeWidth={1.5} className="absolute left-3 top-3  text-muted-foreground" />
+                      <Phone size={16} strokeWidth={1.5} className="absolute left-3 top-3 text-muted-foreground" />
                       <Input
                         id="whatsapp_number"
                         type="tel"
@@ -310,7 +308,7 @@ const VendorSettings = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-xl">
-                    <CreditCard size={20} strokeWidth={1.5} className=" text-green-500" />
+                    <CreditCard size={20} strokeWidth={1.5} className=" text-success" />
                     Payout Details
                   </CardTitle>
                   <CardDescription>
@@ -321,18 +319,18 @@ const VendorSettings = () => {
                   <div className="max-w-md space-y-2">
                     <Label htmlFor="mpesa_number">M-Pesa Number *</Label>
                     <div className="relative">
-                      <Phone size={16} strokeWidth={1.5} className="absolute left-3 top-3  text-green-600" />
+                      <Phone size={16} strokeWidth={1.5} className="absolute left-3 top-3 text-success" />
                       <Input
                         id="mpesa_number"
                         type="tel"
-                        className="pl-9 border-green-200 focus-visible:ring-green-500"
+                        className="pl-9 border-success/30 focus-visible:ring-success/60"
                         placeholder="254712345678"
                         value={formData.mpesa_number}
                         onChange={(e) => setFormData({ ...formData, mpesa_number: e.target.value })}
                         required
                       />
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2 bg-green-50 text-green-700 p-3 rounded-md">
+                    <p className="text-sm text-muted-foreground mt-2 bg-success-soft text-success p-3 rounded-md">
                       <strong>94% of all your sales</strong> will be credited to your wallet once the buyer confirms delivery. You can withdraw to this M-Pesa number at any time from your dashboard.
                     </p>
                   </div>
@@ -395,28 +393,20 @@ const VendorSettings = () => {
               </Card>
 
               {/* Floating Action Bar */}
-              <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-md border-t flex justify-end md:pl-64 z-10">
+              <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-md border-t flex justify-end lg:pl-64 z-10">
                 <Button
                   type="submit"
                   size="lg"
-                  className={`w-full sm:w-auto min-w-[200px] transition ${saveSuccess ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                  aria-live="polite"
+                  className={`w-full sm:w-auto min-w-[200px] ${saveSuccess ? "bg-success text-success-foreground hover:bg-success" : ""}`}
                   disabled={saving}
                 >
                   {saveSuccess ? (
-                    <>
-                      <Check size={20} strokeWidth={1.5} className="mr-2 " />
-                      Saved Successfully
-                    </>
+                    <><Check size={18} strokeWidth={2.25} /> Saved</>
                   ) : saving ? (
-                    <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Saving...
-                    </div>
+                    <><Loader2 size={18} className="animate-spin" /> Saving…</>
                   ) : (
-                    <>
-                      <Save size={20} strokeWidth={1.5} className="mr-2 " />
-                      Save Changes
-                    </>
+                    <><Save size={18} strokeWidth={1.5} /> Save changes</>
                   )}
                 </Button>
               </div>

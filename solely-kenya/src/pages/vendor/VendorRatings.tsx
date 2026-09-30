@@ -7,7 +7,7 @@ import { VendorNavbar } from "@/components/vendor/VendorNavbar";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, TrendingUp, Sparkles, MessageSquareHeart } from "lucide-react";
+import { Star, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { SEO } from "@/components/SEO";
 
@@ -83,7 +83,7 @@ const VendorRatings = () => {
             <div className="flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map((star) => (
                     <Star size={16} strokeWidth={1.5} key={star}
-                        className={` sm:h-5 sm:w-5 transition-transform ${star <= rating ? "fill-amber-400 text-amber-400 drop-shadow-sm" : "text-muted-foreground/30"
+                        className={` sm:h-5 sm:w-5 transition-transform ${star <= rating ? "fill-primary text-primary" : "text-muted-foreground/30"
                             }`}
                     />
                 ))}
@@ -103,20 +103,14 @@ const VendorRatings = () => {
             <div className="flex flex-1 overflow-hidden">
                 <VendorSidebar />
                 <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-muted/10 relative">
-                    {/* Background decorations */}
-                    <div className="absolute top-0 right-0 -z-10 w-96 h-96 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 -z-10 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
 
                     <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
                         {/* Header */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
-                                <h1 className="text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 tracking-tight">
-                                    My Ratings & Reviews
+                                <h1 className="font-display text-3xl leading-tight sm:text-4xl">
+                                    Ratings
                                 </h1>
-                                <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-                                    See what your customers are saying about you.
-                                </p>
                             </div>
                         </div>
 
@@ -130,23 +124,22 @@ const VendorRatings = () => {
                                 {/* Left Column: Stats & Breakdown */}
                                 <div className="lg:col-span-1 space-y-6">
                                     {/* Overall Rating Card */}
-                                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-                                        <Card className="bg-card/50 backdrop-blur-sm border-white/5 shadow-glass overflow-hidden relative">
-                                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
-                                            <CardHeader className="pb-2">
+                                    <motion.div>
+                                        <Card className="bg-card overflow-hidden relative">
+                                                                                        <CardHeader className="pb-2">
                                                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                                                    <Star size={20} strokeWidth={1.5} className=" text-amber-500" /> Overall Rating
+                                                    Overall rating
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent>
                                                 <div className="flex flex-col items-center text-center py-4">
-                                                    <div className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-amber-400 to-orange-600 tracking-tighter mb-4 drop-shadow-sm">
+                                                    <div className="font-display text-6xl leading-none tabular-nums text-foreground mb-4">
                                                         {stats.average > 0 ? stats.average : "-"}
                                                     </div>
                                                     <div className="flex justify-center mb-3">
                                                         {renderStars(Math.round(stats.average))}
                                                     </div>
-                                                    <Badge variant="outline" className="bg-background/50 backdrop-blur-sm border-border text-xs">
+                                                    <Badge variant="muted" className="text-xs">
                                                         Based on {stats.total} {stats.total === 1 ? "review" : "reviews"}
                                                     </Badge>
                                                 </div>
@@ -155,11 +148,11 @@ const VendorRatings = () => {
                                     </motion.div>
 
                                     {/* Rating Breakdown */}
-                                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
-                                        <Card className="bg-card/50 backdrop-blur-sm border-white/5 shadow-glass">
+                                    <motion.div>
+                                        <Card className="bg-card">
                                             <CardHeader>
                                                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                                                    <BarChart2 size={20} strokeWidth={1.5} className=" text-primary" /> Rating Breakdown
+                                                    Breakdown
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent className="space-y-4">
@@ -170,16 +163,16 @@ const VendorRatings = () => {
                                                         <div key={star} className="flex items-center gap-3 group">
                                                             <div className="flex items-center gap-1 w-8 shrink-0">
                                                                 <span className="text-sm font-medium">{star}</span>
-                                                                <Star strokeWidth={1.5} className="h-3 w-3 text-amber-500 fill-amber-500" />
+                                                                <Star strokeWidth={1.5} className="h-3 w-3 text-primary fill-primary" />
                                                             </div>
                                                             <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
                                                                 <motion.div
                                                                     initial={{ width: 0 }}
                                                                     animate={{ width: `${percentage}%` }}
-                                                                    transition={{ duration: 1, ease: "easeOut" }}
+                                                                    transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
                                                                     className={`h-full rounded-full ${
-                                                                        star >= 4 ? 'bg-emerald-500' :
-                                                                        star === 3 ? 'bg-amber-400' : 'bg-red-500'
+                                                                        star >= 4 ? 'bg-success' :
+                                                                        star === 3 ? 'bg-primary' : 'bg-destructive'
                                                                     }`}
                                                                 />
                                                             </div>
@@ -194,30 +187,26 @@ const VendorRatings = () => {
                                     </motion.div>
 
                                     {/* Tips Card */}
-                                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
-                                        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 shadow-sm relative overflow-hidden">
-                                            <div className="absolute -right-6 -top-6 text-primary/10 rotate-12">
-                                                <Sparkles strokeWidth={1.5} className="w-24 h-24" />
-                                            </div>
+                                    <motion.div>
+                                        <Card className="bg-primary-soft border-primary/20 shadow-none relative overflow-hidden">
                                             <CardHeader className="pb-2">
-                                                <CardTitle className="text-lg flex items-center gap-2 text-primary font-bold">
-                                                    <TrendingUp size={20} strokeWidth={1.5}  />
-                                                    Tips for 5 Stars
+                                                <CardTitle className="text-lg font-semibold text-primary-strong">
+                                                    Tips for 5 stars
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent>
                                                 <ul className="space-y-2.5 text-sm font-medium text-foreground/80">
                                                     <li className="flex items-start gap-2">
-                                                        <span className="text-emerald-500 mt-0.5">✓</span> Respond to orders quickly
+                                                        <Check size={14} strokeWidth={2} className="mt-0.5 shrink-0 text-success" /> Respond to orders quickly
                                                     </li>
                                                     <li className="flex items-start gap-2">
-                                                        <span className="text-emerald-500 mt-0.5">✓</span> Deliver items on time
+                                                        <Check size={14} strokeWidth={2} className="mt-0.5 shrink-0 text-success" /> Deliver items on time
                                                     </li>
                                                     <li className="flex items-start gap-2">
-                                                        <span className="text-emerald-500 mt-0.5">✓</span> Use accurate descriptions
+                                                        <Check size={14} strokeWidth={2} className="mt-0.5 shrink-0 text-success" /> Use accurate descriptions
                                                     </li>
                                                     <li className="flex items-start gap-2">
-                                                        <span className="text-emerald-500 mt-0.5">✓</span> Package items securely
+                                                        <Check size={14} strokeWidth={2} className="mt-0.5 shrink-0 text-success" /> Package items securely
                                                     </li>
                                                 </ul>
                                             </CardContent>
@@ -227,11 +216,11 @@ const VendorRatings = () => {
 
                                 {/* Right Column: Reviews List */}
                                 <div className="lg:col-span-2">
-                                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
-                                        <Card className="bg-card/50 backdrop-blur-sm border-white/5 shadow-glass h-full">
+                                    <motion.div>
+                                        <Card className="bg-card h-full">
                                             <CardHeader className="border-b border-border/50 pb-4">
                                                 <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                                    <MessageSquareHeart size={20} strokeWidth={1.5} className=" text-primary" /> Customer Reviews
+                                                    Customer reviews
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent className="p-0">
@@ -298,6 +287,4 @@ const VendorRatings = () => {
     );
 };
 
-// Add missing icon import
-import { BarChart2 } from "lucide-react";
 export default VendorRatings;

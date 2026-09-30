@@ -301,8 +301,8 @@ export const OrderConfirmationModal = ({
                     onClick={() => setRating(star)}
                 >
                     <Star strokeWidth={1.5} className={`h-8 w-8 ${star <= (hoverRating || rating)
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "text-gray-300"
+                            ? "fill-primary-strong text-primary-strong"
+                            : "text-muted-foreground"
                             }`}
                     />
                 </button>
@@ -334,10 +334,10 @@ export const OrderConfirmationModal = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
                         <Button
                             variant="outline"
-                            className="h-auto py-4 px-4 flex flex-col items-start gap-2 border-green-500/50 hover:bg-green-50 hover:border-green-500 whitespace-normal text-left"
+                            className="h-auto py-4 px-4 flex flex-col items-start gap-2 border-success/50 hover:bg-success-soft hover:border-success/60 whitespace-normal text-left"
                             onClick={() => setStep("satisfied")}
                         >
-                            <div className="flex items-center gap-2 text-green-600 mb-1">
+                            <div className="flex items-center gap-2 text-success mb-1">
                                 <CheckCircle size={20} strokeWidth={1.5} className=" flex-shrink-0" />
                                 <span className="font-semibold">{isPickup ? "Confirm Pickup" : "Everything is Good!"}</span>
                             </div>
@@ -350,10 +350,10 @@ export const OrderConfirmationModal = ({
 
                         <Button
                             variant="outline"
-                            className="h-auto py-4 px-4 flex flex-col items-start gap-2 border-red-500/50 hover:bg-red-50 hover:border-red-500 whitespace-normal text-left"
+                            className="h-auto py-4 px-4 flex flex-col items-start gap-2 border-destructive/50 hover:bg-destructive-soft hover:border-destructive/60 whitespace-normal text-left"
                             onClick={() => setStep("issue")}
                         >
-                            <div className="flex items-center gap-2 text-red-600 mb-1">
+                            <div className="flex items-center gap-2 text-destructive mb-1">
                                 <AlertTriangle size={20} strokeWidth={1.5} className=" flex-shrink-0" />
                                 <span className="font-semibold">I Have an Issue</span>
                             </div>
@@ -395,8 +395,8 @@ export const OrderConfirmationModal = ({
                                                             onClick={() => setProductRatings(prev => ({ ...prev, [item.product_id]: star }))}
                                                         >
                                                             <Star size={20} strokeWidth={1.5} className={` ${star <= (productHoverRatings[item.product_id] || productRatings[item.product_id] || 0)
-                                                                    ? "fill-yellow-400 text-yellow-400"
-                                                                    : "text-gray-300"
+                                                                    ? "fill-primary-strong text-primary-strong"
+                                                                    : "text-muted-foreground"
                                                                     }`}
                                                             />
                                                         </button>
@@ -433,8 +433,8 @@ export const OrderConfirmationModal = ({
                             />
                         </div>
 
-                        <div className="bg-green-50 border border-green-200 p-3 rounded-lg text-sm text-green-800">
-                            <strong>✅ By confirming:</strong> Your review will be submitted and the order will be marked as completed. Payment was already handled via your delivery code.
+                        <div className="bg-success-soft border border-success/30 p-3 rounded-lg text-sm text-success">
+                            <strong>By confirming:</strong> Your review will be submitted and the order will be marked as completed. Payment was already handled via your delivery code.
                         </div>
 
                         <div className="flex gap-3">
@@ -442,7 +442,7 @@ export const OrderConfirmationModal = ({
                                 Back
                             </Button>
                             <Button
-                                className="flex-1 bg-green-600 hover:bg-green-700"
+                                className="flex-1 bg-success hover:bg-success"
                                 onClick={handleConfirmSatisfied}
                                 disabled={submitting || rating === 0 || (orderItems.length > 0 && !orderItems.some(item => productRatings[item.product_id] > 0))}
                             >
@@ -526,8 +526,8 @@ export const OrderConfirmationModal = ({
                             <StarRating />
                         </div>
 
-                        <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg text-sm text-amber-800">
-                            <strong>⚠️ What happens next:</strong> Your payment will be held while our admin team reviews the dispute. We'll contact you and the vendor to resolve this.
+                        <div className="bg-primary-soft border border-primary/30 p-3 rounded-lg text-sm text-primary-strong">
+                            <strong>What happens next:</strong> Your payment will be held while our admin team reviews the dispute. We'll contact you and the vendor to resolve this.
                         </div>
 
                         <div className="flex gap-3">

@@ -95,9 +95,9 @@ const ChatBot = () => {
           // Show the order result
           const resultNode = {
             options: [
-              { label: "📋 Go to my orders", nextNodeId: "go_orders" },
-              { label: "📦 Track another", nextNodeId: "track_ask" },
-              { label: "🏠 Main menu", nextNodeId: "start" },
+              { label: "Go to my orders", nextNodeId: "go_orders" },
+              { label: "Track another", nextNodeId: "track_ask" },
+              { label: "Main menu", nextNodeId: "start" },
             ],
           };
           setMessages((prev) => [
@@ -205,11 +205,11 @@ const ChatBot = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[380px] max-h-[min(500px,70vh)] flex flex-col rounded-2xl shadow-2xl overflow-hidden border border-gray-200"
+            className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[380px] max-h-[min(500px,70vh)] flex flex-col rounded-2xl shadow-2xl overflow-hidden border border-border"
             style={{ transformOrigin: "bottom right" }}
           >
             {/* Header */}
-            <div className="bg-gray-900 px-4 py-3 flex items-center gap-3 shrink-0">
+            <div className="bg-secondary px-4 py-3 flex items-center gap-3 shrink-0">
               <div className="w-9 h-9 rounded-full bg-[#c2841d] flex items-center justify-center">
                 <MessageCircle size={18} className="text-white" strokeWidth={2.5} />
               </div>
@@ -217,13 +217,13 @@ const ChatBot = () => {
                 <p className="text-white font-bold text-sm leading-tight">
                   Solely Support
                 </p>
-                <p className="text-gray-400 text-[11px]">
+                <p className="text-muted-foreground text-[11px]">
                   We typically reply instantly
                 </p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full text-muted-foreground hover:text-white hover:bg-white/10 transition-colors"
                 aria-label="Close chat"
               >
                 <X size={18} />
@@ -234,23 +234,23 @@ const ChatBot = () => {
             <div className="h-0.5 bg-gradient-to-r from-[#c2841d] via-[#e6a93c] to-[#c2841d]" />
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto bg-white px-4 py-4 space-y-3 min-h-0">
+            <div className="flex-1 overflow-y-auto bg-card px-4 py-4 space-y-3 min-h-0">
               {messages.map((msg) => (
                 <div key={msg.id}>
                   {msg.isTyping ? (
                     /* Typing indicator */
                     <div className="flex items-start gap-2">
-                      <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 inline-flex gap-1">
-                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 inline-flex gap-1">
+                        <span className="w-2 h-2 bg-border rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <span className="w-2 h-2 bg-border rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <span className="w-2 h-2 bg-border rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                       </div>
                     </div>
                   ) : msg.sender === "bot" ? (
                     /* Bot message */
                     <div className="flex flex-col items-start gap-2">
-                      <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[90%]">
-                        <p className="text-[13px] text-gray-800 leading-relaxed whitespace-pre-line">
+                      <div className="bg-muted rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[90%]">
+                        <p className="text-[13px] text-foreground leading-relaxed whitespace-pre-line">
                           {msg.text}
                         </p>
                       </div>
@@ -263,7 +263,7 @@ const ChatBot = () => {
                               onClick={() =>
                                 handleOption(opt.label, opt.nextNodeId)
                               }
-                              className="px-3 py-1.5 text-[12px] font-medium text-gray-700 bg-white border border-gray-200 rounded-full hover:border-[#c2841d] hover:text-[#c2841d] hover:bg-[#c2841d]/5 transition duration-200 active:scale-95 whitespace-nowrap"
+                              className="px-3 py-1.5 text-[12px] font-medium text-foreground bg-card border border-border rounded-full hover:border-[#c2841d] hover:text-[#c2841d] hover:bg-[#c2841d]/5 transition duration-200 active:scale-95 whitespace-nowrap"
                             >
                               {opt.label}
                             </button>
@@ -290,7 +290,7 @@ const ChatBot = () => {
             {showInput && (
               <form
                 onSubmit={handleInputSubmit}
-                className="shrink-0 border-t border-gray-100 bg-gray-50 px-3 py-2.5 flex items-center gap-2"
+                className="shrink-0 border-t border-border bg-muted px-3 py-2.5 flex items-center gap-2"
               >
                 <input
                   ref={inputRef}
@@ -298,13 +298,13 @@ const ChatBot = () => {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Paste your order ID here..."
-                  className="flex-1 px-3 py-2 text-[13px] bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c2841d]/30 focus:border-[#c2841d] transition"
+                  className="flex-1 px-3 py-2 text-[13px] bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c2841d]/30 focus:border-[#c2841d] transition"
                   disabled={isLoading}
                 />
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || isLoading}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition active:scale-95"
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-secondary text-white hover:bg-secondary/85 disabled:opacity-40 disabled:cursor-not-allowed transition active:scale-95"
                 >
                   <Send size={15} />
                 </button>
@@ -312,9 +312,9 @@ const ChatBot = () => {
             )}
 
             {/* Powered by footer */}
-            <div className="shrink-0 bg-gray-50 border-t border-gray-100 px-4 py-1.5 text-center">
-              <span className="text-[10px] text-gray-400">
-                Powered by Solely 🛡️
+            <div className="shrink-0 bg-muted border-t border-border px-4 py-1.5 text-center">
+              <span className="text-[10px] text-muted-foreground">
+                Powered by Solely
               </span>
             </div>
           </motion.div>
@@ -326,8 +326,8 @@ const ChatBot = () => {
         onClick={() => (isOpen ? setIsOpen(false) : handleOpen())}
         className={`fixed bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition duration-300 ${
           isOpen
-            ? "bg-gray-700 hover:bg-gray-600"
-            : "bg-gray-900 hover:bg-gray-800 hover:shadow-xl hover:scale-110"
+            ? "bg-secondary hover:bg-secondary/85"
+            : "bg-secondary hover:bg-secondary hover:shadow-xl hover:scale-110"
         }`}
         whileTap={{ scale: 0.9 }}
         aria-label={isOpen ? "Close chat" : "Open chat"}

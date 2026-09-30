@@ -10,15 +10,20 @@ import {
   X, Check, ExternalLink, ImageDown, Loader2,
 } from "lucide-react";
 import { toast } from "@/lib/toast";
+import { Button } from "@/components/ui/button";
 import { getAccessoryTypeName } from "@/lib/accessoryTypes";
 import { QRCodeCanvas } from "qrcode.react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /* ── Status pill colours ─────────────────────────────────────────── */
 const STATUS_PILL: Record<string, string> = {
-  active:   "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400",
-  draft:    "bg-amber-100   text-amber-700   dark:bg-amber-900/40   dark:text-amber-400",
-  sold_out: "bg-red-100     text-red-700     dark:bg-red-900/40     dark:text-red-400",
-  inactive: "bg-slate-100   text-slate-500   dark:bg-slate-800      dark:text-slate-400",
+  active:   "bg-success-soft text-success  ",
+  draft:    "bg-primary-soft   text-primary-strong      ",
+  sold_out: "bg-destructive-soft     text-destructive          ",
+  inactive: "bg-muted   text-muted-foreground         ",
 };
 
 type Filter = "all" | "active" | "draft" | "low_stock";
@@ -85,13 +90,13 @@ const ShareModal = ({ product, onClose }: { product: any; onClose: () => void })
   const handleCopy = () => {
     navigator.clipboard.writeText(payLink);
     setCopied(true);
-    toast.success("Pay link copied!");
+    toast.success("Pay link copied");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleWhatsApp = () => {
     const msg = encodeURIComponent(
-      `Hey! I'm selling *${product.name}* for KES ${product.price_ksh?.toLocaleString()} 🛍️\n\nPay safely through Solely escrow, your money is held until you confirm delivery 🔒\n\n👉 ${payLink}`
+      `Hey! I'm selling *${product.name}* for KES ${product.price_ksh?.toLocaleString()}\n\nPay safely through Solely. Your money is held until you confirm delivery.\n\n${payLink}`
     );
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
@@ -128,7 +133,7 @@ const ShareModal = ({ product, onClose }: { product: any; onClose: () => void })
           <span className="text-xs text-muted-foreground truncate flex-1 font-mono">{payLink}</span>
           <button onClick={handleCopy} className="shrink-0">
             {copied
-              ? <Check size={16} strokeWidth={1.5} className=" text-emerald-500" />
+              ? <Check size={16} strokeWidth={1.5} className=" text-success" />
               : <Copy size={16} strokeWidth={1.5} className=" text-muted-foreground" />}
           </button>
         </div>
@@ -139,7 +144,7 @@ const ShareModal = ({ product, onClose }: { product: any; onClose: () => void })
             onClick={handleCopy}
             className="flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-border font-semibold text-sm hover:bg-muted transition-colors"
           >
-            {copied ? <Check size={16} strokeWidth={1.5} className=" text-emerald-500" /> : <Copy size={16} strokeWidth={1.5}  />}
+            {copied ? <Check size={16} strokeWidth={1.5} className=" text-success" /> : <Copy size={16} strokeWidth={1.5}  />}
             {copied ? "Copied!" : "Copy Link"}
           </button>
           <button
@@ -168,7 +173,7 @@ const ShareModal = ({ product, onClose }: { product: any; onClose: () => void })
 
         {/* QR Code */}
         <div className="flex flex-col items-center gap-3 pt-1">
-          <div className="p-3 bg-white rounded-2xl border border-border">
+          <div className="p-3 bg-card rounded-2xl border border-border">
             <QRCodeCanvas ref={qrRef} value={payLink} size={160} fgColor="#1a1a1a" />
           </div>
           <button
@@ -191,6 +196,11 @@ const VendorProducts = () => {
   const [productsLoading, setProductsLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
   const [shareProduct, setShareProduct] = useState<any | null>(null);
+  const [toDelete, setToDelete] = useState<any | null>(null);
+  // Which card is mid-action, so its button can say so and ignore double taps.
+  const [busy, setBusy] = useState<{ id: string; action: "publish" | "delete" } | null>(null);
+  // Card that just went live, briefly marked so the change is easy to spot.
+  const [justPublished, setJustPublished] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -200,8 +210,10 @@ const VendorProducts = () => {
     if (user) fetchProducts();
   }, [user]);
 
-  const fetchProducts = async () => {
-    setProductsLoading(true);
+  // `quiet` refreshes in place instead of swapping the grid for skeletons,
+  // so the card the vendor just acted on stays where their eyes are.
+  const fetchProducts = async (quiet = false) => {
+    if (!quiet) setProductsLoading(true);
     const { data } = await supabase
       .from("products")
       .select("*")
@@ -211,19 +223,36 @@ const VendorProducts = () => {
     setProductsLoading(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this product? This cannot be undone.")) return;
-    const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) toast.error(error.message || "Failed to delete");
-    else { toast.success("Product deleted"); fetchProducts(); }
+  const handleDelete = async () => {
+    const product = toDelete;
+    if (!product) return;
+    setBusy({ id: product.id, action: "delete" });
+    const { error } = await supabase.from("products").delete().eq("id", product.id);
+    setBusy(null);
+    setToDelete(null);
+    if (error) {
+      toast.error(error, { description: "The product was not deleted." });
+      return;
+    }
+    setProducts((ps) => ps.filter((p) => p.id !== product.id));
+    toast.success("Product deleted", { description: product.name });
   };
 
   const handlePublish = async (id: string) => {
+    if (busy) return;
+    setBusy({ id, action: "publish" });
     try {
       const { error } = await supabase.rpc("publish_product", { product_id_to_publish: id });
-      if (error) toast.error(error.message || "Failed to publish");
-      else { toast.success("Product published! 🎉"); fetchProducts(); }
-    } catch (e: any) { toast.error(e.message || "Failed to publish"); }
+      if (error) throw error;
+      await fetchProducts(true);
+      setJustPublished(id);
+      setTimeout(() => setJustPublished((cur) => (cur === id ? null : cur)), 2500);
+      toast.success("Product is live", { description: "Buyers can see it in the shop now." });
+    } catch (e) {
+      toast.error(e, { retry: () => handlePublish(id) });
+    } finally {
+      setBusy(null);
+    }
   };
 
   /* ── Derived counts ──────────────────────────────────────────────── */
@@ -246,8 +275,11 @@ const VendorProducts = () => {
     const isOut = product.stock === 0;
     const isAccessory = product.category === "accessories";
 
+    const publishing = busy?.id === product.id && busy.action === "publish";
+    const fresh = justPublished === product.id;
+
     return (
-      <div className="group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-md transition duration-200">
+      <div className={`group bg-card border rounded-2xl overflow-hidden hover:shadow-md transition-[box-shadow,border-color] duration-200 ${fresh ? "border-success ring-2 ring-success/25" : "border-border"}`}>
         {/* Image */}
         <div className="relative h-40 bg-muted">
           {(product.images?.[0] || product.image_url) ? (
@@ -263,18 +295,19 @@ const VendorProducts = () => {
           )}
           {/* Status badge overlay */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            <span className={`w-fit text-[10px] font-bold px-2 py-0.5 rounded-full capitalize backdrop-blur-sm ${STATUS_PILL[product.status] ?? STATUS_PILL.inactive}`}>
+            <span className={`inline-flex w-fit items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full capitalize backdrop-blur-sm ${STATUS_PILL[product.status] ?? STATUS_PILL.inactive}`}>
+              {fresh && <Check size={10} strokeWidth={3} />}
               {product.status === "active" ? "Live" : product.status}
             </span>
             {product.free_delivery && (
-              <span className="w-fit text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-600 text-white backdrop-blur-sm shadow-sm">
+              <span className="w-fit text-[10px] font-bold px-2 py-0.5 rounded-full bg-success text-white backdrop-blur-sm shadow-sm">
                 Free Delivery
               </span>
             )}
           </div>
           {/* Low stock warning */}
           {(isLow || isOut) && (
-            <div className={`absolute top-2 right-2 flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${isOut ? "bg-red-500 text-white" : "bg-amber-400 text-amber-900"}`}>
+            <div className={`absolute top-2 right-2 flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${isOut ? "bg-destructive text-white" : "bg-primary text-primary-strong"}`}>
               <AlertTriangle strokeWidth={1.5} className="h-2.5 w-2.5" />
               {isOut ? "Out" : `${product.stock} left`}
             </div>
@@ -294,9 +327,12 @@ const VendorProducts = () => {
             {product.status === "draft" && (
               <button
                 onClick={() => handlePublish(product.id)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold transition-colors"
+                disabled={!!busy}
+                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-success hover:bg-success text-white text-xs font-semibold transition-[background-color,transform] duration-150 ease-out active:scale-[0.97] disabled:opacity-70"
               >
-                <CheckCircle size={14} strokeWidth={1.5}  /> Publish
+                {publishing
+                  ? <><Loader2 size={14} strokeWidth={1.75} className="animate-spin" /> Publishing…</>
+                  : <><CheckCircle size={14} strokeWidth={1.5} /> Publish</>}
               </button>
             )}
             <button
@@ -306,8 +342,9 @@ const VendorProducts = () => {
               <Edit size={14} strokeWidth={1.5}  /> Edit
             </button>
             <button
-              onClick={() => handleDelete(product.id)}
-              className="h-8 w-8 flex items-center justify-center rounded-xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              onClick={() => setToDelete(product)}
+              aria-label={`Delete ${product.name}`}
+              className="h-8 w-8 flex items-center justify-center rounded-xl text-destructive hover:bg-destructive-soft transition-colors"
             >
               <Trash2 size={14} strokeWidth={1.5}  />
             </button>
@@ -316,6 +353,7 @@ const VendorProducts = () => {
               onClick={() => setShareProduct(product)}
               className="h-8 w-8 flex items-center justify-center rounded-xl text-primary hover:bg-primary/10 transition-colors"
               title="Share Pay Link"
+              aria-label={`Share pay link for ${product.name}`}
             >
               <Share2 size={14} strokeWidth={1.5}  />
             </button>
@@ -352,12 +390,9 @@ const VendorProducts = () => {
           : "Try a different filter to see more products."}
       </p>
       {filter === "all" && (
-        <button
-          onClick={() => navigate("/vendor/list-item")}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-        >
-          <Package size={16} strokeWidth={1.5}  /> List your first item
-        </button>
+        <Button onClick={() => navigate("/vendor/list-item")} className="h-11 rounded-full px-5">
+          <Package size={16} strokeWidth={1.75} /> List your first item
+        </Button>
       )}
     </div>
   );
@@ -378,47 +413,40 @@ const VendorProducts = () => {
               <ChevronLeft size={16} strokeWidth={1.5}  />
             </button>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">My Products</h1>
+              <h1 className="font-display text-3xl leading-tight">Products</h1>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {productsLoading ? "Loading…" : `${products.length} total listing${products.length !== 1 ? "s" : ""}`}
               </p>
             </div>
           </div>
 
-          {/* ── Stat chips ── */}
-          {!productsLoading && products.length > 0 && (
-            <div className="grid grid-cols-3 gap-3 mb-5">
-              <div className="bg-card border border-border rounded-2xl p-3 text-center">
-                <p className="text-xl font-bold text-emerald-600">{active.length}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Live</p>
-              </div>
-              <div className="bg-card border border-border rounded-2xl p-3 text-center">
-                <p className="text-xl font-bold text-amber-600">{drafts.length}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Drafts</p>
-              </div>
-              <div className="bg-card border border-border rounded-2xl p-3 text-center">
-                <p className={`text-xl font-bold ${lowStock.length > 0 ? "text-red-500" : "text-muted-foreground"}`}>{lowStock.length}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Low Stock</p>
-              </div>
-            </div>
-          )}
-
           {/* ── Filter pills ── */}
           {!productsLoading && products.length > 0 && (
             <div className="flex gap-2 overflow-x-auto pb-1 mb-5 scrollbar-none">
-              {(["all", "active", "draft", "low_stock"] as Filter[]).map(f => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`shrink-0 text-xs font-semibold px-4 py-1.5 rounded-full border transition-colors ${
-                    filter === f
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-card border-border text-muted-foreground hover:border-primary/50"
-                  }`}
-                >
-                  {f === "all" ? "All" : f === "low_stock" ? "Low Stock" : f.charAt(0).toUpperCase() + f.slice(1)}
-                </button>
-              ))}
+              {([
+                ["all", "All", products.length],
+                ["active", "Live", active.length],
+                ["draft", "Drafts", drafts.length],
+                ["low_stock", "Low stock", lowStock.length],
+              ] as [Filter, string, number][]).map(([f, label, count]) => {
+                const on = filter === f;
+                const alert = f === "low_stock" && count > 0;
+                return (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    aria-pressed={on}
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-[color,background-color,border-color,transform] duration-150 ease-out-strong active:scale-[0.97] ${
+                      on
+                        ? "border-secondary bg-secondary text-secondary-foreground"
+                        : "border-border bg-card text-muted-foreground hover:border-foreground/25 hover:text-foreground"
+                    }`}
+                  >
+                    {label}
+                    <span className={`tabular-nums ${on ? "opacity-70" : alert ? "text-destructive" : "opacity-60"}`}>{count}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -437,17 +465,35 @@ const VendorProducts = () => {
 
       {/* ── Single FAB, sits above WhatsApp widget ── */}
       <div className="fixed bottom-28 right-4 z-40">
-        <button
-          onClick={() => navigate("/vendor/list-item")}
-          className="flex items-center gap-2 pl-4 pr-5 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold shadow-xl hover:bg-primary/90 transition"
-        >
-          <Plus size={16} strokeWidth={1.5}  /> List Item
-        </button>
+        <Button onClick={() => navigate("/vendor/list-item")} className="h-12 rounded-full pl-4 pr-5">
+          <Plus size={18} strokeWidth={2} /> List item
+        </Button>
       </div>
       {/* ── Pay Link Share Modal ── */}
       {shareProduct && (
         <ShareModal product={shareProduct} onClose={() => setShareProduct(null)} />
       )}
+
+      <AlertDialog open={!!toDelete} onOpenChange={(open) => { if (!open && !busy) setToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this product?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {toDelete?.name} will be removed from your store. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2">
+            <AlertDialogCancel disabled={!!busy} className="mt-0 flex-1">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleDelete(); }}
+              disabled={!!busy}
+              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {busy?.action === "delete" ? <><Loader2 size={16} className="animate-spin" /> Deleting…</> : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

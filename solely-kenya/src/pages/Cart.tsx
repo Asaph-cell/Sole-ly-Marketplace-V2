@@ -199,7 +199,7 @@ const Cart = () => {
                                 </div>
                               )}
                               {!item.color && item.availableColors && item.availableColors.length > 0 && (
-                                <p className="text-xs text-destructive">⚠️ Color required before checkout</p>
+                                <p className="text-xs text-destructive">Pick a colour before checkout</p>
                               )}
 
                               {/* Only the sizes this product actually sells, in
@@ -239,7 +239,7 @@ const Cart = () => {
                                     ))}
                                   </div>
                                   {!item.size && (
-                                    <p className="text-xs text-destructive">⚠️ Select a size before checkout</p>
+                                    <p className="text-xs text-destructive">Pick a size before checkout</p>
                                   )}
                                 </div>
                               )}

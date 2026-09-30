@@ -48,7 +48,7 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ price }) =
         
         <div className="flex justify-between items-center text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+            <div className="w-1.5 h-1.5 rounded-full bg-foreground" />
             <span className="text-muted-foreground">M-Pesa/Bank Fee</span>
           </div>
           <span className="font-medium text-destructive">- {txFee.toLocaleString()} KSh</span>
@@ -56,17 +56,17 @@ export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ price }) =
 
         <div className="pt-3 mt-3 border-t border-border flex justify-between items-center">
           <div className="flex items-center gap-2 font-semibold">
-            <Wallet size={16} className="text-amber-500" />
+            <Wallet size={16} className="text-primary-strong" />
             <span>YOU WILL RECEIVE:</span>
           </div>
           <span className="font-bold text-lg">{youReceive.toLocaleString()} KSh</span>
         </div>
         
-        <div className="mt-3 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex gap-3">
-          <Lightbulb size={16} className="text-amber-500 shrink-0 mt-0.5" />
+        <div className="mt-3 bg-primary/10 border border-primary/20 rounded-lg p-3 flex gap-3">
+          <Lightbulb size={16} className="text-primary-strong shrink-0 mt-0.5" />
           <div className="text-sm leading-relaxed">
-            <span className="font-medium text-amber-700 dark:text-amber-400">Suggestion: </span>
-            <span className="text-amber-700/90 dark:text-amber-400/90">
+            <span className="font-medium text-primary-strong ">Suggestion: </span>
+            <span className="text-primary-strong/90 ">
               Set price to <span className="font-bold">{suggestedPrice.toLocaleString()} KSh</span> to clear a full {price.toLocaleString()} KSh profit.
             </span>
           </div>

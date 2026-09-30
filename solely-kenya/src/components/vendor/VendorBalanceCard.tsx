@@ -109,7 +109,8 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                 <Button
                     onClick={() => setShowWithdrawDialog(true)}
                     disabled={isLoading || !canWithdraw || withdraw.isPending}
-                    className="mt-4 h-11 w-full rounded-full bg-foreground font-semibold text-background hover:bg-foreground/85"
+                    variant="secondary"
+                    className="mt-4 h-11 w-full rounded-full disabled:bg-foreground/10 disabled:text-foreground/45 disabled:opacity-100 disabled:shadow-none"
                 >
                     {withdraw.isPending ? (
                         <><Loader2 size={16} strokeWidth={1.75} className="animate-spin" /> Sending…</>
@@ -177,7 +178,7 @@ export function VendorBalanceCard({ vendorId }: { vendorId: string }) {
                         <AlertDialogAction
                             onClick={() => withdraw.mutate()}
                             disabled={withdraw.isPending}
-                            className="flex-1 rounded-full bg-foreground text-background hover:bg-foreground/85"
+                            className="flex-1 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/85"
                         >
                             {withdraw.isPending ? 'Sending…' : `Withdraw KES ${estimatedReceive.toLocaleString()}`}
                         </AlertDialogAction>

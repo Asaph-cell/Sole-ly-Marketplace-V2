@@ -211,7 +211,7 @@ const VendorEditProduct = () => {
         supabase.functions.invoke("notify-price-drop", { body: { productId: id } }).catch(() => {});
       }
 
-      toast.success("Product updated successfully!");
+      toast.success("Changes saved", { description: "Your listing is updated in the shop." });
       navigate("/vendor/products");
     } catch (error: any) {
       toast.error(error.message);
@@ -269,7 +269,7 @@ const VendorEditProduct = () => {
                       required
                     />
                     {parseInt(formData.price_ksh) > 300000 && (
-                      <p className="text-xs text-red-500 font-medium mt-1">Maximum allowed price is 300,000.</p>
+                      <p className="text-xs text-destructive font-medium mt-1">Maximum allowed price is 300,000.</p>
                     )}
                     <PricingCalculator price={parseFloat(formData.price_ksh)} />
                   </div>
@@ -281,7 +281,7 @@ const VendorEditProduct = () => {
                         id="free_delivery"
                         checked={formData.free_delivery}
                         onChange={(e) => setFormData({ ...formData, free_delivery: e.target.checked })}
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                       />
                       <Label htmlFor="free_delivery" className="font-medium cursor-pointer">Offers Free Delivery</Label>
                     </div>
@@ -289,8 +289,8 @@ const VendorEditProduct = () => {
                       Check this if you are covering the delivery cost for the buyer.
                     </p>
                     {formData.free_delivery && (
-                      <p className="text-xs text-amber-600 dark:text-amber-400 ml-6 mt-1">
-                        ⚠️ By marking free delivery, you commit to delivering this product at no extra cost. You cannot charge a delivery fee after a buyer purchases this item.
+                      <p className="text-xs text-primary-strong ml-6 mt-1">
+                        By marking free delivery, you commit to delivering this product at no extra cost. You cannot charge a delivery fee after a buyer purchases this item.
                       </p>
                     )}
                   </div>
@@ -423,9 +423,9 @@ const VendorEditProduct = () => {
                     onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
                   />
                   {(formData.category === "shoes" || !formData.category) && (
-                    <Alert className="bg-amber-50 border-amber-200">
-                      <AlertTriangle size={16} strokeWidth={1.5} className=" text-amber-600" />
-                      <AlertDescription className="text-amber-800 text-sm">
+                    <Alert className="bg-primary-soft border-primary/30">
+                      <AlertTriangle size={16} strokeWidth={1.5} className=" text-primary-strong" />
+                      <AlertDescription className="text-primary-strong text-sm">
                         <strong>Important:</strong> Enter exact EU sizes from the size chart (e.g., 36, 37, 38).
                         Using correct sizes ensures customers can find their perfect fit.
                       </AlertDescription>

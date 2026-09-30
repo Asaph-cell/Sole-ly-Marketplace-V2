@@ -53,32 +53,32 @@ export function PushNotificationPrompt({
     if (variant === 'modal') {
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative animate-in fade-in zoom-in duration-300">
+                <div className="bg-card rounded-2xl shadow-2xl max-w-md w-full p-6 relative animate-in fade-in zoom-in duration-300">
                     <button
                         onClick={handleLater}
-                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                        className="absolute top-4 right-4 text-muted-foreground hover:text-muted-foreground"
                     >
                         <X size={20} strokeWidth={1.5}  />
                     </button>
 
                     <div className="text-center">
-                        <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Bell strokeWidth={1.5} className="w-8 h-8 text-white" />
+                        <div className="w-16 h-16 bg-primary-soft text-primary-strong rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Bell strokeWidth={1.5} className="w-8 h-8" />
                         </div>
 
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
-                            Never Miss a Sale! 🛒
+                        <h3 className="text-xl font-bold text-foreground mb-2">
+                            Never miss a sale
                         </h3>
 
-                        <p className="text-gray-600 mb-4">
+                        <p className="text-muted-foreground mb-4">
                             Enable notifications to get <strong>instant alerts</strong> when customers place orders.
                             You'll be notified even when you're not on the website.
                         </p>
 
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6 text-left">
+                        <div className="bg-primary-soft border border-primary/30 rounded-lg p-3 mb-6 text-left">
                             <div className="flex items-start gap-2">
-                                <AlertTriangle size={20} strokeWidth={1.5} className=" text-amber-600 flex-shrink-0 mt-0.5" />
-                                <p className="text-sm text-amber-800">
+                                <AlertTriangle size={20} strokeWidth={1.5} className=" text-primary-strong flex-shrink-0 mt-0.5" />
+                                <p className="text-sm text-primary-strong">
                                     <strong>Important:</strong> Orders must be confirmed within 48 hours or they'll be automatically cancelled.
                                     Notifications help you respond quickly!
                                 </p>
@@ -86,7 +86,7 @@ export function PushNotificationPrompt({
                         </div>
 
                         {error && (
-                            <p className="text-red-500 text-sm mb-4">{friendlyError(error)}</p>
+                            <p className="text-destructive text-sm mb-4">{friendlyError(error)}</p>
                         )}
 
                         <div className="flex gap-3">
@@ -99,7 +99,7 @@ export function PushNotificationPrompt({
                                 Maybe Later
                             </Button>
                             <Button
-                                className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+                                className="flex-1"
                                 onClick={handleEnable}
                                 disabled={isLoading}
                             >
@@ -139,7 +139,7 @@ export function PushNotificationPrompt({
                     <Button variant="ghost" size="sm" className="rounded-full text-muted-foreground" onClick={handleLater} disabled={isLoading}>
                         Not now
                     </Button>
-                    <Button size="sm" className="rounded-full bg-foreground text-background hover:bg-foreground/85" onClick={handleEnable} disabled={isLoading}>
+                    <Button size="sm" variant="secondary" className="rounded-full" onClick={handleEnable} disabled={isLoading}>
                         {isLoading ? 'Turning on…' : 'Turn on'}
                     </Button>
                 </div>
@@ -149,23 +149,23 @@ export function PushNotificationPrompt({
 
     // Inline variant (for settings or sidebar)
     return (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div className="bg-primary-soft border border-primary/30 rounded-lg p-4">
             <div className="flex items-start gap-3">
                 <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Bell size={20} strokeWidth={1.5} className="text-primary" />
                 </div>
                 <div className="flex-1">
-                    <h4 className="font-medium text-amber-900 mb-1">
+                    <h4 className="font-medium text-primary-strong mb-1">
                         Enable Order Notifications
                     </h4>
-                    <p className="text-sm text-amber-700 mb-3">
+                    <p className="text-sm text-primary-strong mb-3">
                         Get instant alerts when customers place orders, even when you're away.
                     </p>
                     <div className="flex gap-2">
                         <Button
                             size="sm"
                             variant="outline"
-                            className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                            className="border-primary/30 text-primary-strong hover:bg-primary-soft"
                             onClick={handleLater}
                             disabled={isLoading}
                         >
@@ -173,7 +173,7 @@ export function PushNotificationPrompt({
                         </Button>
                         <Button
                             size="sm"
-                            className="bg-amber-500 hover:bg-amber-600 text-white"
+                            className=""
                             onClick={handleEnable}
                             disabled={isLoading}
                         >
@@ -194,14 +194,14 @@ export function NotificationBellIndicator() {
     if (isSubscribed) {
         return (
             <div className="relative">
-                <Bell size={20} strokeWidth={1.5} className=" text-green-500" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full" />
+                <Bell size={20} strokeWidth={1.5} className=" text-success" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-success rounded-full" />
             </div>
         );
     }
 
     if (!shouldShowPrompt) {
-        return <Bell size={20} strokeWidth={1.5} className=" text-gray-400" />;
+        return <Bell size={20} strokeWidth={1.5} className=" text-muted-foreground" />;
     }
 
     return (
@@ -213,12 +213,12 @@ export function NotificationBellIndicator() {
                 disabled={isLoading}
                 className="relative"
             >
-                <Bell size={20} strokeWidth={1.5} className=" text-amber-500" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                <Bell size={20} strokeWidth={1.5} className=" text-primary-strong" />
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full animate-pulse" />
             </button>
 
             {showTooltip && (
-                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
+                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-secondary text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
                     Enable notifications
                 </div>
             )}

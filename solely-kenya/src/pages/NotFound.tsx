@@ -215,7 +215,7 @@ const NotFound = () => {
   }, [createParticles, animate, handleMouseMove, handleClick]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white">
+    <div className="relative min-h-screen overflow-hidden bg-card">
       <Helmet>
         <title>Page not found | Solely Kenya</title>
         <meta name="robots" content="noindex" />
@@ -224,13 +224,13 @@ const NotFound = () => {
 
       {/* Score */}
       <div className="fixed top-4 right-4 bg-primary/80 text-primary-foreground px-4 py-2 rounded-full font-bold shadow-md z-20 text-sm">
-        ✨ {score}
+        Score {score}
       </div>
 
       {/* Content */}
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 pointer-events-none">
         <div className="text-center max-w-md pointer-events-auto">
-          <div className="bg-white/60 backdrop-blur-lg border border-primary/10 rounded-3xl p-6 sm:p-8 shadow-lg">
+          <div className="bg-card/60 backdrop-blur-lg border border-primary/10 rounded-3xl p-6 sm:p-8 shadow-lg">
             <div className="animate-bounce mb-4">
               <svg className="w-14 h-14 mx-auto text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />

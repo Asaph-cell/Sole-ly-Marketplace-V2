@@ -297,7 +297,7 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
                     ) : (
                         <>
                             <Navigation size={20} strokeWidth={1.5}  />
-                            📍 Pin My Exact Location (GPS)
+                            Pin my exact location (GPS)
                         </>
                     )}
                 </Button>
@@ -331,7 +331,7 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
                                 type="button"
                                 variant="secondary"
                                 size="sm"
-                                className="h-8 gap-1 bg-white/90 hover:bg-white text-xs"
+                                className="h-8 gap-1 bg-card/90 hover:bg-card text-xs"
                                 onClick={handlePinLocation}
                                 disabled={isLocating}
                             >
@@ -347,7 +347,7 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
                                 type="button"
                                 variant="secondary"
                                 size="icon"
-                                className="h-8 w-8 bg-white/90 hover:bg-white"
+                                className="h-8 w-8 bg-card/90 hover:bg-card"
                                 onClick={handleCloseMap}
                             >
                                 <X size={16} strokeWidth={1.5}  />
@@ -384,7 +384,7 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
 
                         {/* Instructions */}
                         <p className="text-xs text-muted-foreground italic">
-                            💡 Drag the pin to your exact gate or building entrance
+                            Drag the pin to your exact gate or building entrance
                         </p>
 
                         {/* Confirm Button */}
@@ -395,12 +395,12 @@ export function LocationPinMap({ onLocationSelect, initialPosition }: LocationPi
                             disabled={isGeocoding}
                         >
                             <MapPin size={16} strokeWidth={1.5}  />
-                            {hasConfirmed ? "✓ Location Saved" : "Confirm This Location"}
+                            {hasConfirmed ? "Location saved" : "Confirm This Location"}
                         </Button>
 
                         {hasConfirmed && (
-                            <p className="text-xs text-green-600 dark:text-green-400 text-center">
-                                ✓ GPS coordinates saved! Rider will receive a Google Maps link.
+                            <p className="text-xs text-success text-center">
+                                GPS location saved. The rider gets a Google Maps link.
                             </p>
                         )}
                     </CardContent>

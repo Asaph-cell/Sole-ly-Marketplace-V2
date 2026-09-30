@@ -92,9 +92,9 @@ export const DisputeChat = ({ disputeId, currentUserRole }: { disputeId: string,
   };
 
   const getRoleBadge = (role: string) => {
-    if (role === "admin") return <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded uppercase"><Shield size={10} /> Admin</span>;
-    if (role === "vendor") return <span className="flex items-center gap-1 text-[10px] font-bold text-orange-500 bg-orange-500/10 px-1.5 py-0.5 rounded uppercase"><Store size={10} /> Vendor</span>;
-    return <span className="flex items-center gap-1 text-[10px] font-bold text-blue-500 bg-blue-500/10 px-1.5 py-0.5 rounded uppercase"><User size={10} /> Buyer</span>;
+    if (role === "admin") return <span className="flex items-center gap-1 text-[10px] font-bold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded uppercase"><Shield size={10} /> Admin</span>;
+    if (role === "vendor") return <span className="flex items-center gap-1 text-[10px] font-bold text-primary-strong bg-primary/10 px-1.5 py-0.5 rounded uppercase"><Store size={10} /> Vendor</span>;
+    return <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground bg-foreground/10 px-1.5 py-0.5 rounded uppercase"><User size={10} /> Buyer</span>;
   };
 
   if (loading) {
@@ -133,7 +133,7 @@ export const DisputeChat = ({ disputeId, currentUserRole }: { disputeId: string,
                     isMe 
                       ? "bg-primary text-primary-foreground rounded-tr-sm" 
                       : msg.sender_role === "admin" 
-                        ? "bg-red-500/10 border border-red-500/20 rounded-tl-sm text-foreground"
+                        ? "bg-destructive/10 border border-destructive/20 rounded-tl-sm text-foreground"
                         : "bg-muted rounded-tl-sm text-foreground"
                   }`}
                 >

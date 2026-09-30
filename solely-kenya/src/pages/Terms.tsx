@@ -50,12 +50,12 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <Scale size={20} strokeWidth={1.5} className=" text-amber-600" />
+                                    <Scale size={20} strokeWidth={1.5} className=" text-primary-strong" />
                                     0. Platform Disclaimer (Important)
                                 </h3>
-                                <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg mb-4">
-                                    <p className="text-amber-900 font-medium mb-2">Solely Kenya is an Online Marketplace</p>
-                                    <ul className="list-disc pl-6 space-y-2 text-amber-800 text-sm">
+                                <div className="bg-primary-soft border border-primary/30 p-4 rounded-lg mb-4">
+                                    <p className="text-primary-strong font-medium mb-2">Solely Kenya is an Online Marketplace</p>
+                                    <ul className="list-disc pl-6 space-y-2 text-primary-strong text-sm">
                                         <li>Solely Kenya does not own or sell the products listed on this platform. We are a venue connecting third-party independent vendors with buyers.</li>
                                         <li><strong>No Affiliation:</strong> Solely Kenya is NOT affiliated, associated, authorized, endorsed by, or in any way officially connected with any brands listed on the platform. All brand names, logos, and trademarks are the property of their respective owners.</li>
                                         <li><strong>Resale Condition:</strong> Items listed as "New" are sold by independent vendors, not by authorized retailers, and may not come with the original manufacturer's warranty. Items listed as "Thrifted" or "Refurbished" are pre-owned and are described by the vendor, not by us.</li>
@@ -76,7 +76,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <CreditCard size={20} strokeWidth={1.5} className=" text-green-600" />
+                                    <CreditCard size={20} strokeWidth={1.5} className=" text-success" />
                                     2. Escrow Payment Protection
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
@@ -103,7 +103,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <Truck size={20} strokeWidth={1.5} className=" text-blue-600" />
+                                    <Truck size={20} strokeWidth={1.5} className=" text-muted-foreground" />
                                     3.5. Delivery and the Delivery Fee
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
@@ -118,22 +118,22 @@ const Terms = () => {
                                     <li><strong>Agreements expire:</strong> A delivery negotiation that neither side completes will expire, and you will need to start again. Nothing is charged for an expired negotiation</li>
                                     <li><strong>Vendor is the deliverer:</strong> Solely does not operate a courier fleet. The vendor is responsible for getting the item to you, whether they deliver it themselves or use a courier</li>
                                 </ul>
-                                <p className="text-muted-foreground mt-3 bg-blue-50 border border-blue-200 p-3 rounded-lg text-sm">
+                                <p className="text-muted-foreground mt-3 bg-muted border border-border p-3 rounded-lg text-sm">
                                     <strong>Do not pay delivery fees outside Solely.</strong> A fee paid directly to a vendor by M-Pesa is not held in escrow, is not covered by buyer protection, and cannot be refunded by us if something goes wrong. If a vendor asks you to pay outside the platform, report it to us.
                                 </p>
                             </section>
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <KeyRound size={20} strokeWidth={1.5} className=" text-green-700" />
+                                    <KeyRound size={20} strokeWidth={1.5} className=" text-success" />
                                     4. Confirming Delivery: Package PIN and OTP (Critical)
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
                                     Solely uses a two-step handover. Read this section carefully. It determines when your money leaves escrow.
                                 </p>
 
-                                <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
-                                    <h4 className="font-semibold text-green-800 mb-2">🔐 How Confirmation Works</h4>
+                                <div className="bg-success-soft border border-success/30 p-4 rounded-lg mb-4">
+                                    <h4 className="font-semibold text-success mb-2">How confirmation works</h4>
                                     <ol className="list-decimal pl-6 space-y-2 text-sm text-muted-foreground">
                                         <li>The vendor ships your order with a <strong>3-digit Package PIN</strong> shown on the package</li>
                                         <li><strong>Inspect the item first.</strong> Check that it is correct, complete, and in the condition described</li>
@@ -143,8 +143,8 @@ const Terms = () => {
                                     </ol>
                                 </div>
 
-                                <div className="mt-4 bg-red-50 border border-red-200 p-4 rounded-lg">
-                                    <h4 className="font-semibold text-red-800 mb-2">🔒 Entering the Package PIN is the point of no return</h4>
+                                <div className="mt-4 bg-destructive-soft border border-destructive/30 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-destructive mb-2">Entering the Package PIN is the point of no return</h4>
                                     <ul className="list-disc pl-6 space-y-1 text-sm text-muted-foreground">
                                         <li><strong>Inspect first, enter second:</strong> Entering the Package PIN tells us you have received the correct item in acceptable condition. Do not enter it while the courier is still holding the package or before you have opened it</li>
                                         <li><strong>The 6-hour clock starts at PIN entry:</strong> After you enter the PIN, you have <strong>6 hours</strong> to raise a dispute before escrow releases automatically. Raise a dispute inside that window and the funds stay frozen while we investigate</li>
@@ -160,7 +160,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <AlertTriangle size={20} strokeWidth={1.5} className=" text-amber-600" />
+                                    <AlertTriangle size={20} strokeWidth={1.5} className=" text-primary-strong" />
                                     5. Disputes and Refunds
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
@@ -186,7 +186,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <Star size={20} strokeWidth={1.5} className=" text-yellow-500" />
+                                    <Star size={20} strokeWidth={1.5} className=" text-primary-strong" />
                                     6. Ratings and Reviews
                                 </h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
@@ -252,7 +252,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <CreditCard size={20} strokeWidth={1.5} className=" text-green-600" />
+                                    <CreditCard size={20} strokeWidth={1.5} className=" text-success" />
                                     2. Commission and Payments
                                 </h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
@@ -291,8 +291,8 @@ const Terms = () => {
                                     <li><strong>Package PIN:</strong> Write the order's 3-digit Package PIN on the package before it goes out. The buyer needs it to confirm receipt</li>
                                 </ul>
 
-                                <div className="mt-4 bg-green-50 border border-green-200 p-4 rounded-lg mb-4">
-                                    <h4 className="font-semibold text-green-800 mb-2">🔐 How You Get Paid</h4>
+                                <div className="mt-4 bg-success-soft border border-success/30 p-4 rounded-lg mb-4">
+                                    <h4 className="font-semibold text-success mb-2">How you get paid</h4>
                                     <ul className="list-disc pl-6 space-y-2 text-sm text-muted-foreground">
                                         <li>The buyer inspects the item and enters the <strong>3-digit Package PIN</strong> from the package to confirm receipt</li>
                                         <li>Solely then shows the buyer a <strong>6-digit OTP</strong>. Ask them for it and enter it on your Vendor Orders page to <strong>release your funds immediately</strong></li>
@@ -304,24 +304,24 @@ const Terms = () => {
 
                                 <div className="mt-4 space-y-3">
                                     <h4 className="font-semibold text-foreground">Order Automation Rules</h4>
-                                    <p className="text-muted-foreground bg-red-50 border border-red-200 p-3 rounded-lg">
-                                        ❌ <strong>Auto-Cancel (48 hours):</strong> Orders not confirmed by the vendor within 48 hours will be automatically cancelled and the buyer refunded.
+                                    <p className="text-muted-foreground bg-destructive-soft border border-destructive/30 p-3 rounded-lg">
+                                        <strong>Auto-Cancel (48 hours):</strong> Orders not confirmed by the vendor within 48 hours will be automatically cancelled and the buyer refunded.
                                     </p>
-                                    <p className="text-muted-foreground bg-amber-50 border border-amber-200 p-3 rounded-lg">
-                                        ⚠️ <strong>Auto-Dispute (5 days):</strong> If an order is confirmed but not marked as "Arrived" within 5 days, a dispute is automatically raised for admin review.
+                                    <p className="text-muted-foreground bg-primary-soft border border-primary/30 p-3 rounded-lg">
+                                        <strong>Auto-Dispute (5 days):</strong> If an order is confirmed but not marked as "Arrived" within 5 days, a dispute is automatically raised for admin review.
                                     </p>
-                                    <p className="text-muted-foreground bg-green-50 border border-green-200 p-3 rounded-lg">
-                                        ✅ <strong>Auto-Release (6 hours after PIN):</strong> Once the buyer enters the Package PIN, escrow releases to you automatically after 6 hours if the OTP has not been entered. This protects you from a buyer who receives the goods and then goes quiet. It does not apply to pickup orders.
+                                    <p className="text-muted-foreground bg-success-soft border border-success/30 p-3 rounded-lg">
+                                        <strong>Auto-Release (6 hours after PIN):</strong> Once the buyer enters the Package PIN, escrow releases to you automatically after 6 hours if the OTP has not been entered. This protects you from a buyer who receives the goods and then goes quiet. It does not apply to pickup orders.
                                     </p>
-                                    <p className="text-sm bg-blue-50 border border-blue-200 p-3 rounded-lg text-muted-foreground mt-2">
-                                        💡 <strong>Buyer won't enter the PIN?</strong> If a buyer has received the correct item but refuses to confirm, raise a dispute. Solely admin will review and release funds in your favour where the evidence supports it. If the item was genuinely wrong or damaged, take it back, the buyer will be refunded and no commission is charged.
+                                    <p className="text-sm bg-muted border border-border p-3 rounded-lg text-muted-foreground mt-2">
+                                        <strong>Buyer won't enter the PIN?</strong> If a buyer has received the correct item but refuses to confirm, raise a dispute. Solely admin will review and release funds in your favour where the evidence supports it. If the item was genuinely wrong or damaged, take it back, the buyer will be refunded and no commission is charged.
                                     </p>
                                 </div>
                             </section>
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <AlertTriangle size={20} strokeWidth={1.5} className=" text-red-600" />
+                                    <AlertTriangle size={20} strokeWidth={1.5} className=" text-destructive" />
                                     5. Disputes and Returns
                                 </h3>
                                 <h4 className="font-semibold text-foreground mb-2">Grounds for Dispute</h4>
@@ -343,7 +343,7 @@ const Terms = () => {
                                     <li><strong>Solely Admin Decision:</strong> If the dispute is resolved in favour of the buyer, a full refund is issued including the delivery fee. If resolved in favour of the vendor, funds are released</li>
                                 </ul>
 
-                                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                                <div className="bg-muted border border-border p-4 rounded-lg">
                                     <h4 className="font-semibold text-foreground mb-2">Sizing, Fit, and "Change of Mind"</h4>
                                     <ul className="list-disc pl-6 space-y-2 text-sm text-muted-foreground">
                                         <li><strong>Vendor Responsibility:</strong> You are liable for returns if you sent something other than what was ordered, for example the buyer ordered size 42 and you sent 43, or a different colour or model</li>
@@ -355,7 +355,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <Star size={20} strokeWidth={1.5} className=" text-yellow-500" />
+                                    <Star size={20} strokeWidth={1.5} className=" text-primary-strong" />
                                     6. Ratings and Reputation
                                 </h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
@@ -364,8 +364,8 @@ const Terms = () => {
                                     <li>Vendor reviews are anonymous - you cannot see who rated you</li>
                                     <li>Focus on product quality, fast shipping, and good communication for better ratings</li>
                                 </ul>
-                                <p className="text-muted-foreground mt-3 bg-blue-50 border border-blue-200 p-3 rounded-lg">
-                                    <strong>💡 Tip:</strong> Vendors with 4+ star ratings are featured more prominently
+                                <p className="text-muted-foreground mt-3 bg-muted border border-border p-3 rounded-lg">
+                                    <strong>Tip:</strong> Vendors with 4+ star ratings are featured more prominently
                                     in search results and suggestions.
                                 </p>
                             </section>
@@ -383,8 +383,8 @@ const Terms = () => {
                                     <li>Inflate prices to cover commission fees dishonestly</li>
                                     <li>Harass buyers or respond aggressively to reviews</li>
                                 </ul>
-                                <div className="mt-4 bg-red-50 border border-red-200 p-4 rounded-lg">
-                                    <h4 className="font-semibold text-red-700 mb-2">Counterfeit and Stolen Goods Policy</h4>
+                                <div className="mt-4 bg-destructive-soft border border-destructive/30 p-4 rounded-lg">
+                                    <h4 className="font-semibold text-destructive mb-2">Counterfeit and Stolen Goods Policy</h4>
                                     <p className="text-sm text-muted-foreground">
                                         Solely has a <strong>zero-tolerance policy</strong> for fakes and stolen goods. If you are found to be knowingly selling either:
                                     </p>
@@ -398,7 +398,7 @@ const Terms = () => {
 
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                                    <Database size={20} strokeWidth={1.5} className=" text-indigo-600" />
+                                    <Database size={20} strokeWidth={1.5} className=" text-muted-foreground" />
                                     8. Handling Buyer Data
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
@@ -463,13 +463,13 @@ const Terms = () => {
 
                     <section>
                         <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                            <ShieldAlert size={18} strokeWidth={1.5} className="text-amber-600" />
+                            <ShieldAlert size={18} strokeWidth={1.5} className="text-primary-strong" />
                             Reporting Counterfeits and Infringement
                         </h3>
                         <p className="text-muted-foreground mb-3">
                             Solely does not permit listings that infringe anyone's copyright, trademark, right of publicity, or other proprietary rights, and we do not permit counterfeit goods. If you own such a right, represent someone who does, or are simply a buyer who has spotted a problem, tell us.
                         </p>
-                        <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg mb-3">
+                        <div className="bg-primary-soft border border-primary/30 p-4 rounded-lg mb-3">
                             <p className="text-sm text-muted-foreground mb-2">
                                 <strong>How to report:</strong> Use the <Link to="/report-listing" className="text-primary underline font-semibold">Report a Listing</Link> form. You do not need an account. Every product page also carries a "Report this listing" link, which fills in the listing for you. If you would rather write to us, email{" "}
                                 <a href="mailto:contact@solelymarketplace.com" className="text-primary underline">contact@solelymarketplace.com</a> with the listing link, what right is affected, how it is infringed, and your contact details.

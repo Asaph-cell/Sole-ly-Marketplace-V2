@@ -54,7 +54,7 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
       <div className="flex items-center gap-0.5">
         {[1, 2, 3, 4, 5].map((star) => (
           <Star size={16} strokeWidth={1.5} key={star}
-            className={` sm:h-5 sm:w-5 transition-transform ${star <= rating ? "fill-amber-400 text-amber-400 drop-shadow-sm" : "text-muted-foreground/30"}`}
+            className={` sm:h-5 sm:w-5 transition-transform ${star <= rating ? "fill-primary-strong text-primary-strong drop-shadow-sm" : "text-muted-foreground/30"}`}
           />
         ))}
       </div>
@@ -78,15 +78,14 @@ export const ProductReviews = ({ productId }: ProductReviewsProps) => {
     <div className="space-y-4">
       {/* Average Rating Summary */}
       <Card className="bg-card/50 backdrop-blur-sm border-white/5 shadow-glass overflow-hidden relative">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <CardTitle className="text-xl font-bold flex items-center gap-2">
-              <MessageSquareHeart size={20} strokeWidth={1.5} className=" text-amber-500" /> Customer Reviews
+              <MessageSquareHeart size={20} strokeWidth={1.5} className=" text-primary-strong" /> Customer Reviews
             </CardTitle>
             {reviews.length > 0 && (
               <div className="flex items-center gap-3 bg-muted/50 rounded-full px-4 py-1.5 border border-white/5 shadow-inner">
-                <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-amber-400 to-orange-600 tracking-tighter drop-shadow-sm">
+                <div className="font-display text-3xl leading-none tabular-nums text-foreground">
                   {averageRating.toFixed(1)}
                 </div>
                 <div className="flex flex-col justify-center">

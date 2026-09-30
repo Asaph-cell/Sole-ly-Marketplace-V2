@@ -2,7 +2,7 @@ import { Users, TrendingUp, Heart, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import logo from "@/assets/solely-logo.svg";
+import { BrandLogo } from "@/components/BrandLogo";
 import { SEO } from "@/components/SEO";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
@@ -32,11 +32,7 @@ const About = () => {
       <div className="container mx-auto px-4">
         {/* Hero Section */}
         <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-16">
-          <img
-            src={logo}
-            alt="Solely - Buy & Sell Safely"
-            className="h-14 sm:h-20 w-auto mx-auto mb-6"
-          />
+          <BrandLogo alt="Solely - Buy & Sell Safely" className="h-14 sm:h-20 w-auto mx-auto mb-6" />
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">About Solely Kenya</h1>
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground leading-relaxed font-medium">
             Solely makes online buying and selling safe in Kenya. We're not another shop. We're the checkout system that protects you when buying from Instagram, WhatsApp, and TikTok sellers.

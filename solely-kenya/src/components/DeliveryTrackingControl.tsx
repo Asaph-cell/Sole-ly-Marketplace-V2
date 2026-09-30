@@ -209,11 +209,11 @@ export function DeliveryTrackingControl({
     };
 
     return (
-        <Card className={isTracking ? "border-green-500 bg-green-50/50 dark:bg-green-950/20" : ""}>
+        <Card className={isTracking ? "border-success/60 bg-success/50 " : ""}>
             <CardContent className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <RadioTower size={20} strokeWidth={1.5} className={` ${isTracking ? 'text-green-600 animate-pulse' : 'text-muted-foreground'}`} />
+                        <RadioTower size={20} strokeWidth={1.5} className={` ${isTracking ? 'text-success animate-pulse' : 'text-muted-foreground'}`} />
                         <div>
                             <Label htmlFor="tracking-toggle" className="text-base font-semibold cursor-pointer">
                                 Live Delivery Tracking
@@ -233,9 +233,9 @@ export function DeliveryTrackingControl({
 
                 {isTracking && (
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                        <div className="flex items-center gap-2 text-sm text-success ">
                             <div className="flex items-center gap-1">
-                                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                                <div className="h-2 w-2 bg-success rounded-full animate-pulse" />
                                 <span className="font-medium">Tracking Active</span>
                             </div>
                             {lastUpdate && (
@@ -245,9 +245,9 @@ export function DeliveryTrackingControl({
                             )}
                         </div>
 
-                        <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
-                            <Battery size={16} strokeWidth={1.5} className=" text-amber-600" />
-                            <AlertDescription className="text-xs text-amber-800 dark:text-amber-200">
+                        <Alert className="bg-primary-soft border-primary/30">
+                            <Battery size={16} strokeWidth={1.5} className=" text-primary-strong" />
+                            <AlertDescription className="text-xs text-primary-strong ">
                                 <strong>Battery Notice:</strong> Continuous GPS tracking may drain your battery. The tracking will auto-stop after 8 hours.
                             </AlertDescription>
                         </Alert>
@@ -262,9 +262,9 @@ export function DeliveryTrackingControl({
                 )}
 
                 {permissionDenied && !isTracking && (
-                    <Alert className="bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800">
-                        <MapPin size={16} strokeWidth={1.5} className=" text-red-600" />
-                        <AlertDescription className="text-xs text-red-800 dark:text-red-200">
+                    <Alert className="bg-destructive-soft border-destructive/30">
+                        <MapPin size={16} strokeWidth={1.5} className=" text-destructive" />
+                        <AlertDescription className="text-xs text-destructive ">
                             Location permission denied. Please enable location access in your browser settings and try again.
                         </AlertDescription>
                     </Alert>

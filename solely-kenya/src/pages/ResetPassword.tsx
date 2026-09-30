@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/lib/toast";
 import { KeyRound, CheckCircle2, Eye, EyeOff } from "lucide-react";
-import logo from "@/assets/solely-logo.svg";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const ResetPassword = () => {
     const [password, setPassword] = useState("");
@@ -93,7 +93,7 @@ const ResetPassword = () => {
                         <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
                             <CheckCircle2 size={32} strokeWidth={1.5} className="text-primary" />
                         </div>
-                        <CardTitle className="text-2xl text-green-700">Password Updated!</CardTitle>
+                        <CardTitle className="text-2xl text-success">Password Updated!</CardTitle>
                         <CardDescription className="text-base mt-2">
                             Your password has been successfully reset.
                         </CardDescription>
@@ -115,7 +115,7 @@ const ResetPassword = () => {
         <div className="min-h-screen flex items-center justify-center py-12 px-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
-                    <img src={logo} alt="Solely" className="h-16 w-auto mx-auto mb-4" />
+                    <BrandLogo className="h-16 w-auto mx-auto mb-4" />
                     <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
                         <KeyRound size={24} strokeWidth={1.5} className=" text-primary" />
                     </div>

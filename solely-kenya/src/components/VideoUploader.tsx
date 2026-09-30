@@ -171,7 +171,7 @@ export const VideoUploader = ({ vendorId, videoUrl, onVideoChange }: VideoUpload
                     >
                         <X size={16} strokeWidth={1.5}  />
                     </Button>
-                    <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-green-500/90 text-white text-xs px-2 py-1 rounded">
+                    <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-success/90 text-white text-xs px-2 py-1 rounded">
                         <CheckCircle strokeWidth={1.5} className="h-3 w-3" />
                         Video ready
                     </div>
@@ -228,7 +228,7 @@ export const VideoUploader = ({ vendorId, videoUrl, onVideoChange }: VideoUpload
             )}
 
             <p className="text-xs text-muted-foreground">
-                🎬 <strong>Tip:</strong> Short videos showing the product from different angles help buyers make confident purchases!
+                <strong>Tip:</strong> Short videos showing the product from different angles help buyers make confident purchases!
             </p>
         </div>
     );

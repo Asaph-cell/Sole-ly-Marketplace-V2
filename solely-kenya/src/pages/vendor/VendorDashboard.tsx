@@ -8,21 +8,23 @@ import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import { VendorBalanceCard } from "@/components/vendor/VendorBalanceCard";
 import { useVendorInsights, RANGE_DAYS, SOURCE_LABEL } from "@/components/vendor/VendorInsights";
 import { StoreSetupCard } from "@/components/vendor/StoreSetupCard";
+import { usePendingOrders } from "@/components/vendor/PendingOrdersBanner";
+import { useWaitingDeliveryChats } from "@/components/vendor/DeliveryInquiryBanner";
 import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/lib/toast";
-import { ArrowRight, Check, ChevronRight, Copy, Link2, PackageCheck, PackageMinus, Plus } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, Copy, Link2, MessageCircle, PackageCheck, PackageMinus, Plus, Scale } from "lucide-react";
 import { Area, AreaChart, XAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 // Dot colour + wording for each order state. Plain words the seller would use.
 const STATUS: Record<string, { label: string; dot: string }> = {
   pending_payment:             { label: "Awaiting payment", dot: "bg-muted-foreground/50" },
   pending_vendor_confirmation: { label: "Needs you",        dot: "bg-primary" },
-  accepted:                    { label: "Accepted",         dot: "bg-sky-500" },
-  processing:                  { label: "Processing",       dot: "bg-sky-500" },
-  shipped:                     { label: "In transit",       dot: "bg-violet-500" },
-  arrived:                     { label: "Delivered",        dot: "bg-emerald-500" },
-  completed:                   { label: "Completed",        dot: "bg-emerald-500" },
+  accepted:                    { label: "Accepted",         dot: "bg-foreground" },
+  processing:                  { label: "Processing",       dot: "bg-foreground" },
+  shipped:                     { label: "In transit",       dot: "bg-foreground" },
+  arrived:                     { label: "Delivered",        dot: "bg-success" },
+  completed:                   { label: "Completed",        dot: "bg-success" },
   disputed:                    { label: "Disputed",         dot: "bg-destructive" },
   refunded:                    { label: "Refunded",         dot: "bg-muted-foreground/50" },
   cancelled:                   { label: "Cancelled",        dot: "bg-muted-foreground/50" },
@@ -33,11 +35,11 @@ const STATUS: Record<string, { label: string; dot: string }> = {
 const LOW_STOCK = 5;
 const TOP_PRODUCTS = 5;
 
-// Shared pill styles so the page's buttons read as one family.
+// Pill shape only; colour, hover and press come from the Button variants.
 const pillQuiet =
-  "h-10 rounded-full border border-border bg-card px-4 font-medium text-foreground shadow-none hover:border-foreground/25 hover:bg-card";
+  "h-10 rounded-full px-4";
 const pillGold =
-  "h-10 rounded-full px-5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.35),0_4px_12px_-4px_hsl(45_69%_35%/0.45)]";
+  "h-10 rounded-full px-5";
 
 const Panel = ({ title, action, children, className = "" }: {
   title: string;
@@ -47,7 +49,7 @@ const Panel = ({ title, action, children, className = "" }: {
 }) => (
   <section className={`rounded-2xl border border-border bg-card p-5 sm:p-6 ${className}`}>
     <div className="mb-4 flex items-baseline justify-between gap-3">
-      <h2 className="text-sm font-semibold">{title}</h2>
+      <h2 className="font-sans text-sm font-semibold tracking-normal">{title}</h2>
       {action && (
         <Link
           to={action.to}
@@ -62,11 +64,11 @@ const Panel = ({ title, action, children, className = "" }: {
   </section>
 );
 
-const Stat = ({ label, value, hint }: { label: string; value: string; hint: string }) => (
+const Stat = ({ label, value, hint }: { label: string; value: string; hint?: string }) => (
   <div className="min-w-0 px-0 sm:px-5 sm:first:pl-0 sm:last:pr-0">
     <p className="text-xs text-muted-foreground">{label}</p>
-    <p className="mt-1 font-display text-3xl leading-none tabular-nums">{value}</p>
-    <p className="mt-1.5 truncate text-[11px] text-muted-foreground">{hint}</p>
+    <p className="mt-1 whitespace-nowrap font-display text-[clamp(1.5rem,2.4vw,1.875rem)] leading-none tabular-nums">{value}</p>
+    {hint && <p className="mt-1.5 truncate text-[11px] text-muted-foreground">{hint}</p>}
   </div>
 );
 
@@ -77,12 +79,15 @@ const VendorDashboard = () => {
   const [profile, setProfile] = useState<any>(null);
   const [rating, setRating] = useState<{ avg: number; count: number }>({ avg: 0, count: 0 });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [pendingOrders, setPendingOrders] = useState(0);
+  const [openDisputes, setOpenDisputes] = useState(0);
   const [dataLoading, setDataLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [showAllProducts, setShowAllProducts] = useState(false);
 
   const insights = useVendorInsights(user?.id);
+  // Same live sources as the strips on other pages, so the numbers always match.
+  const pending = usePendingOrders();
+  const deliveryChats = useWaitingDeliveryChats();
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -96,8 +101,6 @@ const VendorDashboard = () => {
   const loadData = async () => {
     setDataLoading(true);
     try {
-      // Orders older than 48h without confirmation are no longer actionable here.
-      const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
       const [{ data: prof }, { data: ratings }, { data: orders }, { count }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user!.id).single(),
         supabase.from("vendor_ratings").select("rating").eq("vendor_id", user!.id),
@@ -108,16 +111,15 @@ const VendorDashboard = () => {
           .order("created_at", { ascending: false })
           .limit(5),
         supabase
-          .from("orders")
+          .from("disputes")
           .select("id", { count: "exact", head: true })
           .eq("vendor_id", user!.id)
-          .eq("status", "pending_vendor_confirmation")
-          .gte("created_at", cutoff),
+          .eq("status", "open"),
       ]);
 
       setProfile(prof);
       setRecentOrders(orders || []);
-      setPendingOrders(count || 0);
+      setOpenDisputes(count || 0);
       const n = ratings?.length || 0;
       setRating({ avg: n ? ratings!.reduce((s, r) => s + r.rating, 0) / n : 0, count: n });
     } catch (e) {
@@ -132,7 +134,6 @@ const VendorDashboard = () => {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const firstName = profile?.full_name?.split(" ")[0];
-  const today = new Date().toLocaleDateString("en-KE", { weekday: "long", day: "numeric", month: "long" });
 
   const copyStoreLink = async () => {
     const link = `${window.location.origin}/store/${profile?.store_link || profile?.id}`;
@@ -151,14 +152,34 @@ const VendorDashboard = () => {
   const visibleRows = showAllProducts ? rows : rows.slice(0, TOP_PRODUCTS);
   const busy = dataLoading || insights.loading;
 
-  // Only things the seller can act on right now. Empty list = nothing rendered.
+  // Only things the seller can act on right now, most urgent first. This is
+  // the dashboard's one place for alerts; the strips under the navbar hide here.
+  const pendingCount = pending.active.length;
+  const waitingCount = deliveryChats.waiting.length;
   const todos = [
-    pendingOrders > 0 && {
+    pendingCount > 0 && {
       icon: PackageCheck,
-      title: `${pendingOrders} order${pendingOrders === 1 ? "" : "s"} waiting for you`,
-      detail: "Confirm so the buyer knows you're on it.",
+      title: `${pendingCount} order${pendingCount === 1 ? "" : "s"} waiting for you`,
+      detail: pending.deadline ? `${pending.deadline.text} to accept. Confirm so the buyer knows you're on it.` : "Confirm so the buyer knows you're on it.",
       cta: "Confirm",
       to: "/vendor/orders",
+      urgent: !!pending.deadline?.urgent,
+    },
+    openDisputes > 0 && {
+      icon: Scale,
+      title: `${openDisputes} dispute${openDisputes === 1 ? " needs" : "s need"} your side`,
+      detail: "Reply with what happened. Unanswered disputes usually go the buyer's way.",
+      cta: "Respond",
+      to: "/vendor/disputes",
+      urgent: true,
+    },
+    waitingCount > 0 && {
+      icon: MessageCircle,
+      title: waitingCount === 1 ? "A buyer is waiting on you" : `${waitingCount} buyers are waiting on you`,
+      detail: "Agree the delivery fee so they can pay.",
+      cta: "Open chat",
+      to: deliveryChats.to,
+      urgent: false,
     },
     lowStock.length > 0 && {
       icon: PackageMinus,
@@ -166,8 +187,9 @@ const VendorDashboard = () => {
       detail: lowStock.slice(0, 3).map((p) => `${p.name} (${p.stock})`).join(", "),
       cta: "Restock",
       to: "/vendor/products",
+      urgent: false,
     },
-  ].filter(Boolean) as Array<{ icon: typeof PackageCheck; title: string; detail: string; cta: string; to: string }>;
+  ].filter(Boolean) as Array<{ icon: typeof PackageCheck; title: string; detail: string; cta: string; to: string; urgent: boolean }>;
 
   return (
     <div className="min-h-screen bg-muted/30 overflow-x-hidden">
@@ -181,7 +203,6 @@ const VendorDashboard = () => {
             {/* ── Header ── */}
             <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{today}</p>
                 <h1 className="font-display text-3xl leading-tight sm:text-4xl">
                   {greeting}{firstName && <>, <span className="italic text-primary">{firstName}</span></>}
                 </h1>
@@ -203,10 +224,10 @@ const VendorDashboard = () => {
             {/* ── Things that need the seller today ── */}
             {!busy && todos.length > 0 && (
               <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-primary/30 bg-card">
-                {todos.map(({ icon: Icon, title, detail, cta, to }) => (
+                {todos.map(({ icon: Icon, title, detail, cta, to, urgent }) => (
                   <li key={title}>
                     <Link to={to} className="group flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/50 sm:px-5">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15">
+                      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${urgent ? "bg-destructive/10 text-destructive" : "bg-primary/15"}`}>
                         <Icon size={16} strokeWidth={1.75} />
                       </span>
                       <div className="min-w-0 flex-1">
@@ -235,12 +256,12 @@ const VendorDashboard = () => {
                   ) : (
                     <>
                       <div className="grid grid-cols-2 gap-y-5 sm:grid-cols-4 sm:divide-x sm:divide-border">
-                        <Stat label="Visitors" value={totals.visitors.toLocaleString()} hint="Unique people" />
-                        <Stat label="Sales" value={totals.orders.toLocaleString()} hint="Paid orders" />
+                        <Stat label="Visitors" value={totals.visitors.toLocaleString()} />
+                        <Stat label="Sales" value={totals.orders.toLocaleString()} />
                         <Stat
                           label="Look-to-buy"
                           value={conversion === null ? "–" : `${conversion.toFixed(1)}%`}
-                          hint={conversion === null ? "No visitors yet" : "Visitors who bought"}
+                          hint={conversion === null ? "No visitors yet" : undefined}
                         />
                         <Stat
                           label="Rating"
@@ -313,7 +334,7 @@ const VendorDashboard = () => {
                           <thead>
                             <tr className="text-xs text-muted-foreground">
                               <th className="pb-2 pl-5 text-left font-medium sm:pl-6">Product</th>
-                              <th className="px-3 pb-2 text-right font-medium">Visitors</th>
+                              <th className="hidden px-3 pb-2 text-right font-medium sm:table-cell">Visitors</th>
                               <th className="px-3 pb-2 text-right font-medium">Sold</th>
                               <th className="pb-2 pl-3 pr-5 text-right font-medium sm:pr-6">Earned</th>
                             </tr>
@@ -325,7 +346,7 @@ const VendorDashboard = () => {
                               const low = r.stock !== null && r.stock < LOW_STOCK;
                               return (
                                 <tr key={r.id}>
-                                  <td className="max-w-0 py-3 pl-5 pr-3 sm:pl-6">
+                                  <td className="w-full max-w-0 py-3 pl-5 pr-3 sm:pl-6">
                                     <p className="truncate font-medium">{r.name}</p>
                                     {(unsold || low) && (
                                       <p className="text-[11px] text-muted-foreground">
@@ -335,7 +356,7 @@ const VendorDashboard = () => {
                                       </p>
                                     )}
                                   </td>
-                                  <td className="px-3 py-3 text-right tabular-nums text-muted-foreground">{r.visitors}</td>
+                                  <td className="hidden px-3 py-3 text-right tabular-nums text-muted-foreground sm:table-cell">{r.visitors}</td>
                                   <td className="px-3 py-3 text-right tabular-nums text-muted-foreground">{r.orders}</td>
                                   <td className="whitespace-nowrap py-3 pl-3 pr-5 text-right font-medium tabular-nums sm:pr-6">
                                     {r.revenue > 0 ? `KES ${r.revenue.toLocaleString()}` : "–"}
@@ -374,7 +395,10 @@ const VendorDashboard = () => {
                   ) : (
                     <ul className="-my-2.5 divide-y divide-border">
                       {recentOrders.map((order) => {
-                        const s = STATUS[order.status] ?? { label: order.status.replace(/_/g, " "), dot: "bg-muted-foreground/50" };
+                        const expired = order.status === "pending_vendor_confirmation" && Date.now() - new Date(order.created_at).getTime() > 48 * 60 * 60 * 1000;
+                        const s = expired
+                          ? { label: "Expired", dot: "bg-muted-foreground/50" }
+                          : STATUS[order.status] ?? { label: order.status.replace(/_/g, " "), dot: "bg-muted-foreground/50" };
                         return (
                           <li key={order.id}>
                             <Link to="/vendor/orders" className="flex items-center justify-between gap-3 py-2.5 transition-opacity hover:opacity-70">

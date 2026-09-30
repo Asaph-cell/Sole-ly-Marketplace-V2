@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/lib/toast";
+import { Check, ChevronDown, Clock, Package } from "lucide-react";
 import { edgeErrorMessage } from "@/lib/edgeError";
 import { LocationViewMap } from "@/components/LocationViewMap";
 import { DeliveryTrackingControl } from "@/components/DeliveryTrackingControl";
@@ -73,6 +74,9 @@ const VendorOrders = () => {
   const [otpVerifying, setOtpVerifying] = useState(false);
   const [generatedOtp, setGeneratedOtp] = useState<string | null>(null);
   const [showGeneratedOtp, setShowGeneratedOtp] = useState(false);
+  // Title for the "code sent" dialog, which doubles as the confirmation that
+  // the order moved on (shipped / ready for pickup).
+  const [otpDialogTitle, setOtpDialogTitle] = useState("Delivery code sent");
   const [sortBy, setSortBy] = useState<string>("newest");
 
   const loadOrders = async () => {
@@ -379,16 +383,16 @@ const VendorOrders = () => {
 
         if (escrowCreateError) {
           console.error("Failed to create escrow:", escrowCreateError);
-          toast.warning("Order accepted, but escrow creation failed. Please contact support.");
+          toast.warning("Order accepted, but payment protection didn't start", { description: "Please contact support so we can fix it." });
         }
       }
 
       // Show success message and expand shipping section
       const isPickup = order.order_shipping_details?.delivery_type === "pickup";
       if (isPickup) {
-        toast.success("Pickup order accepted. Customer will collect from your location.");
+        toast.success("Order accepted", { description: "The buyer will collect it from you. Mark it ready when it is." });
       } else {
-        toast.success(`Order accepted! Now fill in shipping details below.`);
+        toast.success("Order accepted", { description: "Add the delivery details below when you send it." });
       }
 
       // Auto-expand and scroll to shipping form
@@ -398,7 +402,7 @@ const VendorOrders = () => {
       }, 100);
     } catch (error) {
       console.error("Error accepting order:", error);
-      toast.error("Failed to accept order. Please try again or contact support.");
+      toast.error("Couldn't accept the order", { description: "Please try again, or contact support if it keeps happening." });
     } finally {
       setSaving(false);
     }
@@ -436,11 +440,11 @@ const VendorOrders = () => {
         },
       }).catch(err => console.log("Buyer notification failed (non-critical):", err));
 
-      toast.success("Order cancelled. Customer will be refunded and notified via email.");
+      toast.success("Order declined", { description: "The buyer gets a full refund and an email." });
       setOrderToDecline(null);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to cancel order");
+      toast.error("Couldn't decline the order", { description: "Please try again." });
     } finally {
       setSaving(false);
     }
@@ -487,7 +491,7 @@ const VendorOrders = () => {
         delivery_notes: shipping.notes || order.order_shipping_details?.delivery_notes || null,
       }
       notificationType = "notify-buyer-pickup-ready"; // Use specific pickup ready notification
-      successMsg = "Order ready for pickup! Notification sent to buyer.";
+      successMsg = "Ready for pickup";
     } else {
       // Delivery Logic
       if (order.status === "accepted") {
@@ -512,7 +516,7 @@ const VendorOrders = () => {
         };
 
         notificationType = "notify-buyer-order-shipped";
-        successMsg = "Order marked as Shipped! Buyer notified it's on the way.";
+        successMsg = "Marked as shipped";
       } else if (order.status === "shipped") {
         // Step 2: Shipped -> Arrived (Delivered)
         // 6 hours after marked arrived
@@ -526,7 +530,7 @@ const VendorOrders = () => {
         };
         // No need to update shipping details again unless changed, but assume previous details hold
         notificationType = "notify-buyer-order-arrived"; // Need to ensure this exists or use generic
-        successMsg = "Order marked as Arrived/Delivered. Buyer has 24 hours to verify.";
+        successMsg = "Marked as delivered";
       }
     }
 
@@ -544,9 +548,8 @@ const VendorOrders = () => {
 
       // IMPORTANT: Generate OTP FIRST (before sending notification email)
       // This way the email will include the OTP code
-      if (updates.status === "shipped" || (isPickup && updates.status === "arrived")) {
-        await handleGenerateOtp(order.id, false);
-      }
+      const needsCode = updates.status === "shipped" || (isPickup && updates.status === "arrived");
+      const codeSent = needsCode ? await handleGenerateOtp(order.id, false, successMsg) : false;
 
       // Notify buyer about shipment (non-blocking) - AFTER OTP is generated
       // The notification function will fetch the OTP from the database
@@ -556,10 +559,17 @@ const VendorOrders = () => {
         }).catch(err => console.log(`Notification ${notificationType} failed (non-critical):`, err));
       }
 
-      toast.success(successMsg);
+      // When a code went out, its dialog is the confirmation. Otherwise a toast.
+      if (!needsCode) {
+        toast.success(successMsg, { description: "The buyer has been told and can now confirm they got it." });
+      } else if (!codeSent) {
+        toast.error(`${successMsg}, but the delivery code wasn't sent`, {
+          description: "Open the order and tap Resend code.",
+        });
+      }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update shipment status");
+      toast.error("Couldn't update the order", { description: "Nothing was changed. Please try again." });
     } finally {
       setSaving(false);
     }
@@ -578,7 +588,7 @@ const VendorOrders = () => {
   };
 
   // Generate OTP when marking as shipped/ready for pickup
-  const handleGenerateOtp = async (orderId: string, isResend: boolean = false) => {
+  const handleGenerateOtp = async (orderId: string, isResend: boolean = false, title = "Delivery code sent"): Promise<boolean> => {
     try {
       setSaving(true);
       const { data, error } = await supabase.functions.invoke('generate-delivery-otp', {
@@ -588,8 +598,6 @@ const VendorOrders = () => {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || 'Failed to generate OTP');
 
-      // Show confirmation to vendor (OTP is NOT shown - only buyer sees it)
-      setShowGeneratedOtp(true);
 
       // If resending, also trigger the email notification
       if (isResend) {
@@ -604,15 +612,19 @@ const VendorOrders = () => {
             body: { orderId }
           }).catch(err => console.log(`Resend notification failed (non-critical):`, err));
         }
-        toast.success("New code sent to buyer! Previous code is now invalid.");
+        toast.success("New code sent to buyer", { description: "The old code no longer works." });
       } else {
-        toast.success("Delivery code generated and sent to buyer!");
+        // Confirmation dialog (the code itself is never shown to the vendor).
+        setOtpDialogTitle(title);
+        setShowGeneratedOtp(true);
       }
 
       await loadOrders();
+      return true;
     } catch (error) {
       console.error("Error generating OTP:", error);
-      toast.error("Failed to generate delivery code. Please try again.");
+      if (isResend) toast.error("Couldn't send a new code", { description: "Please try again." });
+      return false;
     } finally {
       setSaving(false);
     }
@@ -659,14 +671,14 @@ const VendorOrders = () => {
 
   // ── Status helpers ──────────────────────────────────────────────────────────
   const STATUS_PILL: Record<string, string> = {
-    pending_payment: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border border-dashed border-gray-300",
-    pending_vendor_confirmation: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-    accepted:   "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-    shipped:    "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
-    arrived:    "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-300",
-    completed:  "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
-    disputed:   "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
-    refunded:   "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+    pending_payment: "bg-muted text-muted-foreground   border border-dashed border-border",
+    pending_vendor_confirmation: "bg-primary-soft text-primary-strong  ",
+    accepted:   "bg-muted text-foreground  ",
+    shipped:    "bg-muted text-foreground  ",
+    arrived:    "bg-muted text-foreground  ",
+    completed:  "bg-success-soft text-success  ",
+    disputed:   "bg-destructive-soft text-destructive  ",
+    refunded:   "bg-muted text-foreground  ",
   };
   const STATUS_LABEL_MAP: Record<string, string> = {
     pending_payment: "Awaiting Payment",
@@ -699,8 +711,8 @@ const VendorOrders = () => {
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Orders</h1>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {pendingOrders.length > 0
-                    ? <span className="text-amber-600 font-semibold">{pendingOrders.length} need{pendingOrders.length === 1 ? "s" : ""} action</span>
-                    : "All caught up ✓"}
+                    ? <span className="text-primary-strong font-semibold">{pendingOrders.length} need{pendingOrders.length === 1 ? "s" : ""} action</span>
+                    : "All caught up"}
                 </p>
               </div>
             </div>
@@ -728,7 +740,7 @@ const VendorOrders = () => {
             </div>
           ) : orders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-4 text-2xl">📦</div>
+              <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-4"><Package size={28} strokeWidth={1.5} className="text-muted-foreground" /></div>
               <p className="font-semibold mb-1">No orders yet</p>
               <p className="text-sm text-muted-foreground max-w-xs">Orders appear here as soon as buyers checkout with your products.</p>
             </div>
@@ -748,17 +760,17 @@ const VendorOrders = () => {
                   : STATUS_LABEL_MAP[order.status] ?? order.status.replace(/_/g, " ");
 
                 return (
-                  <div key={order.id} className={`bg-card rounded-2xl border ${isPending && !isExpired ? "border-amber-300 dark:border-amber-700" : "border-border"}`}>
+                  <div key={order.id} className={`bg-card rounded-2xl border ${isPending && !isExpired ? "border-primary/30 " : "border-border"}`}>
 
                     {/* Collapsed header, tap to expand */}
                     <button className="w-full text-left px-4 py-3.5 flex items-start gap-3"
                       onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}>
                       <div className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${
-                        isPending && !isExpired ? "bg-amber-500 animate-pulse" :
+                        isPending && !isExpired ? "bg-primary" :
                         isExpired ? "bg-muted-foreground" :
-                        order.status === "completed" ? "bg-green-500" :
-                        order.status === "shipped" ? "bg-purple-500" :
-                        order.status === "disputed" ? "bg-red-500" : "bg-blue-400"}`} />
+                        order.status === "completed" ? "bg-success" :
+                        order.status === "shipped" ? "bg-foreground" :
+                        order.status === "disputed" ? "bg-destructive" : "bg-border"}`} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-semibold">#{order.id.slice(0, 10)}</p>
@@ -771,7 +783,7 @@ const VendorOrders = () => {
                           {order.order_items?.map(i => `${i.quantity}× ${i.product_name}`).join(", ")}
                         </p>
                       </div>
-                      <span className="text-muted-foreground text-xs mt-1">{isExpanded ? "▲" : "▼"}</span>
+                      <ChevronDown size={16} strokeWidth={1.75} className={`mt-1 shrink-0 text-muted-foreground transition-transform duration-200 ease-out ${isExpanded ? "rotate-180" : ""}`} />
                     </button>
 
                     {/* Expanded detail */}
@@ -785,7 +797,7 @@ const VendorOrders = () => {
                         <div className="flex justify-end pb-3 mb-3 border-b border-border/50">
                           <button
                             onClick={() => window.print()}
-                            className="text-[11px] font-semibold px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/40 transition print:hidden"
+                            className="text-[11px] font-semibold px-3 py-1.5 bg-muted text-foreground rounded-md hover:bg-muted transition print:hidden"
                           >
                             Download Receipt / Invoice
                           </button>
@@ -811,25 +823,25 @@ const VendorOrders = () => {
                           <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span>KES {order.shipping_fee_ksh.toLocaleString()}</span></div>
                           <div className="flex justify-between font-semibold border-t border-border pt-1 mt-1"><span>Total</span><span>KES {order.total_ksh.toLocaleString()}</span></div>
                           <div className="flex justify-between text-muted-foreground"><span>Commission ({order.commission_rate}%)</span><span>− KES {order.commission_amount.toLocaleString()}</span></div>
-                          <div className="flex justify-between text-green-700 dark:text-green-400 font-semibold"><span>Your payout</span><span>KES {order.payout_amount.toLocaleString()}</span></div>
+                          <div className="flex justify-between text-success font-semibold"><span>Your payout</span><span>KES {order.payout_amount.toLocaleString()}</span></div>
                         </div>
 
                         {/* Delivery info */}
                         <div className="bg-muted/40 rounded-xl p-3 text-xs space-y-1">
                           <p className="font-semibold text-sm mb-1">{isPickup ? "Pickup Info" : "Delivery Info"}</p>
                           {order.status === "completed" ? (
-                            <p className="text-muted-foreground">✅ Completed, customer details hidden for privacy.</p>
+                            <p className="text-muted-foreground">Completed. Customer details are hidden for privacy.</p>
                           ) : order.order_shipping_details ? (
                             <>
                               <p><span className="text-muted-foreground">Recipient: </span>{order.order_shipping_details.recipient_name}</p>
                               <p><span className="text-muted-foreground">Phone: </span>{order.order_shipping_details.phone}</p>
                               {isPickup ? (
-                                <p className="text-green-700 dark:text-green-400 font-medium mt-1">Customer collects from your location.</p>
+                                <p className="text-success font-medium mt-1">Customer collects from your location.</p>
                               ) : (
                                 <>
                                   <p><span className="text-muted-foreground">Address: </span>{order.order_shipping_details.address_line1}{order.order_shipping_details.city ? `, ${order.order_shipping_details.city}` : ""}</p>
                                   {order.order_shipping_details.delivery_notes && (
-                                    <p className="text-blue-700 dark:text-blue-400 mt-1"><span className="font-medium">Note: </span>{order.order_shipping_details.delivery_notes}</p>
+                                    <p className="text-foreground mt-1"><span className="font-medium">Note: </span>{order.order_shipping_details.delivery_notes}</p>
                                   )}
                                   {order.order_shipping_details.gps_latitude && order.order_shipping_details.gps_longitude && (
                                     <div className="mt-2">
@@ -843,7 +855,7 @@ const VendorOrders = () => {
                                     </div>
                                   )}
                                   {order.shipping_fee_ksh > 0 ? (
-                                    <p className="text-muted-foreground mt-1">💰 The delivery fee (KES {order.shipping_fee_ksh.toLocaleString()}) was paid by the buyer and will be included in your payout.</p>
+                                    <p className="text-muted-foreground mt-1">The delivery fee (KES {order.shipping_fee_ksh.toLocaleString()}) was paid by the buyer and will be included in your payout.</p>
                                   ) : (
                                     <p className="text-muted-foreground mt-1">🆓 Free delivery was offered for this order.</p>
                                   )}
@@ -861,7 +873,7 @@ const VendorOrders = () => {
                             // Order is older than 48 hours, auto-refund already triggered
                             <div className="rounded-xl border border-muted bg-muted/50 p-4 space-y-1.5">
                               <div className="flex items-center gap-2">
-                                <span className="text-base">⏰</span>
+                                <Clock size={16} strokeWidth={1.75} className="text-muted-foreground" />
                                 <p className="text-sm font-semibold text-muted-foreground">Missed Order - Refund Processed</p>
                               </div>
                               <p className="text-xs text-muted-foreground">
@@ -869,15 +881,15 @@ const VendorOrders = () => {
                               </p>
                             </div>
                           ) : (
-                            <div className="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-3">
+                            <div className="rounded-xl border border-primary/30 bg-primary-soft p-4 space-y-3">
                               <div className="flex items-center justify-between">
-                                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">New Order Request</p>
+                                <p className="text-sm font-semibold text-primary-strong ">New Order Request</p>
                                 {(() => {
                                   const h = differenceInHours(new Date(), new Date(order.created_at));
-                                  return h >= 24 && <Badge variant="destructive" className="text-xs">⏰ {Math.max(0, 48-h)}h left</Badge>;
+                                  return h >= 24 && <Badge variant="destructive" className="text-xs">{Math.max(0, 48-h)}h left</Badge>;
                                 })()}
                               </div>
-                              <p className="text-xs text-amber-700 dark:text-amber-400">Delivery fee is already included. Review and respond.</p>
+                              <p className="text-xs text-primary-strong ">Delivery fee is already included. Review and respond.</p>
                               <div className="flex gap-2">
                                 <Button className="flex-1 h-10 text-sm" onClick={() => handleAccept(order)} disabled={saving}>
                                   {saving ? "Accepting…" : "Accept"}
@@ -942,13 +954,13 @@ const VendorOrders = () => {
 
                         {/* SHIPPED */}
                         {order.status === "shipped" && (
-                          <div className="rounded-xl border border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/20 p-4 space-y-3">
-                            <p className="text-sm font-semibold text-purple-800 dark:text-purple-300">
-                              📦 In Transit
+                          <div className="rounded-xl border border-border bg-muted p-4 space-y-3">
+                            <p className="text-sm font-semibold text-foreground ">
+                              In transit
                               {order.shipped_at && <span className="font-normal text-xs ml-2 opacity-70">· shipped {formatDistanceToNow(new Date(order.shipped_at), { addSuffix: true })}</span>}
                             </p>
                             {order.order_shipping_details?.courier_name && <p className="text-xs text-muted-foreground">Courier: {order.order_shipping_details.courier_name}</p>}
-                            <p className="text-xs text-purple-700 dark:text-purple-400">Ask the buyer for their 6-digit code when you hand over the item.</p>
+                            <p className="text-xs text-foreground ">Ask the buyer for their 6-digit code when you hand over the item.</p>
                             <div className="flex gap-2">
                               <Button className="flex-1 h-9 text-sm" onClick={() => { setOtpDialogOrder(order); setOtpInput(""); }}>Enter Code</Button>
                               <Button variant="outline" className="flex-1 h-9 text-sm" onClick={() => handleGenerateOtp(order.id, true)} disabled={saving}>Resend Code</Button>
@@ -965,11 +977,11 @@ const VendorOrders = () => {
 
                         {/* ARRIVED */}
                         {order.status === "arrived" && (
-                          <div className="rounded-xl border border-teal-200 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/20 p-4 space-y-3">
-                            <p className="text-sm font-semibold text-teal-800 dark:text-teal-300">
-                              {isPickup ? "📍 Ready for Pickup" : "✅ Delivered"}
+                          <div className="rounded-xl border border-border bg-muted p-4 space-y-3">
+                            <p className="text-sm font-semibold text-foreground ">
+                              {isPickup ? "Ready for pickup" : "Delivered"}
                             </p>
-                            <p className="text-xs text-teal-700 dark:text-teal-400">
+                            <p className="text-xs text-foreground ">
                               {isPickup ? "Ask the buyer for their 6-digit code when they collect." : "Enter the buyer's code to confirm delivery and release funds."}
                             </p>
                             <div className="flex gap-2">
@@ -1040,7 +1052,7 @@ const VendorOrders = () => {
       <AlertDialog open={!!otpDialogOrder} onOpenChange={(open) => { if (!open) { setOtpDialogOrder(null); setOtpInput(""); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>🔐 Enter Buyer's Delivery Code</AlertDialogTitle>
+            <AlertDialogTitle>Enter the buyer's delivery code</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-4">
                 <p>6-digit code for order <strong>#{otpDialogOrder?.id.slice(0, 8)}</strong>.</p>
@@ -1066,18 +1078,23 @@ const VendorOrders = () => {
       <AlertDialog open={showGeneratedOtp} onOpenChange={setShowGeneratedOtp}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>✅ Delivery Code Sent to Buyer</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-success text-success-foreground">
+                <Check size={16} strokeWidth={2.5} />
+              </span>
+              {otpDialogTitle}
+            </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3">
                 <p>A 6-digit code was sent to the buyer via email and is on their Orders page.</p>
-                <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800 text-xs text-blue-900 dark:text-blue-100">
-                  🔐 When you hand over the item, ask the buyer for their code and enter it to release your payment.
-                </div>
+                <p className="rounded-lg bg-muted p-3 text-sm text-foreground">
+                  When you hand over the item, ask the buyer for their code and enter it here. That releases your payment.
+                </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex justify-end mt-4">
-            <AlertDialogAction onClick={() => setShowGeneratedOtp(false)}>Got it!</AlertDialogAction>
+            <AlertDialogAction onClick={() => setShowGeneratedOtp(false)}>Done</AlertDialogAction>
           </div>
         </AlertDialogContent>
       </AlertDialog>

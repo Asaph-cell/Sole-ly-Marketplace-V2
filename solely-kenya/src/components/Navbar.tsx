@@ -10,7 +10,7 @@ import { MobileNav } from "./navbar/MobileNav";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Search, Heart, MessageCircle } from "lucide-react";
 import { CountBadge } from "@/components/CountBadge";
-import logo from "@/assets/solely-logo.svg";
+import { BrandLogo } from "@/components/BrandLogo";
 import { saveSearch } from "@/lib/searchHistory";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
@@ -66,11 +66,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between flex-nowrap py-3 sm:py-4">
           {/* Logo */}
           <Link to="/" className="flex flex-col items-start group shrink-0">
-            <img
-              src={logo}
-              alt="Solely Marketplace"
-              className="h-12 sm:h-14 w-auto transition-transform group-hover:scale-105"
-            />
+            <BrandLogo alt="Solely Marketplace" className="h-12 sm:h-14 w-auto" />
             <span className="text-[9px] sm:text-[10px] text-muted-foreground tracking-wide uppercase -mt-3 pl-1">
               Kenya's Trusted Marketplace
             </span>
@@ -92,7 +88,7 @@ const Navbar = () => {
               <Link to="/messages" className="relative" aria-label="Messages">
                 <MessageCircle size={20} strokeWidth={1.5} />
                 {unreadMessages > 0 && (
-                  <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-red-500 animate-pulse ring-2 ring-background" />
+                  <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-destructive animate-pulse ring-2 ring-background" />
                 )}
               </Link>
             </Button>

@@ -36,7 +36,7 @@ export const OfflineBanner = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -60, opacity: 0 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="fixed top-0 left-0 right-0 z-[9999] bg-green-600 text-white"
+          className="fixed top-0 left-0 right-0 z-[9999] bg-success text-white"
         >
           <div className="container mx-auto px-4 py-2.5 flex items-center justify-center gap-2 text-sm font-medium">
             <Signal size={16} strokeWidth={2} />
@@ -55,18 +55,18 @@ export const OfflineBanner = () => {
           className="fixed top-0 left-0 right-0 z-[9999]"
         >
           {/* Banner */}
-          <div className="bg-zinc-900 text-white shadow-2xl">
+          <div className="bg-secondary text-white shadow-2xl">
             <div className="container mx-auto px-4 py-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="shrink-0 w-9 h-9 rounded-full bg-red-500/20 flex items-center justify-center">
-                    <WifiOff size={18} strokeWidth={2} className="text-red-400" />
+                  <div className="shrink-0 w-9 h-9 rounded-full bg-destructive/20 flex items-center justify-center">
+                    <WifiOff size={18} strokeWidth={2} className="text-destructive" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold leading-tight">
                       No internet connection
                     </p>
-                    <p className="text-xs text-zinc-400 leading-tight mt-0.5 hidden sm:block">
+                    <p className="text-xs text-muted-foreground leading-tight mt-0.5 hidden sm:block">
                       Check your WiFi or mobile data and try again
                     </p>
                   </div>
@@ -74,7 +74,7 @@ export const OfflineBanner = () => {
                 <button
                   onClick={handleRetry}
                   disabled={checking}
-                  className="shrink-0 flex items-center gap-1.5 bg-white text-zinc-900 font-semibold text-xs px-3.5 py-2 rounded-full hover:bg-zinc-100 active:scale-95 transition disabled:opacity-60"
+                  className="shrink-0 flex items-center gap-1.5 bg-card text-foreground font-semibold text-xs px-3.5 py-2 rounded-full hover:bg-muted active:scale-95 transition disabled:opacity-60"
                 >
                   <RefreshCw
                     size={14}

@@ -198,7 +198,7 @@ const DeliveryDetails = () => {
 
       // 4. Send system message with buyer details + product list
       const productNames = items.map(i => i.name).join(", ");
-      const systemMessage = `🚚 ${form.recipientName} wants to buy ${productNames} and needs delivery to ${form.city}${form.addressLine1 ? `, ${form.addressLine1}` : ""}.\n\nPlease discuss and agree on a delivery fee.`;
+      const systemMessage = `${form.recipientName} wants to buy ${productNames} and needs delivery to ${form.city}${form.addressLine1 ? `, ${form.addressLine1}` : ""}.\n\nPlease discuss and agree on a delivery fee.`;
 
       await supabase.from("messages").insert({
         conversation_id: conversation.id,
@@ -417,7 +417,7 @@ const DeliveryDetails = () => {
                       <Button
                         type="submit"
                         disabled={submitting}
-                        className="w-full min-h-[52px] text-base font-semibold gap-2 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700"
+                        className="w-full min-h-[52px] text-base font-semibold gap-2"
                       >
                         {submitting ? (
                           <>
@@ -427,7 +427,7 @@ const DeliveryDetails = () => {
                         ) : (
                           <>
                             <MessageCircle size={20} strokeWidth={1.5} />
-                            💬 Discuss Delivery Cost with Vendor
+                            Discuss delivery cost with vendor
                           </>
                         )}
                       </Button>
@@ -485,7 +485,7 @@ const DeliveryDetails = () => {
                   <div className="flex justify-between text-sm">
                     <span>Delivery</span>
                     {allFreeDelivery ? (
-                      <Badge variant="secondary" className="text-green-600">
+                      <Badge variant="secondary" className="text-success">
                         FREE
                       </Badge>
                     ) : (

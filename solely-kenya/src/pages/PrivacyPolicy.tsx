@@ -42,7 +42,7 @@ const PrivacyPolicy = () => {
                     {/* Information We Collect */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Database size={24} strokeWidth={1.5} className=" text-blue-600" />
+                            <Database size={24} strokeWidth={1.5} className=" text-muted-foreground" />
                             Information We Collect
                         </h2>
 
@@ -88,7 +88,7 @@ const PrivacyPolicy = () => {
                     {/* Lawful Basis */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Gavel size={24} strokeWidth={1.5} className=" text-indigo-600" />
+                            <Gavel size={24} strokeWidth={1.5} className=" text-muted-foreground" />
                             Why We Are Allowed to Process Your Data
                         </h2>
                         <p className="text-muted-foreground mb-3">
@@ -105,7 +105,7 @@ const PrivacyPolicy = () => {
                     {/* How We Use Your Information */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Eye size={24} strokeWidth={1.5} className=" text-green-600" />
+                            <Eye size={24} strokeWidth={1.5} className=" text-success" />
                             How We Use Your Information
                         </h2>
 
@@ -142,7 +142,7 @@ const PrivacyPolicy = () => {
                     {/* Automated Decisions */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Cpu size={24} strokeWidth={1.5} className=" text-slate-600" />
+                            <Cpu size={24} strokeWidth={1.5} className=" text-muted-foreground" />
                             Automated Decisions About Your Order
                         </h2>
                         <p className="text-muted-foreground mb-3">
@@ -154,7 +154,7 @@ const PrivacyPolicy = () => {
                             <li><strong>Auto-release of escrow:</strong> After you confirm receipt by entering the Package PIN, escrowed funds are released to the vendor once the release window elapses, even if the vendor never enters your OTP</li>
                             <li><strong>Auto-payout:</strong> Vendor balances above a set threshold are paid out to the registered M-Pesa number automatically</li>
                         </ul>
-                        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                        <div className="bg-muted border border-border p-4 rounded-lg">
                             <p className="text-sm text-muted-foreground">
                                 <strong>You can always ask for a human.</strong> If an automated step produces a result you believe is wrong, raise a dispute or email us and a member of our team will review the decision personally. The exact windows are published in our <Link to="/terms" className="text-primary underline">Terms and Conditions</Link>.
                             </p>
@@ -164,7 +164,7 @@ const PrivacyPolicy = () => {
                     {/* Information Sharing */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Users size={24} strokeWidth={1.5} className=" text-purple-600" />
+                            <Users size={24} strokeWidth={1.5} className=" text-muted-foreground" />
                             Information Sharing and Disclosure
                         </h2>
                         <p className="text-muted-foreground mb-3">
@@ -201,8 +201,8 @@ const PrivacyPolicy = () => {
                             We may disclose your information if required by law, court order, or government request, or if we believe disclosure is necessary to protect our rights, your safety, or the safety of others. Where an item is reported as stolen through the Platform, we may share the relevant order, listing, and contact records with law enforcement or the lawful owner.
                         </p>
 
-                        <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-6">
-                            <h4 className="font-semibold text-green-800 mb-2">We Do NOT Sell Your Data</h4>
+                        <div className="bg-success-soft border border-success/30 p-4 rounded-lg mb-6">
+                            <h4 className="font-semibold text-success mb-2">We Do NOT Sell Your Data</h4>
                             <p className="text-sm text-muted-foreground">
                                 We do not sell, rent, or trade your personal information to third parties for marketing purposes.
                             </p>
@@ -216,8 +216,8 @@ const PrivacyPolicy = () => {
                             <li>Authenticate your identity and create your Solely account.</li>
                             <li>Securely manage your escrow transactions and protect our marketplace from fraudulent activity.</li>
                         </ul>
-                        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                            <h4 className="font-semibold text-blue-800 mb-2">Limited Use Disclosure</h4>
+                        <div className="bg-muted border border-border p-4 rounded-lg">
+                            <h4 className="font-semibold text-foreground mb-2">Limited Use Disclosure</h4>
                             <p className="text-sm text-muted-foreground">
                                 Solely Marketplace's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-primary underline">Google API Services User Data Policy</a>, including the Limited Use requirements. We do not sell your Google user data to third parties or use it for serving advertisements.
                             </p>
@@ -227,7 +227,7 @@ const PrivacyPolicy = () => {
                     {/* Payment Links & Embedded Checkout */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Store size={24} strokeWidth={1.5} className=" text-teal-600" />
+                            <Store size={24} strokeWidth={1.5} className=" text-muted-foreground" />
                             Payment Links and Checkout on Other Websites
                         </h2>
                         <p className="text-muted-foreground mb-3">
@@ -243,7 +243,7 @@ const PrivacyPolicy = () => {
                     {/* Data Security */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Lock size={24} strokeWidth={1.5} className=" text-red-600" />
+                            <Lock size={24} strokeWidth={1.5} className=" text-destructive" />
                             Data Security
                         </h2>
                         <p className="text-muted-foreground mb-3">
@@ -264,7 +264,7 @@ const PrivacyPolicy = () => {
                     {/* Cookies */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Globe size={24} strokeWidth={1.5} className=" text-orange-600" />
+                            <Globe size={24} strokeWidth={1.5} className=" text-primary-strong" />
                             Cookies and Tracking
                         </h2>
                         <p className="text-muted-foreground mb-3">
@@ -287,7 +287,7 @@ const PrivacyPolicy = () => {
                     {/* Your Rights */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Bell size={24} strokeWidth={1.5} className=" text-cyan-600" />
+                            <Bell size={24} strokeWidth={1.5} className=" text-muted-foreground" />
                             Your Privacy Rights
                         </h2>
                         <p className="text-muted-foreground mb-3">
@@ -314,7 +314,7 @@ const PrivacyPolicy = () => {
                     {/* Data Retention */}
                     <section>
                         <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                            <Trash2 size={24} strokeWidth={1.5} className=" text-gray-600" />
+                            <Trash2 size={24} strokeWidth={1.5} className=" text-muted-foreground" />
                             Data Retention
                         </h2>
                         <ul className="list-disc pl-6 space-y-2 text-muted-foreground">

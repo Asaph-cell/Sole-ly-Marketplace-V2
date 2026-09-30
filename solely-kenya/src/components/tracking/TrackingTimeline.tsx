@@ -65,8 +65,8 @@ export function TrackingTimeline({ orderId }: { orderId: string }) {
     switch (status) {
       case "packed": return <Package className="h-4 w-4 text-primary" />;
       case "in_transit":
-      case "out_for_delivery": return <Truck className="h-4 w-4 text-blue-500 dark:text-blue-400" />;
-      case "delivered": return <CheckCircle className="h-4 w-4 text-green-500 dark:text-green-400" />;
+      case "out_for_delivery": return <Truck className="h-4 w-4 text-muted-foreground " />;
+      case "delivered": return <CheckCircle className="h-4 w-4 text-success " />;
       default: return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
