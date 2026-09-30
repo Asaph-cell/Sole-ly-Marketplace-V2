@@ -350,7 +350,7 @@ export const baseEmailLayout = (title: string, content: string, titleColor: stri
         <p class="footer-tagline">Follow us for drops, restocks &amp; vendor tips</p>
         ${socialIconsHtml}
         <div class="divider" style="margin: 20px 0;"></div>
-        <p>This is an automated message from Sole-ly</p>
+        <p>This is an automated message from Solely</p>
         <p>Do not reply to this email. For support, visit <a href="https://solelymarketplace.com/contact">solelymarketplace.com/contact</a></p>
       </div>
     </div>
@@ -386,7 +386,7 @@ export const emailTemplates = {
     adminUrl: string;
   }) => baseEmailLayout('You’ve Been Added as an Admin', `
     <p>Hi ${escapeHtml(data.recipientName)},</p>
-    <p><strong>${escapeHtml(data.grantedByName)}</strong> has given your account admin access on Sole-ly.</p>
+    <p><strong>${escapeHtml(data.grantedByName)}</strong> has given your account admin access on Solely.</p>
 
     <div class="info-box">
       <p>You can now manage vendors, orders, disputes, platform settings, and more from the admin dashboard.</p>
@@ -421,16 +421,16 @@ export const emailTemplates = {
   vendorWelcome: (data: {
     businessName: string;
     dashboardUrl: string;
-  }) => baseEmailLayout('Welcome to Sole-ly!', `
+  }) => baseEmailLayout('Welcome to Solely!', `
     <p>Hi ${escapeHtml(data.businessName)},</p>
-    <p>Welcome to <strong>Sole-ly</strong>! We are thrilled to have you join our marketplace.</p>
+    <p>Welcome to <strong>Solely</strong>! We are thrilled to have you join our marketplace.</p>
     
     <div style="background-color: #f9fafb; padding: 24px; border-radius: 8px; margin: 24px 0;">
       <h3 style="margin-top: 0;">Next Steps to Success:</h3>
       <ol style="margin-bottom: 0; padding-left: 20px;">
         <li style="margin-bottom: 8px;"><strong>Add your products:</strong> Start listing your inventory so buyers can find them.</li>
         <li style="margin-bottom: 8px;"><strong>Complete your profile:</strong> Ensure your store information and WhatsApp number are up to date.</li>
-        <li><strong>Share your store link:</strong> Promote your Sole-ly store on your social media to drive traffic directly to your products.</li>
+        <li><strong>Share your store link:</strong> Promote your Solely store on your social media to drive traffic directly to your products.</li>
       </ol>
     </div>
 

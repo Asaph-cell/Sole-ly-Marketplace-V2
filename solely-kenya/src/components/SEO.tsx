@@ -49,6 +49,12 @@ interface SEOProps {
 
 const SITE_NAME = "Solely Kenya";
 const SITE_URL = "https://solelymarketplace.com";
+// The brand is written "Solely". "SOLE.ly" is only the logo styling, and
+// "Sole-ly" is an old spelling; both are listed as alternates so searches
+// for either still land here. Google reads the WebSite name for the site
+// name it shows in results.
+const BRAND_NAME = "Solely";
+const BRAND_ALTERNATES = ["SOLE.ly", "Solely Kenya", "Solely Marketplace", "Sole-ly"];
 
 // Map product conditions to Schema.org ItemCondition
 const conditionToSchema: Record<string, string> = {
@@ -106,8 +112,8 @@ export const SEO = ({
     const organizationSchema = {
         "@context": "https://schema.org",
         "@type": "Organization",
-        "name": SITE_NAME,
-        "alternateName": "Solely Safe Checkout Kenya",
+        "name": BRAND_NAME,
+        "alternateName": [...BRAND_ALTERNATES, "Solely Safe Checkout Kenya"],
         "url": SITE_URL,
         "logo": `${SITE_URL}/favicon.ico`,
         "description": "The safest way to buy and sell anything online in Kenya. Your money is protected until you receive what you ordered. Works with M-Pesa.",
@@ -140,7 +146,8 @@ export const SEO = ({
     const websiteSchema = {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        "name": SITE_NAME,
+        "name": BRAND_NAME,
+        "alternateName": BRAND_ALTERNATES,
         "url": SITE_URL,
         "potentialAction": {
             "@type": "SearchAction",

@@ -93,7 +93,7 @@ serve(async (req) => {
 
     const emailResponse = await sendEmail({
       to: [vendorEmail],
-      subject: "New Delivery Inquiry - Sole-ly",
+      subject: "New Delivery Inquiry - Solely",
       html: html,
     });
 

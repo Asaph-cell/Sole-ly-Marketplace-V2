@@ -56,7 +56,7 @@ serve(async (req: Request) => {
         // Send email
         const emailSent = await sendEmail({
             to: profile.email,
-            subject: 'Welcome to Sole-ly! Start selling today',
+            subject: 'Welcome to Solely! Start selling today',
             html: emailTemplates.vendorWelcome({
                 businessName: businessName,
                 dashboardUrl: 'https://solelymarketplace.com/vendor',
