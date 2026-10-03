@@ -232,6 +232,7 @@ const Home = () => {
       id={product.id}
       name={product.name}
       price={product.price}
+      originalPrice={product.original_price}
       image={product.image}
       brand={product.brand}
       description={product.description}

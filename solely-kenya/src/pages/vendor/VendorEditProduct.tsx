@@ -33,6 +33,7 @@ const VendorEditProduct = () => {
     name: "",
     description: "",
     price_ksh: "",
+    original_price: "",
     stock: "",
     brand: "",
     category: "",
@@ -79,6 +80,7 @@ const VendorEditProduct = () => {
           name: data.name,
           description: data.description || "",
           price_ksh: data.price_ksh.toString(),
+          original_price: data.original_price ? String(data.original_price) : "",
           stock: data.stock.toString(),
           brand: data.brand || "",
           category: data.category || "",
@@ -206,6 +208,14 @@ const VendorEditProduct = () => {
 
       if (error) throw error;
 
+      // Saved on its own so the edit still goes through if the column isn't deployed yet.
+      const wasPrice = parseInt(formData.original_price);
+      await supabase
+        .from("products")
+        .update({ original_price: wasPrice > parseInt(formData.price_ksh) ? wasPrice : null } as any)
+        .eq("id", id)
+        .eq("vendor_id", user?.id);
+
       // Price went down: let buyers with a price alert know (runs in the background).
       if (originalPrice.current != null && parseInt(formData.price_ksh) < originalPrice.current) {
         supabase.functions.invoke("notify-price-drop", { body: { productId: id } }).catch(() => {});
@@ -271,6 +281,19 @@ const VendorEditProduct = () => {
                     {parseInt(formData.price_ksh) > 300000 && (
                       <p className="text-xs text-destructive font-medium mt-1">Maximum allowed price is 300,000.</p>
                     )}
+                    <div className="mt-3">
+                      <Label htmlFor="original_price">Was price (Ksh, optional)</Label>
+                      <Input
+                        id="original_price"
+                        type="number"
+                        placeholder="Old price, shown struck through"
+                        value={formData.original_price}
+                        onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
+                      />
+                      {formData.original_price && !(parseInt(formData.original_price) > parseInt(formData.price_ksh)) && (
+                        <p className="text-xs text-destructive font-medium mt-1">The old price must be higher than the price. It won't be shown.</p>
+                      )}
+                    </div>
                     <PricingCalculator price={parseFloat(formData.price_ksh)} />
                   </div>
 

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Heart, Truck, RefreshCcw, Recycle, Play, Pause, Star, Check, Sparkles } from "lucide-react";
+import { Heart, Truck, RefreshCcw, Recycle, Play, Pause, Star, Check, Sparkles, ShoppingCart } from "lucide-react";
 import { useLiveOffers } from "@/lib/liveOffers";
 import { motion } from "framer-motion";
 
@@ -13,6 +13,8 @@ interface ProductCardProps {
   id: number | string;
   name: string;
   price: number;
+  /** Was-price for reductions; only shown when higher than price. */
+  originalPrice?: number | null;
   image: string;
   brand?: string;
   description?: string;
@@ -60,6 +62,7 @@ const ProductCard = ({
   id,
   name,
   price,
+  originalPrice,
   image,
   brand,
   description,
@@ -163,6 +166,9 @@ const ProductCard = ({
   // Calculate if product is new (within last 30 days)
   const isNew = (Date.now() - new Date(createdAt).getTime()) < 30 * 24 * 60 * 60 * 1000;
 
+  const wasPrice = originalPrice && originalPrice > price ? originalPrice : null;
+  const percentOff = wasPrice ? Math.max(1, Math.round((1 - price / wasPrice) * 100)) : 0;
+
   // Format price with commas (e.g. 65000 -> 65,000)
   const formatPrice = (p: number) => {
     return p.toLocaleString();
@@ -195,50 +201,23 @@ const ProductCard = ({
           className={`img-wrap relative w-full aspect-square overflow-hidden`}
           onClick={handleMobileTap}
         >
-          {/* Condition badges, top left */}
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 items-start">
-            {freeDelivery && (
-              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#1a5138] text-white text-[10px] font-extrabold rounded-full tracking-wide shadow-sm">
-                <Truck size={12} strokeWidth={2.5} /> Free delivery
-              </span>
-            )}
-            {(condition === "refurbished" || condition === "like_new") && (
-              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#2b4162] text-white text-[10px] font-extrabold rounded-full tracking-wide shadow-sm">
-                <RefreshCcw size={12} strokeWidth={2.5} /> Refurbished
-              </span>
-            )}
-            {(condition === "thrifted" || condition === "good" || condition === "fair") && (
-              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#5b3671] text-white text-[10px] font-extrabold rounded-full tracking-wide shadow-sm">
-                <Recycle size={12} strokeWidth={2.5} /> Thrifted
-              </span>
-            )}
-          </div>
+          {/* New, top left */}
+          {isNew && (
+            <span className="badge absolute top-2.5 left-2.5 z-10 px-2 py-1 bg-[#c2841d] text-white text-[10px] leading-none font-bold rounded-full shadow-sm">
+              New
+            </span>
+          )}
 
-          {/* "New" badge, top right area, alongside video indicator */}
-          <div className="absolute top-3 right-3 flex flex-col gap-1.5 z-10 items-end">
-            {isNew && (
-              <span className="badge px-2 py-0.5 bg-[#c2841d] text-white text-[10px] font-bold rounded-full shadow-sm">
-                New
-              </span>
-            )}
-            {videoUrl && (
-              <span className="flex items-center justify-center w-7 h-7 bg-card/90 text-foreground rounded-full shadow-sm" aria-hidden>
-                {isPlaying ? <Pause size={12} strokeWidth={2.5} /> : <Play size={12} strokeWidth={2.5} className="ml-0.5" />}
-              </span>
-            )}
-          </div>
-
-          {/* Offer the seller posted on their own website, shown here too. */}
-          {offer && (
-            <span className="absolute bottom-3 left-3 right-14 z-10 flex items-center gap-1.5 px-2.5 py-1 bg-[#14213d] text-[#ffd166] text-[11px] font-extrabold rounded-full shadow-sm w-fit max-w-[calc(100%-4.25rem)]">
-              <Sparkles size={12} strokeWidth={2.5} className="shrink-0" />
-              <span className="truncate">{offer.title}</span>
+          {/* Video indicator, left of the heart */}
+          {videoUrl && (
+            <span className="absolute top-2.5 right-12 z-10 flex items-center justify-center w-7 h-7 bg-card/90 text-foreground rounded-full shadow-sm" aria-hidden>
+              {isPlaying ? <Pause size={12} strokeWidth={2.5} /> : <Play size={12} strokeWidth={2.5} className="ml-0.5" />}
             </span>
           )}
 
           {/* Wishlist button */}
           <button
-            className={`wishlist absolute bottom-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-card/90 shadow-sm transition-[transform,background-color,color] duration-150 ease-out hover:bg-card active:scale-90 ${wished ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
+            className={`wishlist absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-card/90 shadow-sm transition-[transform,background-color,color] duration-150 ease-out hover:bg-card active:scale-90 ${wished ? "text-destructive" : "text-muted-foreground hover:text-foreground"}`}
             onClick={handleWishlist}
             aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
             aria-pressed={wished}
@@ -274,52 +253,76 @@ const ProductCard = ({
 
         </div>
 
-        {/* ── body ── */}
-        <div className="body p-3.5 flex flex-col flex-grow gap-1">
-          {/* Brand */}
-          <span className="brand text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest block truncate">
-            {brand || "\u00A0"}
-          </span>
+        {/* ── label strip: Free delivery / Thrifted / Refurbished ── */}
+        {(freeDelivery || condition !== "new") && (
+          <div className="flex text-[10px] font-extrabold text-white leading-none">
+            {freeDelivery && (
+              <span className="flex-1 flex items-center justify-center gap-1 py-1.5 px-1 bg-[#1a5138] whitespace-nowrap">
+                <Truck size={12} strokeWidth={2.5} /> Free delivery
+              </span>
+            )}
+            {(condition === "refurbished" || condition === "like_new") && (
+              <span className="flex-1 flex items-center justify-center gap-1 py-1.5 px-1 bg-[#2b4162] whitespace-nowrap">
+                <RefreshCcw size={12} strokeWidth={2.5} /> Refurbished
+              </span>
+            )}
+            {(condition === "thrifted" || condition === "good" || condition === "fair") && (
+              <span className="flex-1 flex items-center justify-center gap-1 py-1.5 px-1 bg-[#5b3671] whitespace-nowrap">
+                <Recycle size={12} strokeWidth={2.5} /> Thrifted
+              </span>
+            )}
+          </div>
+        )}
 
-          {/* Product Name */}
-          <p className="name text-[14px] sm:text-[15px] font-bold text-foreground leading-tight line-clamp-1">
-            {name}
-          </p>
-
-          {/* Description */}
-          {description && (
-            <p className="desc text-[11px] text-muted-foreground leading-snug line-clamp-2">
-              {description}
-            </p>
-          )}
-
-          {/* Star Rating */}
-          <StarDisplay value={averageRating} count={reviewCount} />
-
-          {/* Footer: price + add button */}
-          <div className="footer mt-auto pt-2 flex items-center justify-between gap-2">
-            <span className="price text-base sm:text-[18px] font-extrabold text-[#c2841d] leading-none">
-              KES {formatPrice(price)}
+        {/* ── body: price first ── */}
+        <div className="body p-2.5 sm:p-3 flex flex-col flex-grow gap-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="price font-extrabold text-[#c2841d] leading-none whitespace-nowrap text-[17px] sm:text-[19px]">
+              <span className="text-[0.6em] tracking-wide mr-0.5">KES</span>
+              {formatPrice(price)}
             </span>
             <button
               onClick={handleAddToCart}
               aria-live="polite"
-              className={`btn-fx flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm ${justAdded ? "bg-success text-success-foreground" : "bg-foreground text-background hover:bg-foreground/85"}`}
+              aria-label={justAdded ? "Added to cart" : "Add to cart"}
+              className={`btn-fx shrink-0 flex items-center justify-center w-9 h-9 rounded-xl shadow-sm ${justAdded ? "bg-success text-success-foreground" : "bg-foreground text-background hover:bg-foreground/85"}`}
             >
               {justAdded ? (
                 <motion.span
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-                  className="flex items-center gap-1"
+                  className="flex"
                 >
-                  <Check size={13} strokeWidth={3} /> Added
+                  <Check size={16} strokeWidth={3} />
                 </motion.span>
               ) : (
-                "Add"
+                <ShoppingCart size={16} strokeWidth={2.2} />
               )}
             </button>
           </div>
+
+          {wasPrice && (
+            <div className="flex items-center gap-1.5 -mt-0.5 leading-none">
+              <s className="text-[11px] text-muted-foreground font-semibold whitespace-nowrap">KES {formatPrice(wasPrice)}</s>
+              <span className="px-1.5 py-0.5 rounded-md bg-destructive/10 text-destructive text-[10px] font-extrabold">-{percentOff}%</span>
+            </div>
+          )}
+
+          {/* Name: two lines, no description */}
+          <p className="name text-[13px] sm:text-[14px] font-bold text-foreground leading-tight line-clamp-2 min-h-[2.5em]" title={name}>
+            {name}
+          </p>
+
+          <StarDisplay value={averageRating} count={reviewCount} />
+
+          {/* Seller offer: up to two lines so longer wording still reads */}
+          {offer && (
+            <span className="mt-auto flex items-start gap-1.5 px-2 py-1.5 bg-[#14213d] text-[#ffd166] text-[10.5px] leading-tight font-extrabold rounded-lg">
+              <Sparkles size={11} strokeWidth={2.5} className="shrink-0 mt-px" />
+              <span className="line-clamp-2 break-words min-w-0">{offer.title}</span>
+            </span>
+          )}
         </div>
       </Link>
     </div>

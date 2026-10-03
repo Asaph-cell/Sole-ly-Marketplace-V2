@@ -645,7 +645,15 @@ const Product = () => {
                   )}
                 </div>
               </div>
-              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-4 sm:mb-6">KES {product.price_ksh.toLocaleString()}</p>
+              <div className="mb-4 sm:mb-6">
+                <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">KES {product.price_ksh.toLocaleString()}</p>
+                {product.original_price > product.price_ksh && (
+                  <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                    <s>KES {product.original_price.toLocaleString()}</s>
+                    <span className="px-1.5 py-0.5 rounded-md bg-destructive/10 text-destructive text-xs font-extrabold">-{Math.round((1 - product.price_ksh / product.original_price) * 100)}%</span>
+                  </p>
+                )}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {product.stock > 0 ? (
                   <Badge variant="default">In Stock ({product.stock} available)</Badge>
@@ -934,6 +942,7 @@ const Product = () => {
                       id={simProd.id}
                       name={simProd.name}
                       price={simProd.price_ksh}
+                      originalPrice={simProd.original_price}
                       image={simProd.images?.[0] || "/placeholder.svg"}
                       brand={simProd.brand}
                       description={simProd.description}

@@ -263,6 +263,7 @@ type Draft = {
   name: string;
   description: string;
   price: string;
+  originalPrice: string;
   stock: string;
   brand: string;
   condition: string;
@@ -275,7 +276,7 @@ type Draft = {
 };
 
 const EMPTY_DRAFT: Draft = {
-  step: 1, images: [], category: "", subcategory: "", name: "", description: "", price: "", stock: "1",
+  step: 1, images: [], category: "", subcategory: "", name: "", description: "", price: "", originalPrice: "", stock: "1",
   brand: "", condition: "new", conditionNotes: "", freeDelivery: false, keyFeatures: "", videoUrl: null,
   specs: {}, updatedAt: 0,
 };
@@ -352,6 +353,7 @@ const draftFromProduct = (p: any): Draft => {
     name: p.name ?? "",
     description: p.description ?? "",
     price: p.price_ksh ? String(Math.round(p.price_ksh)) : "",
+    originalPrice: p.original_price ? String(Math.round(p.original_price)) : "",
     stock: String(p.stock ?? 1),
     brand: elec ? "" : p.brand ?? "",
     condition,
@@ -499,6 +501,9 @@ const VendorListItem = ({ userId }: { userId: string }) => {
 
   const priceNum = parseInt(draft.price);
   const priceOk = priceNum > 0 && priceNum <= MAX_PRICE;
+  const wasNum = parseInt(draft.originalPrice);
+  const wasPriceOk = wasNum > priceNum && wasNum <= MAX_PRICE;
+  const wasPriceBad = !!draft.originalPrice && !wasPriceOk && priceOk;
   const stockOk = parseInt(draft.stock) > 0;
   const canPublish = draft.images.length > 0 && !!draft.category && !!draft.name.trim() && priceOk && stockOk && uploadingCount === 0;
 
@@ -638,6 +643,7 @@ const VendorListItem = ({ userId }: { userId: string }) => {
         if (draft.subcategory) extras.subcategory = draft.subcategory;
         if (draft.conditionNotes) extras.condition_notes = draft.conditionNotes;
         if (draft.freeDelivery) extras.free_delivery = true;
+        if (wasPriceOk) extras.original_price = wasNum;
         if (draft.keyFeatures) extras.key_features = draft.keyFeatures.split(",").map((s) => s.trim()).filter(Boolean);
         if (draft.videoUrl) extras.video_url = draft.videoUrl;
         if (Object.keys(cleanSpecs).length) extras.specs = cleanSpecs;
@@ -919,6 +925,12 @@ const VendorListItem = ({ userId }: { userId: string }) => {
                     <TextInput value={draft.stock} onChange={(v) => update({ stock: v.replace(/[^\d]/g, "") })} placeholder="1" />
                   </Field>
                 </div>
+                <Field label="Was price (optional)">
+                  <TextInput value={draft.originalPrice ?? ""} onChange={(v) => update({ originalPrice: v.replace(/[^\d]/g, "") })} placeholder="Old price, shown struck through" />
+                  {wasPriceBad
+                    ? <p className="text-xs text-destructive font-medium mt-1">The old price must be higher than the price. It won't be shown.</p>
+                    : wasPriceOk && <p className="text-xs text-muted-foreground mt-1">Buyers will see -{Math.round((1 - priceNum / wasNum) * 100)}% off.</p>}
+                </Field>
                 <PricingCalculator price={parseFloat(draft.price)} />
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Condition</p>

@@ -559,6 +559,7 @@ const Shop = () => {
                     id={product.id}
                     name={product.name}
                     price={product.price_ksh}
+                    originalPrice={product.original_price}
                     image={product.images?.[0] || "/placeholder.svg"}
                     brand={product.brand}
                     description={product.description}

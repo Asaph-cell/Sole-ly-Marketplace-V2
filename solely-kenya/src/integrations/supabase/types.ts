@@ -1504,6 +1504,7 @@ export type Database = {
           images: string[] | null
           key_features: string[] | null
           name: string
+          original_price: number | null
           price_ksh: number
           search_vector: unknown
           short_code: string | null
@@ -1532,6 +1533,7 @@ export type Database = {
           images?: string[] | null
           key_features?: string[] | null
           name: string
+          original_price?: number | null
           price_ksh: number
           search_vector?: unknown
           short_code?: string | null
@@ -1560,6 +1562,7 @@ export type Database = {
           images?: string[] | null
           key_features?: string[] | null
           name?: string
+          original_price?: number | null
           price_ksh?: number
           search_vector?: unknown
           short_code?: string | null
@@ -2050,6 +2053,7 @@ export type Database = {
           id: string
           images: string[]
           name: string
+          original_price: number | null
           price_ksh: number
           relevance: number
           review_count: number
