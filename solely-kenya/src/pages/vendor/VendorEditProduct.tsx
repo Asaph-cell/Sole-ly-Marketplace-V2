@@ -130,6 +130,11 @@ const VendorEditProduct = () => {
     setExistingImages(newExisting);
   };
 
+  // The first photo is the cover shown on cards and in search.
+  const makeCover = (index: number) => {
+    setExistingImages((imgs) => [imgs[index], ...imgs.filter((_, i) => i !== index)]);
+  };
+
   const uploadImages = async (): Promise<string[]> => {
     if (imageFiles.length === 0) return [];
 
@@ -496,21 +501,33 @@ const VendorEditProduct = () => {
                   {existingImages.length > 0 && (
                     <div>
                       <p className="text-sm text-muted-foreground mb-2">Current Images</p>
-                      <div className="grid grid-cols-4 gap-2 mb-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
                         {existingImages.map((url, index) => (
-                          <div key={index} className="relative group">
+                          <div key={url + index} className="relative">
                             <img
                               src={url}
                               alt={`Product ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-lg"
+                              className="w-full h-28 object-cover rounded-lg bg-white"
                             />
                             <button
                               type="button"
                               onClick={() => removeExistingImage(index)}
-                              className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label={`Remove photo ${index + 1}`}
+                              className="absolute top-1.5 right-1.5 h-7 w-7 flex items-center justify-center bg-destructive text-destructive-foreground rounded-full text-base leading-none shadow"
                             >
                               ×
                             </button>
+                            {index === 0 ? (
+                              <span className="absolute bottom-1.5 left-1.5 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold text-white">Cover</span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => makeCover(index)}
+                                className="absolute bottom-1.5 left-1.5 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-foreground shadow"
+                              >
+                                Make cover
+                              </button>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -526,24 +543,25 @@ const VendorEditProduct = () => {
                     disabled={imageFiles.length + existingImages.length >= 4}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Upload up to 4 photos total ({4 - existingImages.length} remaining)
+                    Up to 4 photos in total. Remove one with × to add another.
                   </p>
 
                   {imagePreview.length > 0 && (
                     <div>
                       <p className="text-sm text-muted-foreground mb-2 mt-4">New Images</p>
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {imagePreview.map((preview, index) => (
-                          <div key={index} className="relative group">
+                          <div key={index} className="relative">
                             <img
                               src={preview}
                               alt={`Preview ${index + 1}`}
-                              className="w-full h-24 object-cover rounded-lg"
+                              className="w-full h-28 object-cover rounded-lg bg-white"
                             />
                             <button
                               type="button"
                               onClick={() => removeNewImage(index)}
-                              className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label={`Remove new photo ${index + 1}`}
+                              className="absolute top-1.5 right-1.5 h-7 w-7 flex items-center justify-center bg-destructive text-destructive-foreground rounded-full text-base leading-none shadow"
                             >
                               ×
                             </button>
