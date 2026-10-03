@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Filter, Shield, Loader2 } from "lucide-react";
+import { Filter, Shield, Loader2, SearchX } from "lucide-react";
 import { ALL_CATEGORIES, getCategoryByKey, getCategoryName } from "@/lib/categories";
 import { SEO } from "@/components/SEO";
 
@@ -34,8 +34,8 @@ const CONDITION_DOT: Record<string, string> = {
   thrifted:    "bg-[#5b3671]",
   refurbished: "bg-[#2b4162]",
   like_new:    "bg-[#2b4162]", // kept for legacy compat
-  good:        "bg-amber-400", // kept for legacy compat
-  fair:        "bg-orange-500", // kept for legacy compat
+  good:        "bg-primary", // kept for legacy compat
+  fair:        "bg-primary", // kept for legacy compat
 };
 
 const PAGE_SIZE = 20;
@@ -534,7 +534,7 @@ const Shop = () => {
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="smart">✨ For You</SelectItem>
+                  <SelectItem value="smart">For you</SelectItem>
                   <SelectItem value="newest">Newest First</SelectItem>
                   <SelectItem value="trusted">Most Trusted</SelectItem>
                   <SelectItem value="price-low">Price: Low to High</SelectItem>
@@ -546,7 +546,7 @@ const Shop = () => {
             {/* ── Product grid ── */}
             {items.length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-4xl mb-3">🔍</p>
+                <SearchX size={32} strokeWidth={1.5} className="mx-auto mb-3 text-muted-foreground" />
                 <p className="font-semibold text-foreground mb-1">No products found</p>
                 <p className="text-sm text-muted-foreground mb-4">Try adjusting your filters or search term</p>
                 <Button variant="outline" onClick={resetFilters}>Clear Filters</Button>
@@ -607,7 +607,7 @@ const Shop = () => {
               <Filter size={16} strokeWidth={1.5} className=" mr-2" />
               Filters
               {activeFilterCount > 0 && (
-                <span className="ml-2 bg-white text-primary text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="ml-2 bg-card text-primary text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}

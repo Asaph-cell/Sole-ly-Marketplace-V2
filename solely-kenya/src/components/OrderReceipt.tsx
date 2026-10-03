@@ -129,7 +129,7 @@ export const OrderReceipt = forwardRef<HTMLDivElement, ReceiptProps>(
                 {/* Payment Info */}
                 <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-sm text-green-800">
-                        ✓ <strong>Payment Received</strong> - This order has been paid in full.
+                        <strong>Payment received</strong> - This order has been paid in full.
                     </p>
                 </div>
 

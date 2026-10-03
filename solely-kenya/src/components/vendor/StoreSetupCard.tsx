@@ -40,7 +40,7 @@ export const StoreSetupCard = ({ profile, className = "" }: { profile: SetupProf
   return (
     <Link
       to="/vendor/setup"
-      className={`group flex flex-nowrap items-center gap-4 rounded-2xl border border-primary/25 bg-cream p-4 sm:p-5 transition-shadow hover:shadow-card ${className}`}
+      className={`group flex flex-nowrap items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-soft sm:p-5 transition-[box-shadow,border-color] duration-200 ease-out-strong hover:border-primary/40 hover:shadow-hover ${className}`}
     >
       <ProgressRing percent={setup.percent} />
       <div className="min-w-0 flex-1">

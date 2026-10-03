@@ -15,6 +15,7 @@ import { usePlatformSettings } from "./hooks/usePlatformSettings";
 import { captureFirstTouchSource } from "./lib/attribution";
 import { PresenceProvider } from "@/hooks/usePresence";
 import { useAuth } from "./hooks/useAuth";
+import { ThemeProvider } from "next-themes";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,8 @@ const lazyRetry = (componentImport: () => Promise<any>, name: string) =>
 
 const ErrorBoundary = lazyRetry(() => import("./components/ErrorBoundary").then(module => ({ default: module.ErrorBoundary })), "ErrorBoundary");
 const Navbar = lazyRetry(() => import("./components/Navbar"), "Navbar");
+// Dev-only design playground; never bundled into production routes.
+const ButtonLab = import.meta.env.DEV ? lazyRetry(() => import("./pages/dev/ButtonLab"), "ButtonLab") : null;
 const Footer = lazyRetry(() => import("./components/Footer"), "Footer");
 const Home = lazyRetry(() => import("./pages/Home"), "Home");
 const Shop = lazyRetry(() => import("./pages/Shop"), "Shop");
@@ -95,6 +98,10 @@ const HowItWorks = lazyRetry(() => import("./pages/HowItWorks"), "HowItWorks");
 const BuyNow = lazyRetry(() => import("./pages/BuyNow"), "BuyNow");
 const NotFound = lazyRetry(() => import("./pages/NotFound"), "NotFound");
 const ChatBot = lazyRetry(() => import("./components/ChatBot"), "ChatBot");
+
+// Seller dashboard and admin pages (not the public /vendor landing or sign-up).
+const isDashboardRoute = (path: string) =>
+  path.startsWith("/admin") || (path.startsWith("/vendor/") && !path.startsWith("/vendor/register"));
 const Wishlist = lazyRetry(() => import("./pages/Wishlist"), "Wishlist");
 const Messages = lazyRetry(() => import("./pages/Messages"), "Messages");
 const VendorMessages = lazyRetry(() => import("./pages/vendor/VendorMessages"), "VendorMessages");
@@ -205,6 +212,7 @@ const AnimatedRoutes = () => {
       <Route path="/site-preview/:storeLink" element={<React.Suspense fallback={null}><StorePreview /></React.Suspense>} />
       <Route path="/site-preview/:storeLink/p/:productRef" element={<React.Suspense fallback={null}><StorePreview /></React.Suspense>} />
 
+      {ButtonLab && <Route path="/__buttons" element={<ButtonLab />} />}
       <Route path="*" element={<PageWrapper><MainLayout><NotFound /></MainLayout></PageWrapper>} />
     </Routes>
   );
@@ -244,8 +252,9 @@ const AppLayout = () => {
       <ScrollToTop />
       <React.Suspense fallback={<RouteSkeleton />}>
         <AnimatedRoutes />
-        {/* Seller websites are the seller's space, so no Solely assistant there. */}
-        {!/^\/(site-preview|store)\//.test(location.pathname) && <ChatBot />}
+        {/* The assistant is for buyers: not on the seller dashboard or admin (it sat on top of
+            save bars and action buttons; sellers get Help in the sidebar), and not on seller websites. */}
+        {!isDashboardRoute(location.pathname) && !/^\/(site-preview|store)\//.test(location.pathname) && <ChatBot />}
       </React.Suspense>
     </div>
   );
@@ -258,7 +267,10 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      {/* Honour the OS "reduce motion" setting for every Framer animation. */}
+      {/* Light/dark follows the phone or computer setting until the person
+          picks one in the menu. disableTransitionOnChange stops every colour
+          transition on the page from animating at once when it flips. */}
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <MotionConfig reducedMotion="user">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
@@ -273,6 +285,7 @@ const App = () => {
         </TooltipProvider>
       </QueryClientProvider>
       </MotionConfig>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 };

@@ -1,15 +1,24 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { Download, Clock, CheckCircle, XCircle } from 'lucide-react';
 
 // Row type straight from the database schema, so it can't drift from the table.
 type Payout = Tables<"payouts">;
 
-export function PayoutHistory({ vendorId }: { vendorId: string }) {
+const STATUS_TONE: Record<string, string> = {
+    paid: 'bg-success',
+    completed: 'bg-success',
+    processing: 'bg-primary',
+    pending: 'bg-primary',
+    failed: 'bg-destructive',
+};
+
+// Compact list of withdrawals. Shows the latest few and expands in place, so
+// the history is there when needed without taking over the dashboard.
+export function PayoutHistory({ vendorId, initial = 3 }: { vendorId: string; initial?: number }) {
+    const [expanded, setExpanded] = useState(false);
     const { data: payouts, isLoading } = useQuery<Payout[]>({
         queryKey: ['payouts', vendorId],
         queryFn: async () => {
@@ -28,96 +37,45 @@ export function PayoutHistory({ vendorId }: { vendorId: string }) {
 
     if (isLoading) {
         return (
-            <Card>
-                <CardContent className="p-6">
-                    <div className="text-center text-muted-foreground">Loading history...</div>
-                </CardContent>
-            </Card>
+            <div className="space-y-2">
+                {[0, 1].map((i) => <div key={i} className="h-9 rounded-md bg-foreground/5 animate-pulse" />)}
+            </div>
         );
     }
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'paid':
-            case 'completed':
-                return 'default';
-            case 'processing':
-            case 'pending':
-                return 'secondary';
-            case 'failed':
-                return 'destructive';
-            default:
-                return 'outline';
-        }
-    };
+    if (!payouts || payouts.length === 0) {
+        return <p className="text-xs text-muted-foreground">No withdrawals yet.</p>;
+    }
 
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'paid':
-            case 'completed':
-                return <CheckCircle strokeWidth={1.5} className="h-3 w-3" />;
-            case 'processing':
-            case 'pending':
-                return <Clock strokeWidth={1.5} className="h-3 w-3" />;
-            case 'failed':
-                return <XCircle strokeWidth={1.5} className="h-3 w-3" />;
-            default:
-                return null;
-        }
-    };
+    const shown = expanded ? payouts : payouts.slice(0, initial);
 
     return (
-        <Card className="border-2">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Download size={20} strokeWidth={1.5}  />
-                    Payout History
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                {!payouts || payouts.length === 0 ? (
-                    <p className="text-muted-foreground text-sm text-center py-8">No payouts yet.</p>
-                ) : (
-                    <div className="space-y-3">
-                        {payouts.map((payout) => (
-                            <div key={payout.id} className="flex items-center justify-between border-b pb-3 last:border-0">
-                                <div className="space-y-1 flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <p className="font-medium">KES {payout.amount_ksh.toLocaleString()}</p>
-                                        <Badge variant={payout.trigger_type === 'automatic' ? 'default' : 'secondary'} className="text-xs">
-                                            {payout.trigger_type}
-                                        </Badge>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">
-                                        {format(new Date(payout.requested_at), 'MMM dd, yyyy h:mm a')}
-                                    </p>
-                                    {payout.fee_paid_by === 'vendor' && (
-                                        <p className="text-xs text-amber-600 dark:text-amber-400">
-                                            Fee: KES 100 (paid by you)
-                                        </p>
-                                    )}
-                                    {payout.reference && (
-                                        <p className="text-xs text-muted-foreground">
-                                            Ref: {payout.reference}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="flex flex-col items-end gap-1">
-                                    <Badge variant={getStatusColor(payout.status)} className="flex items-center gap-1">
-                                        {getStatusIcon(payout.status)}
-                                        {payout.status}
-                                    </Badge>
-                                    {payout.balance_before && (
-                                        <span className="text-xs text-muted-foreground">
-                                            Balance: {payout.balance_before.toLocaleString()}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </CardContent>
-        </Card>
+        <div>
+            <ul className="divide-y divide-foreground/10">
+                {shown.map((payout) => (
+                    <li key={payout.id} className="flex items-center justify-between gap-3 py-2.5 first:pt-0">
+                        <div className="min-w-0">
+                            <p className="text-sm font-medium tabular-nums">KES {payout.amount_ksh.toLocaleString()}</p>
+                            <p className="text-[11px] text-muted-foreground">
+                                {format(new Date(payout.requested_at), 'd MMM, h:mm a')}
+                            </p>
+                        </div>
+                        <span className="flex items-center gap-1.5 text-xs capitalize text-muted-foreground shrink-0">
+                            <span className={`h-1.5 w-1.5 rounded-full ${STATUS_TONE[payout.status] ?? 'bg-muted-foreground'}`} />
+                            {payout.status}
+                        </span>
+                    </li>
+                ))}
+            </ul>
+            {payouts.length > initial && (
+                <button
+                    type="button"
+                    onClick={() => setExpanded((v) => !v)}
+                    className="mt-1 text-xs font-medium text-foreground/70 underline-offset-4 hover:text-foreground hover:underline"
+                >
+                    {expanded ? 'Show less' : `Show all ${payouts.length}`}
+                </button>
+            )}
+        </div>
     );
 }

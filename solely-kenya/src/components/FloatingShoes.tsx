@@ -264,7 +264,7 @@ const FloatingShoes = () => {
                                         textShadow: '0 1px 4px rgba(0,0,0,0.6)',
                                     }}
                                 >
-                                    ✨ Click to shop
+                                    Click to shop
                                 </span>
                             </div>
 

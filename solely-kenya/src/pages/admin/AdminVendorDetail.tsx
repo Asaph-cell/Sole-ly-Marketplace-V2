@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { StatusPill, ActionButton, EmptyState, MiniAreaChart } from "@/components/admin/AdminShared";
 import { useAdminAction } from "@/hooks/useAdminAction";
-import { Star, Scale, ClipboardList, Package, History, ArrowRight, ShieldCheck } from "lucide-react";
+import { Star, Scale, ClipboardList, Package, History, ArrowRight, ShieldCheck, Phone, MessageCircle, Mail, MapPin, Contact } from "lucide-react";
+import { toKenyanIntl, formatKenyanPhone } from "@/lib/phone";
 import { formatDistanceToNow, format } from "date-fns";
 import { VerificationReview } from "@/components/admin/VerificationReview";
 
@@ -14,6 +15,11 @@ interface VendorProfile {
   full_name: string | null;
   store_name: string | null;
   store_logo_url: string | null;
+  email: string | null;
+  whatsapp_number: string | null;
+  store_phone: string | null;
+  vendor_address_line1: string | null;
+  vendor_address_line2: string | null;
   vendor_city: string | null;
   vendor_county: string | null;
   kyc_status: string | null;
@@ -79,7 +85,7 @@ const AdminVendorDetail = () => {
         { data: productsData },
         { data: activityData },
       ] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, store_name, store_logo_url, vendor_city, vendor_county, kyc_status, kyc_documents, kyc_submitted_at, created_at").eq("id", vendorId).single(),
+        supabase.from("profiles").select("id, full_name, store_name, store_logo_url, email, whatsapp_number, store_phone, vendor_address_line1, vendor_address_line2, vendor_city, vendor_county, kyc_status, kyc_documents, kyc_submitted_at, created_at").eq("id", vendorId).single(),
         supabase.from("vendor_rating_stats").select("avg_rating, rating_count").eq("vendor_id", vendorId).maybeSingle(),
         supabase.from("vendor_ratings").select("rating, created_at").eq("vendor_id", vendorId).order("created_at", { ascending: true }),
         supabase.from("disputes").select("id, order_id, reason, status, opened_at, customer:profiles!customer_id(full_name)").eq("vendor_id", vendorId).order("opened_at", { ascending: false }).limit(10),
@@ -128,6 +134,10 @@ const AdminVendorDetail = () => {
   }
 
   const name = profile.store_name || profile.full_name || "Vendor";
+  const address = [profile.vendor_address_line1, profile.vendor_address_line2, profile.vendor_city, profile.vendor_county]
+    .filter(Boolean).join(", ");
+  const whatsapp = toKenyanIntl(profile.whatsapp_number);
+  const storePhone = toKenyanIntl(profile.store_phone);
 
   return (
     <AdminLayout pageTitle="Vendor">
@@ -157,6 +167,66 @@ const AdminVendorDetail = () => {
             {ratingStats?.rating_count || 0} ratings
           </p>
         </div>
+      </div>
+
+      {/* Contact: the same details buyers receive once they order */}
+      <div className="rounded-xl border border-border bg-card shadow-soft p-4 mb-3">
+        <p className="text-xs font-medium text-foreground mb-3 flex items-center gap-1.5">
+          <Contact size={12} strokeWidth={1.5} />
+          Contact
+        </p>
+        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-xs">
+          <div className="min-w-0">
+            <dt className="text-[10px] text-muted-foreground">WhatsApp · shown to buyers</dt>
+            {whatsapp ? (
+              <dd className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                <span className="text-foreground">{formatKenyanPhone(profile.whatsapp_number)}</span>
+                <a href={`tel:+${whatsapp}`} className="inline-flex items-center gap-1 text-primary hover:underline">
+                  <Phone size={11} strokeWidth={1.75} />Call
+                </a>
+                <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                  <MessageCircle size={11} strokeWidth={1.75} />WhatsApp
+                </a>
+              </dd>
+            ) : (
+              <dd className="mt-0.5 italic text-muted-foreground">Not set</dd>
+            )}
+          </div>
+          <div className="min-w-0">
+            <dt className="text-[10px] text-muted-foreground">Store phone · public on storefront</dt>
+            {storePhone ? (
+              <dd className="mt-0.5">
+                <a href={`tel:+${storePhone}`} className="inline-flex items-center gap-1 text-foreground hover:text-primary">
+                  <Phone size={11} strokeWidth={1.75} />{formatKenyanPhone(profile.store_phone)}
+                </a>
+              </dd>
+            ) : (
+              <dd className="mt-0.5 italic text-muted-foreground">Not set</dd>
+            )}
+          </div>
+          <div className="min-w-0">
+            <dt className="text-[10px] text-muted-foreground">Pickup address</dt>
+            <dd className="mt-0.5 flex items-start gap-1 text-foreground">
+              {address ? (
+                <><MapPin size={11} strokeWidth={1.75} className="mt-0.5 shrink-0" /><span className="break-words">{address}</span></>
+              ) : (
+                <span className="italic text-muted-foreground">Not set</span>
+              )}
+            </dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="text-[10px] text-muted-foreground">Email · admin only</dt>
+            {profile.email ? (
+              <dd className="mt-0.5">
+                <a href={`mailto:${profile.email}`} className="inline-flex items-center gap-1 text-foreground hover:text-primary break-all">
+                  <Mail size={11} strokeWidth={1.75} className="shrink-0" />{profile.email}
+                </a>
+              </dd>
+            ) : (
+              <dd className="mt-0.5 italic text-muted-foreground">Not set</dd>
+            )}
+          </div>
+        </dl>
       </div>
 
       <VerificationReview

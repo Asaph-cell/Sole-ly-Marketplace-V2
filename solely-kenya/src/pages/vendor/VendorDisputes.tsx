@@ -80,21 +80,21 @@ const DisputeTimeline = ({ dispute }: { dispute: Dispute }) => {
                                 className={`
                                     w-10 h-10 rounded-full flex items-center justify-center transition duration-300
                                     ${step.done
-                                        ? "bg-green-500/15 text-green-600 dark:text-green-400 ring-2 ring-green-500/30"
+                                        ? "bg-success/15 text-success  ring-2 ring-success/30"
                                         : isActive
-                                            ? "bg-primary/15 text-primary ring-2 ring-primary/40 animate-pulse"
+                                            ? "bg-primary/15 text-primary ring-2 ring-primary/40"
                                             : "bg-muted text-muted-foreground"
                                     }
                                 `}
                             >
                                 <Icon className="h-4.5 w-4.5" />
                             </div>
-                            <span className={`text-[11px] font-medium text-center leading-tight max-w-[72px] ${step.done ? "text-green-600 dark:text-green-400" : isActive ? "text-primary" : "text-muted-foreground"}`}>
+                            <span className={`text-[11px] font-medium text-center leading-tight max-w-[72px] ${step.done ? "text-success " : isActive ? "text-primary" : "text-muted-foreground"}`}>
                                 {step.label}
                             </span>
                         </div>
                         {idx < steps.length - 1 && (
-                            <div className={`flex-1 h-[2px] mx-2 mt-[-18px] rounded-full transition duration-500 ${steps[idx + 1].done || (isActive && idx === steps.findIndex(s => !s.done) - 1) ? "bg-green-500/40" : "bg-border"}`} />
+                            <div className={`flex-1 h-[2px] mx-2 mt-[-18px] rounded-full transition duration-500 ${steps[idx + 1].done || (isActive && idx === steps.findIndex(s => !s.done) - 1) ? "bg-success/40" : "bg-border"}`} />
                         )}
                     </div>
                 );
@@ -194,7 +194,7 @@ const VendorDisputes = () => {
 
     const handleSubmitResponse = async () => {
         if (!selectedDispute || !response.trim()) {
-            toast.error("Please enter a response");
+            toast.error("Write your side of the story first");
             return;
         }
         setSubmitting(true);
@@ -229,7 +229,7 @@ const VendorDisputes = () => {
 
             if (error) throw error;
 
-            toast.success("Response submitted! Admin will review your case.");
+            toast.success("Response sent", { description: "The Solely team will review both sides and let you know." });
             setResponseOpen(false);
             setResponse("");
             setEvidenceFiles([]);
@@ -255,13 +255,13 @@ const VendorDisputes = () => {
 
     const getStatusConfig = (status: string) => {
         const map: Record<string, { color: string; bg: string; label: string }> = {
-            open: { color: "text-red-600 dark:text-red-400", bg: "bg-red-500/10 border-red-500/20", label: "Needs Response" },
-            under_review: { color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", label: "Under Review" },
-            resolved_refund: { color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500/10 border-blue-500/20", label: "Refunded" },
-            resolved_release: { color: "text-green-600 dark:text-green-400", bg: "bg-green-500/10 border-green-500/20", label: "Released" },
-            closed: { color: "text-gray-500", bg: "bg-gray-500/10 border-gray-500/20", label: "Closed" },
+            open: { color: "text-destructive ", bg: "bg-destructive/10 border-destructive/20", label: "Needs Response" },
+            under_review: { color: "text-primary-strong ", bg: "bg-primary/10 border-primary/20", label: "Under Review" },
+            resolved_refund: { color: "text-muted-foreground ", bg: "bg-foreground/10 border-foreground/20", label: "Refunded" },
+            resolved_release: { color: "text-success ", bg: "bg-success/10 border-success/20", label: "Released" },
+            closed: { color: "text-muted-foreground", bg: "bg-foreground/10 border-foreground/20", label: "Closed" },
         };
-        return map[status] || { color: "text-gray-500", bg: "bg-gray-500/10 border-gray-500/20", label: status };
+        return map[status] || { color: "text-muted-foreground", bg: "bg-foreground/10 border-foreground/20", label: status };
     };
 
     const filteredDisputes = disputes.filter((d) => {
@@ -271,76 +271,35 @@ const VendorDisputes = () => {
 
     const openCount = disputes.filter((d) => d.status === "open").length;
     const reviewCount = disputes.filter((d) => d.status === "under_review").length;
-    const resolvedCount = disputes.filter((d) => d.status.startsWith("resolved")).length;
 
     if (loading) {
         return <div className="container mx-auto p-4 sm:p-6"><ListSkeleton rows={5} /></div>;
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
+        <div className="min-h-screen bg-muted/30">
             <VendorNavbar />
             <div className="flex">
                 <VendorSidebar />
                 <main className="flex-1 p-4 md:p-8 max-w-[1400px]">
-                    {/* Header */}
-                    <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    {/* Header. The count lives on the Active tab; this line only
+                        explains why it matters. */}
+                    <div className="mb-6 flex items-start justify-between gap-4">
                         <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2.5 rounded-xl bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/10">
-                                    <ShieldAlert size={24} strokeWidth={1.5} className=" text-red-500" />
-                                </div>
-                                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Disputes</h1>
-                            </div>
-                            <p className="text-muted-foreground ml-[52px]">
-                                View and respond to customer complaints
-                            </p>
+                            <h1 className="font-display text-3xl leading-tight sm:text-4xl">Disputes</h1>
+                            {openCount > 0 && (
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    <span className="font-semibold text-destructive">
+                                        {openCount} need{openCount === 1 ? "s" : ""} your reply.
+                                    </span>{" "}
+                                    Unanswered disputes may be resolved in the buyer's favour.
+                                </p>
+                            )}
                         </div>
-                        <Button variant="outline" onClick={loadDisputes} disabled={loadingData} className="gap-2 shrink-0">
-                            <RefreshCw size={16} strokeWidth={1.5} className={` ${loadingData ? "animate-spin" : ""}`} />
+                        <Button variant="outline" size="sm" onClick={loadDisputes} disabled={loadingData} className="shrink-0 gap-2">
+                            <RefreshCw size={16} strokeWidth={1.5} className={loadingData ? "animate-spin" : ""} />
                             Refresh
                         </Button>
-                    </div>
-
-                    {/* Alert Banner */}
-                    {openCount > 0 && (
-                        <div className="mb-6 relative overflow-hidden rounded-xl border border-red-500/20 bg-gradient-to-r from-red-500/5 via-red-500/10 to-orange-500/5 p-4 md:p-5">
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.08),transparent_70%)]" />
-                            <div className="relative flex items-start gap-4">
-                                <div className="p-2 rounded-lg bg-red-500/10 shrink-0">
-                                    <AlertTriangle size={20} strokeWidth={1.5} className=" text-red-500" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-red-700 dark:text-red-300">
-                                        Action Required - {openCount} open dispute{openCount > 1 ? "s" : ""}
-                                    </h3>
-                                    <p className="text-sm text-red-600/80 dark:text-red-400/80 mt-1">
-                                        Please respond with your side of the story and any evidence you have. Unresponded disputes may be resolved in the buyer's favor.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Stat Cards */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-                        {[
-                            { label: "Needs Response", value: openCount, icon: AlertTriangle, gradient: "from-red-500/10 to-rose-500/5", iconColor: "text-red-500", valueColor: "text-red-600 dark:text-red-400", ring: "ring-red-500/10" },
-                            { label: "Under Review", value: reviewCount, icon: Clock, gradient: "from-amber-500/10 to-yellow-500/5", iconColor: "text-amber-500", valueColor: "text-amber-600 dark:text-amber-400", ring: "ring-amber-500/10" },
-                            { label: "Resolved", value: resolvedCount, icon: CheckCircle2, gradient: "from-green-500/10 to-emerald-500/5", iconColor: "text-green-500", valueColor: "text-green-600 dark:text-green-400", ring: "ring-green-500/10" },
-                            { label: "Total", value: disputes.length, icon: Scale, gradient: "from-primary/10 to-primary/5", iconColor: "text-primary", valueColor: "text-foreground", ring: "ring-primary/10" },
-                        ].map(({ label, value, icon: Icon, gradient, iconColor, valueColor, ring }) => (
-                            <Card key={label} className={`relative overflow-hidden border-0 shadow-sm ring-1 ${ring}`}>
-                                <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} />
-                                <CardContent className="relative p-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
-                                        <Icon className={`h-4 w-4 ${iconColor}`} />
-                                    </div>
-                                    <div className={`text-3xl font-bold ${valueColor}`}>{value}</div>
-                                </CardContent>
-                            </Card>
-                        ))}
                     </div>
 
                     {/* Tabs */}
@@ -349,7 +308,7 @@ const VendorDisputes = () => {
                             <TabsTrigger value="open" className="gap-2">
                                 Active
                                 {(openCount + reviewCount) > 0 && (
-                                    <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-red-500 text-white leading-none">
+                                    <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-destructive text-white leading-none">
                                         {openCount + reviewCount}
                                     </span>
                                 )}
@@ -368,8 +327,8 @@ const VendorDisputes = () => {
                             ) : filteredDisputes.length === 0 ? (
                                 <Card className="border-dashed">
                                     <CardContent className="flex flex-col items-center justify-center py-16 gap-4 text-center">
-                                        <div className="p-4 rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/5">
-                                            <Sparkles strokeWidth={1.5} className="h-10 w-10 text-green-500" />
+                                        <div className="p-4 rounded-2xl bg-success-soft">
+                                            <Sparkles strokeWidth={1.5} className="h-10 w-10 text-success" />
                                         </div>
                                         <div>
                                             <h3 className="font-semibold text-lg mb-1">
@@ -377,7 +336,7 @@ const VendorDisputes = () => {
                                             </h3>
                                             <p className="text-sm text-muted-foreground max-w-sm">
                                                 {activeTab === "open"
-                                                    ? "You're all clear! Keep delivering great products and service. 🎉"
+                                                    ? "You're all clear."
                                                     : "Resolved disputes will appear here for your records."
                                                 }
                                             </p>
@@ -391,7 +350,7 @@ const VendorDisputes = () => {
                                         return (
                                             <Card
                                                 key={dispute.id}
-                                                className={`group hover:shadow-md transition duration-200 border ${dispute.status === "open" ? "border-red-500/20 bg-red-500/[0.02]" : ""}`}
+                                                className={`group hover:shadow-md transition duration-200 border ${dispute.status === "open" ? "border-destructive/20 bg-red-500/[0.02]" : ""}`}
                                             >
                                                 <CardContent className="p-4 md:p-5">
                                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -452,7 +411,7 @@ const VendorDisputes = () => {
                                                             {dispute.status === "open" && (
                                                                 <Button
                                                                     size="sm"
-                                                                    className="gap-1.5 bg-gradient-to-r from-primary to-primary/90"
+                                                                    className="gap-1.5"
                                                                     onClick={() => {
                                                                         setSelectedDispute(dispute);
                                                                         setResponseOpen(true);
@@ -478,8 +437,8 @@ const VendorDisputes = () => {
                         <DialogContent className="max-w-xl max-h-[90vh] overflow-auto">
                             <DialogHeader>
                                 <DialogTitle className="flex items-center gap-3">
-                                    <div className="p-2 rounded-lg bg-red-500/10">
-                                        <ShieldAlert size={20} strokeWidth={1.5} className=" text-red-500" />
+                                    <div className="p-2 rounded-lg bg-destructive/10">
+                                        <ShieldAlert size={20} strokeWidth={1.5} className=" text-destructive" />
                                     </div>
                                     Dispute Details
                                 </DialogTitle>
@@ -514,7 +473,7 @@ const VendorDisputes = () => {
 
                                     {/* Order Amount */}
                                     {selectedDispute.order && (
-                                        <div className="bg-gradient-to-r from-muted/60 to-muted/30 p-4 rounded-xl border flex items-center justify-between">
+                                        <div className="bg-muted/50 p-4 rounded-xl border flex items-center justify-between">
                                             <span className="text-sm text-muted-foreground">Order Amount</span>
                                             <span className="text-xl font-bold">
                                                 KES {selectedDispute.order.total_ksh?.toLocaleString()}
@@ -525,9 +484,9 @@ const VendorDisputes = () => {
                                     {/* Customer Complaint */}
                                     <div>
                                         <Label className="text-sm font-medium mb-2 block">Customer's Complaint</Label>
-                                        <div className="relative p-4 rounded-xl bg-red-500/5 border border-red-500/15">
+                                        <div className="relative p-4 rounded-xl bg-destructive/5 border border-destructive/15">
                                             <div className="absolute top-3 right-3">
-                                                <AlertTriangle size={16} strokeWidth={1.5} className=" text-red-400/50" />
+                                                <AlertTriangle size={16} strokeWidth={1.5} className=" text-destructive/50" />
                                             </div>
                                             <p className="text-sm leading-relaxed pr-6">
                                                 {selectedDispute.description || "No description provided"}
@@ -539,10 +498,10 @@ const VendorDisputes = () => {
                                     {selectedDispute.vendor_response && (
                                         <div>
                                             <Label className="text-sm font-medium mb-2 block">Your Response</Label>
-                                            <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/15">
+                                            <div className="p-4 rounded-xl bg-success/5 border border-success/15">
                                                 <div className="flex items-center gap-2 mb-2">
-                                                    <CheckCircle2 size={16} strokeWidth={1.5} className=" text-green-500" />
-                                                    <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                                                    <CheckCircle2 size={16} strokeWidth={1.5} className=" text-success" />
+                                                    <span className="text-xs font-medium text-success ">
                                                         Responded {selectedDispute.vendor_response_at &&
                                                             `on ${new Date(selectedDispute.vendor_response_at).toLocaleDateString()}`}
                                                     </span>
@@ -598,7 +557,7 @@ const VendorDisputes = () => {
                                     {/* CTA */}
                                     {selectedDispute.status === "open" && (
                                         <Button
-                                            className="w-full gap-2 h-11 bg-gradient-to-r from-primary to-primary/90"
+                                            className="w-full gap-2 h-11"
                                             onClick={() => {
                                                 setDetailOpen(false);
                                                 setResponseOpen(true);
@@ -631,8 +590,8 @@ const VendorDisputes = () => {
                             <div className="space-y-5">
                                 {/* Customer complaint preview */}
                                 {selectedDispute && (
-                                    <div className="p-3 rounded-lg bg-red-500/5 border border-red-500/10 text-sm">
-                                        <p className="text-xs font-medium text-red-600 dark:text-red-400 mb-1">Customer says:</p>
+                                    <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/10 text-sm">
+                                        <p className="text-xs font-medium text-destructive mb-1">Customer says:</p>
                                         <p className="text-muted-foreground italic line-clamp-3">
                                             "{selectedDispute.description || "No description"}"
                                         </p>
@@ -682,7 +641,7 @@ const VendorDisputes = () => {
                                     )}
                                 </div>
 
-                                <div className="bg-amber-500/5 border border-amber-500/15 p-3.5 rounded-xl text-sm text-amber-700 dark:text-amber-300 flex items-start gap-3">
+                                <div className="bg-primary/5 border border-primary/15 p-3.5 rounded-xl text-sm text-primary-strong flex items-start gap-3">
                                     <AlertTriangle size={16} strokeWidth={1.5} className=" shrink-0 mt-0.5" />
                                     <div>
                                         <strong>Important:</strong> Your response will be sent to the admin for review. Be honest and provide as much detail as possible.
@@ -703,7 +662,7 @@ const VendorDisputes = () => {
                                         Cancel
                                     </Button>
                                     <Button
-                                        className="flex-[2] gap-2 bg-gradient-to-r from-primary to-primary/90"
+                                        className="flex-[2] gap-2"
                                         onClick={handleSubmitResponse}
                                         disabled={submitting || !response.trim()}
                                     >

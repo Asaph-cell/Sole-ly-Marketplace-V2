@@ -19,6 +19,8 @@ const VendorPaymentLinks = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  // Row that was just created, tinted for a moment so the vendor can find it.
+  const [newLinkId, setNewLinkId] = useState<string | null>(null);
 
   // New Link State
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -97,17 +99,28 @@ const VendorPaymentLinks = () => {
       // Generate short_code
       payload.short_code = Math.random().toString(36).substring(2, 9).toUpperCase();
 
-      const { error } = await supabase.from("payment_links").insert(payload);
+      const { data: created, error } = await supabase.from("payment_links").insert(payload).select("id, short_code").single();
 
       if (error) throw error;
-      
-      toast.success("Payment link generated!");
+
       setIsDialogOpen(false);
       resetForm();
-      fetchLinks();
-    } catch (error: any) {
+      await fetchLinks();
+      setNewLinkId(created.id);
+      setTimeout(() => setNewLinkId((cur) => (cur === created.id ? null : cur)), 3000);
+
+      // Creating a link is always followed by sharing it, so copy it straight away.
+      try {
+        await navigator.clipboard.writeText(`${window.location.origin}/pay/${created.short_code || created.id}`);
+        setCopiedId(created.id);
+        setTimeout(() => setCopiedId(null), 2000);
+        toast.success("Link created and copied", { description: "Paste it into WhatsApp or Instagram." });
+      } catch {
+        toast.success("Link created", { description: "Tap the copy button to share it." });
+      }
+    } catch (error) {
       console.error(error);
-      toast.error(error.message || "Failed to create link");
+      toast.error(error, { description: "The link was not created." });
     } finally {
       setCreating(false);
     }
@@ -128,9 +141,11 @@ const VendorPaymentLinks = () => {
       .eq("id", id);
       
     if (error) {
-      toast.error("Failed to update status");
+      toast.error("Couldn't change the link", { description: "Please try again." });
     } else {
-      toast.success(`Link ${!currentStatus ? 'activated' : 'deactivated'}`);
+      toast.success(!currentStatus ? "Link turned on" : "Link turned off", {
+        description: !currentStatus ? "Buyers can pay with it again." : "Buyers can't pay with it until you turn it back on.",
+      });
       setLinks(links.map(l => l.id === id ? { ...l, is_active: !currentStatus } : l));
     }
   };
@@ -144,12 +159,12 @@ const VendorPaymentLinks = () => {
       .eq("id", id);
       
     if (error) {
-      toast.error("Failed to delete link");
+      toast.error("Couldn't delete the link", { description: "Please try again." });
     } else if (count === 0) {
       toast.error("Could not delete link, please try again or refresh.");
       fetchLinks(); // Re-sync with DB
     } else {
-      toast.success("Link deleted successfully");
+      toast.success("Link deleted");
       setLinks(links.filter(l => l.id !== id));
     }
   };
@@ -157,10 +172,13 @@ const VendorPaymentLinks = () => {
   const copyToClipboard = (id: string, short_code?: string) => {
     const urlId = short_code || id;
     const url = `${window.location.origin}/pay/${urlId}`;
-    navigator.clipboard.writeText(url);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-    toast.success("Link copied!");
+    navigator.clipboard.writeText(url).then(
+      () => {
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+      },
+      () => toast.error("Couldn't copy the link", { description: url }),
+    );
   };
 
   const shareToWhatsApp = (link: any) => {
@@ -170,7 +188,7 @@ const VendorPaymentLinks = () => {
     const price = link.product_id ? link.product?.price_ksh : link.custom_price_ksh;
     
     const msg = encodeURIComponent(
-      `Hey! Here is the secure payment link for *${title}* (KES ${price.toLocaleString()}) 🛍️\n\nYour payment will be held securely in Solely Escrow until you confirm delivery 🔒\n\nPay here: 👉 ${url}`
+      `Hey! Here is the secure payment link for *${title}* (KES ${price.toLocaleString()})\n\nYour payment is held securely by Solely until you confirm delivery.\n\nPay here: ${url}`
     );
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
@@ -318,7 +336,7 @@ const VendorPaymentLinks = () => {
                       const total = price + (link.delivery_fee_ksh || 0);
 
                       return (
-                        <tr key={link.id} className={`hover:bg-muted/30 transition-colors ${!link.is_active ? 'opacity-60' : ''}`}>
+                        <tr key={link.id} className={`transition-colors duration-700 ${newLinkId === link.id ? 'bg-success/10' : 'hover:bg-muted/30'} ${!link.is_active ? 'opacity-60' : ''}`}>
                           <td className="px-6 py-4">
                             <div className="font-semibold text-foreground">{title}</div>
                             <div className="text-xs text-muted-foreground mt-0.5">
@@ -330,7 +348,7 @@ const VendorPaymentLinks = () => {
                             {total.toLocaleString()}
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${link.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
+                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${link.is_active ? 'bg-success-soft text-success' : 'bg-muted text-muted-foreground'}`}>
                               {link.is_active ? "Active" : "Inactive"}
                             </span>
                           </td>
@@ -342,7 +360,7 @@ const VendorPaymentLinks = () => {
                                 onClick={() => copyToClipboard(link.id, link.short_code)}
                                 disabled={!link.is_active}
                               >
-                                {copiedId === link.id ? <CheckCircle size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                                {copiedId === link.id ? <CheckCircle size={14} className="text-success" /> : <Copy size={14} />}
                                 <span className="sr-only sm:not-sr-only sm:ml-2">Copy</span>
                               </Button>
                               <Button 
@@ -373,7 +391,7 @@ const VendorPaymentLinks = () => {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className={link.is_active ? "text-muted-foreground hover:text-amber-600" : "text-emerald-600 hover:text-emerald-700"}
+                                className={link.is_active ? "text-muted-foreground hover:text-primary-strong" : "text-success hover:text-success"}
                                 onClick={() => toggleLinkStatus(link.id, link.is_active)}
                                 title={link.is_active ? "Deactivate Link" : "Activate Link"}
                               >
@@ -432,9 +450,9 @@ const VendorPaymentLinks = () => {
                         ? 'border-primary ring-2 ring-primary/20'
                         : 'border-border hover:border-muted-foreground/30'
                     } ${
-                      t === 'dark' ? 'bg-zinc-900 text-white' :
-                      t === 'amber' ? 'bg-amber-500 text-white' :
-                      'bg-white text-zinc-900'
+                      t === 'dark' ? 'bg-secondary text-white' :
+                      t === 'amber' ? 'bg-primary text-white' :
+                      'bg-card text-foreground'
                     }`}
                   >
                     {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -444,7 +462,7 @@ const VendorPaymentLinks = () => {
             </div>
 
             {/* Code preview */}
-            <div className="bg-zinc-950 text-zinc-300 rounded-xl p-4 font-mono text-[11px] leading-relaxed overflow-x-auto">
+            <div className="bg-secondary text-muted-foreground rounded-xl p-4 font-mono text-[11px] leading-relaxed overflow-x-auto">
               <pre className="whitespace-pre-wrap break-all">{embedCode}</pre>
             </div>
 
@@ -452,7 +470,7 @@ const VendorPaymentLinks = () => {
               onClick={() => {
                 navigator.clipboard.writeText(embedCode);
                 setEmbedCopied(true);
-                toast.success("Embed code copied to clipboard!");
+                toast.success("Embed code copied");
                 setTimeout(() => setEmbedCopied(false), 2500);
               }}
               className="w-full gap-2"
@@ -461,12 +479,12 @@ const VendorPaymentLinks = () => {
               {embedCopied ? "Copied!" : "Copy Embed Code"}
             </Button>
 
-            <div className="bg-amber-50 dark:bg-amber-950/30 rounded-xl p-4 border border-amber-200 dark:border-amber-900">
-              <p className="text-xs text-amber-800 dark:text-amber-200 font-semibold mb-2">💡 Customization Options</p>
-              <ul className="text-[11px] text-amber-700 dark:text-amber-300 space-y-1.5">
-                <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">data-solely-theme</code> - <code>"dark"</code>, <code>"amber"</code>, or <code>"light"</code></li>
-                <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">data-solely-text</code> - Custom button text, e.g. <code>"Buy Now"</code></li>
-                <li><code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">data-solely-size</code> - <code>"sm"</code>, <code>"md"</code>, or <code>"lg"</code></li>
+            <div className="bg-primary-soft rounded-xl p-4 border border-primary/30">
+              <p className="text-xs text-primary-strong font-semibold mb-2">Customization options</p>
+              <ul className="text-[11px] text-primary-strong space-y-1.5">
+                <li><code className="bg-primary-soft px-1 rounded">data-solely-theme</code> - <code>"dark"</code>, <code>"amber"</code>, or <code>"light"</code></li>
+                <li><code className="bg-primary-soft px-1 rounded">data-solely-text</code> - Custom button text, e.g. <code>"Buy Now"</code></li>
+                <li><code className="bg-primary-soft px-1 rounded">data-solely-size</code> - <code>"sm"</code>, <code>"md"</code>, or <code>"lg"</code></li>
               </ul>
             </div>
           </div>

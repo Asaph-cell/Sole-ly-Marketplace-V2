@@ -233,11 +233,11 @@ export const MessageThread = ({ conversationId, onBack }: MessageThreadProps) =>
           <div className="grid h-10 w-10 place-items-center rounded-full bg-foreground text-background font-display text-lg">
             {(other?.name || "?").charAt(0).toUpperCase()}
           </div>
-          {online && <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-background bg-emerald-500" aria-hidden="true" />}
+          {online && <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-background bg-success" aria-hidden="true" />}
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold leading-tight">{other?.name || "Loading…"}</p>
-          <p className={`text-xs ${otherTyping ? "text-[hsl(40_62%_33%)] dark:text-primary" : online ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
+          <p className={`text-xs ${otherTyping ? "text-[hsl(40_62%_33%)] dark:text-primary" : online ? "text-success " : "text-muted-foreground"}`}>
             {otherTyping ? "typing…" : online ? "Online" : "Offline"}
           </p>
         </div>

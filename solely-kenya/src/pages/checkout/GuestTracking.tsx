@@ -87,8 +87,8 @@ const GuestTracking = () => {
 
       <div className="max-w-md mx-auto pt-8 px-4 space-y-6">
         {isPaymentSuccess && (
-          <div className="bg-emerald-50 text-emerald-800 p-4 rounded-2xl border border-emerald-100 flex items-start gap-3">
-            <CheckCircle className="shrink-0 mt-0.5 text-emerald-600" />
+          <div className="bg-success-soft text-success p-4 rounded-2xl border border-success/30 flex items-start gap-3">
+            <CheckCircle className="shrink-0 mt-0.5 text-success" />
             <div>
               <p className="font-bold">Payment Successful!</p>
               <p className="text-sm mt-1">Your money is safely held in escrow. Please bookmark or save this link to track your order.</p>
@@ -101,7 +101,7 @@ const GuestTracking = () => {
           <p className="text-muted-foreground text-sm">Order #{order.id.slice(0, 8).toUpperCase()}</p>
           <button
             onClick={() => window.print()}
-            className="mt-4 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-semibold border border-blue-200 transition hover:bg-blue-100 print:hidden mx-auto inline-flex items-center gap-2"
+            className="mt-4 px-4 py-2 bg-muted text-foreground rounded-lg text-sm font-semibold border border-border transition hover:bg-muted print:hidden mx-auto inline-flex items-center gap-2"
           >
             Download Receipt / Invoice
           </button>

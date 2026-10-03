@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { Instagram, Facebook, ChevronDown, Share2 } from "lucide-react";
-import logo from "@/assets/solely-logo.svg";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Instagram, Facebook, ChevronDown, Share2, Check } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { toast } from "@/lib/toast";
@@ -117,11 +118,7 @@ const Footer = () => {
           {/* Brand - Bigger Logo */}
           <div className="space-y-4">
             <Link to="/" className="flex flex-col items-start group">
-              <img
-                src={logo}
-                alt="Solely - Buy & Sell Safely"
-                className="h-14 w-auto transition-transform group-hover:scale-105 dark:invert"
-              />
+              <BrandLogo alt="Solely - Buy & Sell Safely" className="h-14 w-auto" />
               <span className="text-[10px] text-muted-foreground tracking-wide uppercase -mt-3 pl-1">Kenya's Safest Way to Buy & Sell Online</span>
             </Link>
             <p className="text-sm text-muted-foreground">
@@ -176,23 +173,23 @@ const Footer = () => {
             <h3 className="font-semibold mb-4 text-foreground">Why Solely?</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
-                <span className="text-green-400">✓</span>
+                <Check size={16} strokeWidth={2} className="mt-0.5 shrink-0 text-success" />
                 <span>Escrow-Protected Payments</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-400">✓</span>
+                <Check size={16} strokeWidth={2} className="mt-0.5 shrink-0 text-success" />
                 <span>Zero Upfront Fees for Sellers</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-400">✓</span>
+                <Check size={16} strokeWidth={2} className="mt-0.5 shrink-0 text-success" />
                 <span>Verified Authentic Products</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-400">✓</span>
+                <Check size={16} strokeWidth={2} className="mt-0.5 shrink-0 text-success" />
                 <span>Fast & Secure Delivery</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-400">✓</span>
+                <Check size={16} strokeWidth={2} className="mt-0.5 shrink-0 text-success" />
                 <span>24/7 Customer Support</span>
               </li>
             </ul>
@@ -256,8 +253,9 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-border mt-8 pt-8 text-center text-sm">
+        <div className="border-t border-border mt-8 pt-8 flex flex-col-reverse items-center gap-4 text-sm sm:flex-row sm:justify-between">
           <p>&copy; {new Date().getFullYear()} Solely Kenya. All rights reserved.</p>
+          <ThemeToggle />
         </div>
       </div>
     </footer>

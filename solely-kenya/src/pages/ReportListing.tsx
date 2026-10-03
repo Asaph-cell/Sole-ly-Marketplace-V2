@@ -155,8 +155,8 @@ const ReportListing = () => {
                 />
                 <div className="container mx-auto px-4 max-w-2xl">
                     <Card className="p-8 text-center">
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <CheckCircle2 className="w-8 h-8 text-green-600" />
+                        <div className="w-16 h-16 bg-success-soft rounded-full flex items-center justify-center mx-auto mb-4">
+                            <CheckCircle2 className="w-8 h-8 text-success" />
                         </div>
                         <h1 className="text-2xl font-bold mb-3">Report received</h1>
                         <p className="text-muted-foreground mb-6">
@@ -199,8 +199,8 @@ const ReportListing = () => {
                 </Link>
 
                 <div className="text-center mb-8">
-                    <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <ShieldAlert className="w-7 h-7 text-amber-600" />
+                    <div className="w-14 h-14 bg-primary-soft rounded-full flex items-center justify-center mx-auto mb-4">
+                        <ShieldAlert className="w-7 h-7 text-primary-strong" />
                     </div>
                     <h1 className="text-3xl font-bold mb-3">Report a Listing</h1>
                     <p className="text-muted-foreground max-w-xl mx-auto">

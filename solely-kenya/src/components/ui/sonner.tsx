@@ -4,13 +4,20 @@ import { Toaster as Sonner, toast } from "sonner";
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 import { CheckCircle2, Info, XCircle } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme();
+  // On phones the bottom edge is taken by floating buttons (List item,
+  // WhatsApp) and the thumb, so toasts drop in from the top instead. On
+  // desktop they stay bottom-right but clear the floating chat bubble.
+  const isMobile = useIsMobile();
 
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
+      position={isMobile ? "top-center" : "bottom-right"}
+      offset={isMobile ? undefined : { bottom: 96, right: 24 }}
       className="toaster group"
       toastOptions={{
         classNames: {

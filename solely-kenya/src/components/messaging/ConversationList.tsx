@@ -57,7 +57,7 @@ const Avatar = ({ name, userId }: { name: string; userId: string | null }) => {
       <div className="grid h-11 w-11 place-items-center rounded-full bg-foreground text-background font-display text-lg">
         {name.charAt(0).toUpperCase()}
       </div>
-      {online && <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-background bg-emerald-500" aria-label="Online" />}
+      {online && <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-background bg-success" aria-label="Online" />}
     </div>
   );
 };

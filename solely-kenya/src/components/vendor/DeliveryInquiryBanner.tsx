@@ -1,18 +1,15 @@
 import { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { MessageCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
+import { AlertStrip } from "./AlertStrip";
 
 /**
  * A buyer who has filled in their address and opened a delivery chat is as
- * close to buying as anyone gets, but until now they were invisible here:
- * PendingOrdersBanner only watches orders that are already paid, and a
- * negotiation isn't an order yet. The only hint was an unread badge in the
- * sidebar, which is easy to miss - a vendor could lose a sale simply by not
- * opening the chat.
+ * close to buying as anyone gets, but a negotiation isn't an order yet, so
+ * the pending-orders alert never sees them. Without this a vendor could lose
+ * a sale simply by not opening the chat.
  */
 
 interface Waiting {
@@ -21,7 +18,8 @@ interface Waiting {
     updatedAt: string;
 }
 
-export const DeliveryInquiryBanner = () => {
+/** Delivery chats where the buyer spoke last, newest first, kept live. */
+export const useWaitingDeliveryChats = () => {
     const { user } = useAuth();
     const [waiting, setWaiting] = useState<Waiting[]>([]);
     const [loading, setLoading] = useState(true);
@@ -83,14 +81,13 @@ export const DeliveryInquiryBanner = () => {
         if (!user) return;
 
         const channel = supabase
-            .channel("delivery-inquiry-banner")
+            .channel(`delivery-inquiries-${crypto.randomUUID()}`)
             .on(
                 "postgres_changes",
                 { event: "*", schema: "public", table: "delivery_agreements", filter: `vendor_id=eq.${user.id}` },
                 () => load()
             )
-            // A new message flips whose turn it is, so the banner has to react
-            // to messages too, not just to the agreement row.
+            // A new message flips whose turn it is, so react to messages too.
             .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => load())
             .subscribe();
 
@@ -99,46 +96,35 @@ export const DeliveryInquiryBanner = () => {
         };
     }, [user, load]);
 
-    if (loading || waiting.length === 0) return null;
-
     const oldest = waiting[waiting.length - 1];
+    // Open the thread the alert is describing (the oldest one waiting). A
+    // negotiation opened before anyone spoke has no conversation yet, so that
+    // case falls back to the list.
+    const to = oldest?.conversationId ? `/vendor/messages?conversation=${oldest.conversationId}` : "/vendor/messages";
+
+    return { waiting, oldest, to, loading };
+};
+
+// The dashboard lists these in its to-do list; Messages shows the chats.
+const HIDDEN_ON = ["/vendor/dashboard", "/vendor/messages"];
+
+export const DeliveryInquiryBanner = () => {
+    const { pathname } = useLocation();
+    if (HIDDEN_ON.includes(pathname)) return null;
+    return <DeliveryInquiryStrip />;
+};
+
+const DeliveryInquiryStrip = () => {
+    const { waiting, oldest, to, loading } = useWaitingDeliveryChats();
+    if (loading || !oldest) return null;
 
     return (
-        <div className="bg-primary text-primary-foreground px-4 py-3">
-            <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                    <div className="bg-black/15 p-2 rounded-full">
-                        <MessageCircle size={20} strokeWidth={1.5} />
-                    </div>
-                    <div>
-                        <p className="font-semibold">
-                            {waiting.length === 1
-                                ? "A buyer is waiting on you"
-                                : `${waiting.length} buyers are waiting on you`}
-                        </p>
-                        <p className="text-sm opacity-90">
-                            Delivery still to agree, asked{" "}
-                            {formatDistanceToNow(new Date(oldest.updatedAt), { addSuffix: true })}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Open the thread the subtext is actually describing (the
-                    oldest one waiting), not just the messages list. A
-                    negotiation that was opened before anyone spoke has no
-                    conversation yet, so that case still falls back to the list. */}
-                <Link
-                    to={
-                        oldest.conversationId
-                            ? `/vendor/messages?conversation=${oldest.conversationId}`
-                            : "/vendor/messages"
-                    }
-                >
-                    <Button variant="secondary" size="sm" className="bg-white text-primary hover:bg-white/90">
-                        Open chat
-                    </Button>
-                </Link>
-            </div>
-        </div>
+        <AlertStrip
+            tone="attention"
+            text={waiting.length === 1 ? "A buyer is waiting on you" : `${waiting.length} buyers are waiting on you`}
+            detail={`delivery to agree, asked ${formatDistanceToNow(new Date(oldest.updatedAt), { addSuffix: true })}`}
+            to={to}
+            cta="Open chat"
+        />
     );
 };

@@ -152,7 +152,7 @@ const VendorStorefront = () => {
                   </a>
                 )}
                 {stats.reviews > 0 && (
-                  <span className="flex items-center gap-1.5 text-amber-600">
+                  <span className="flex items-center gap-1.5 text-primary-strong">
                     <Star size={16} fill="currentColor" /> {stats.rating.toFixed(1)} ({stats.reviews})
                   </span>
                 )}
@@ -160,7 +160,7 @@ const VendorStorefront = () => {
 
               {/* Only claim verification for sellers who passed KYC */}
               {vendor.kyc_status === 'approved' && (
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#1a5138]/10 text-[#1a5138] dark:text-emerald-300 text-sm font-medium rounded-lg">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#1a5138]/10 text-[#1a5138] text-sm font-medium rounded-lg">
                   <Store size={14} /> Verified seller
                 </div>
               )}

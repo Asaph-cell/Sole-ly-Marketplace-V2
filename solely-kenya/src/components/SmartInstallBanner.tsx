@@ -76,40 +76,40 @@ export function SmartInstallBanner() {
             className={`fixed top-0 left-0 right-0 z-[60] transform transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : '-translate-y-full'
                 }`}
         >
-            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-lg">
+            <div className="bg-gradient-to-r from-secondary via-secondary to-secondary text-white shadow-lg">
                 <div className="container mx-auto px-4 py-2.5">
                     <div className="flex items-center justify-between gap-3">
                         {/* App info */}
                         <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-md">
                                 <Download size={16} strokeWidth={1.5} className=" text-white" />
                             </div>
                             <div className="min-w-0">
                                 <p className="text-sm font-medium truncate">Get the Solely App</p>
-                                <p className="text-xs text-slate-400 truncate">Faster, offline access</p>
+                                <p className="text-xs text-muted-foreground truncate">Faster, offline access</p>
                             </div>
                         </div>
 
                         {/* Actions - Install and X on same line */}
                         <div className="flex items-center gap-1 flex-shrink-0 flex-nowrap">
                             {isIOS ? (
-                                <div className="text-[10px] text-amber-200 text-right leading-tight max-w-[100px] font-medium mr-1">
+                                <div className="text-[10px] text-primary-foreground text-right leading-tight max-w-[100px] font-medium mr-1">
                                     Tap <span className="inline-block px-1 bg-white/20 rounded">Share</span><br/>Add to Home
                                 </div>
                             ) : (
                                 <button
                                     onClick={handleInstall}
-                                    className="px-4 py-1.5 text-sm font-semibold rounded-full bg-amber-500 hover:bg-amber-400 text-slate-900 transition-colors shadow-sm"
+                                    className="px-4 py-1.5 text-sm font-semibold rounded-full bg-primary hover:bg-primary text-foreground transition-colors shadow-sm"
                                 >
                                     Install
                                 </button>
                             )}
                             <button
                                 onClick={handleDismiss}
-                                className="p-1 rounded-full hover:bg-slate-700 transition-colors ml-1"
+                                className="p-1 rounded-full hover:bg-muted transition-colors ml-1"
                                 aria-label="Dismiss"
                             >
-                                <X size={16} strokeWidth={1.5} className=" text-slate-400" />
+                                <X size={16} strokeWidth={1.5} className=" text-muted-foreground" />
                             </button>
                         </div>
                     </div>

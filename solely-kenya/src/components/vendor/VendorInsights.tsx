@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Target, ShoppingCart, Repeat, Link2, Compass, Store, Globe } from "lucide-react";
+import { Link2, Compass, Store, Globe } from "lucide-react";
 
 /**
  * The numbers a vendor needs to make a decision, which the raw view counter
@@ -10,7 +9,7 @@ import { Users, Target, ShoppingCart, Repeat, Link2, Compass, Store, Globe } fro
  * coming from links they shared or from people browsing the site.
  */
 
-const RANGE_DAYS = 30;
+export const RANGE_DAYS = 30;
 
 // A sale is anything the buyer actually paid for. Unpaid and reversed orders
 // are excluded so conversion isn't flattered by checkouts that never completed.
@@ -21,7 +20,7 @@ const NON_SALE_STATUSES = new Set([
     "refunded",
 ]);
 
-const SOURCE_LABEL: Record<string, { label: string; icon: typeof Link2 }> = {
+export const SOURCE_LABEL: Record<string, { label: string; icon: typeof Link2 }> = {
     buy_link: { label: "Links you shared", icon: Link2 },
     product_page: { label: "Browsing Solely", icon: Compass },
     storefront: { label: "Your storefront", icon: Store },
@@ -29,26 +28,28 @@ const SOURCE_LABEL: Record<string, { label: string; icon: typeof Link2 }> = {
     unknown: { label: "Before tracking", icon: Compass },
 };
 
-interface Row {
+export interface InsightRow {
     id: string;
     name: string;
+    stock: number | null;
     views: number;
     visitors: number;
     orders: number;
     revenue: number;
 }
 
-export const VendorInsights = ({ vendorId }: { vendorId: string }) => {
+const dayKey = (d: Date) => d.toISOString().slice(0, 10);
+
+export const useVendorInsights = (vendorId: string | undefined) => {
     const [loading, setLoading] = useState(true);
-    const [rows, setRows] = useState<Row[]>([]);
+    const [rows, setRows] = useState<InsightRow[]>([]);
     const [sources, setSources] = useState<Array<{ key: string; count: number }>>([]);
+    const [daily, setDaily] = useState<Array<{ date: string; label: string; views: number }>>([]);
     const [totals, setTotals] = useState({
         visitors: 0,
         orders: 0,
         abandoned: 0,
         abandonedValue: 0,
-        repeatBuyers: 0,
-        buyers: 0,
     });
 
     useEffect(() => {
@@ -59,34 +60,44 @@ export const VendorInsights = ({ vendorId }: { vendorId: string }) => {
     const load = async () => {
         setLoading(true);
         try {
-            const since = new Date(Date.now() - RANGE_DAYS * 86400_000).toISOString();
+            const since = new Date(Date.now() - RANGE_DAYS * 86400_000);
 
             const [{ data: products }, { data: orders }] = await Promise.all([
-                supabase.from("products").select("id, name").eq("vendor_id", vendorId),
+                supabase.from("products").select("id, name, stock").eq("vendor_id", vendorId!),
                 supabase
                     .from("orders")
-                    .select("id, status, customer_id, total_ksh")
-                    .eq("vendor_id", vendorId),
+                    .select("id, status, total_ksh, created_at")
+                    .eq("vendor_id", vendorId!),
             ]);
+
+            // One bucket per day so quiet days show as zero instead of vanishing.
+            const buckets = new Map<string, number>();
+            for (let i = RANGE_DAYS - 1; i >= 0; i--) {
+                buckets.set(dayKey(new Date(Date.now() - i * 86400_000)), 0);
+            }
 
             const productIds = (products || []).map((p) => p.id);
             if (productIds.length === 0) {
                 setRows([]);
-                setLoading(false);
+                setDaily(toSeries(buckets));
                 return;
             }
+
+            const recentOrderIds = (orders || [])
+                .filter((o) => new Date(o.created_at) >= since)
+                .map((o) => o.id);
 
             const [{ data: views }, { data: items }] = await Promise.all([
                 supabase
                     .from("product_views")
-                    .select("product_id, source, visitor_id")
+                    .select("product_id, source, visitor_id, viewed_at")
                     .in("product_id", productIds)
-                    .gte("viewed_at", since),
-                (orders || []).length
+                    .gte("viewed_at", since.toISOString()),
+                recentOrderIds.length
                     ? supabase
                         .from("order_items")
                         .select("order_id, product_id, line_total_ksh")
-                        .in("order_id", (orders || []).map((o) => o.id))
+                        .in("order_id", recentOrderIds)
                     : Promise.resolve({ data: [] as any[] }),
             ]);
 
@@ -108,10 +119,15 @@ export const VendorInsights = ({ vendorId }: { vendorId: string }) => {
                 }
                 const key = v.source || "unknown";
                 sourceCount.set(key, (sourceCount.get(key) || 0) + 1);
+                const day = dayKey(new Date(v.viewed_at));
+                if (buckets.has(day)) buckets.set(day, buckets.get(day)! + 1);
             });
 
+            // Same window as the views, so the look-to-buy rate compares like with like.
             const paidOrderIds = new Set(
-                (orders || []).filter((o) => !NON_SALE_STATUSES.has(o.status)).map((o) => o.id)
+                (orders || [])
+                    .filter((o) => !NON_SALE_STATUSES.has(o.status) && new Date(o.created_at) >= since)
+                    .map((o) => o.id)
             );
 
             const orderCount = new Map<string, number>();
@@ -122,9 +138,10 @@ export const VendorInsights = ({ vendorId }: { vendorId: string }) => {
                 revenue.set(it.product_id, (revenue.get(it.product_id) || 0) + (it.line_total_ksh || 0));
             });
 
-            const built: Row[] = (products || []).map((p) => ({
+            const built: InsightRow[] = (products || []).map((p) => ({
                 id: p.id,
                 name: p.name,
+                stock: p.stock,
                 views: viewCount.get(p.id) || 0,
                 visitors: (visitorSets.get(p.id)?.size || 0) + (anonCount.get(p.id) || 0),
                 orders: orderCount.get(p.id) || 0,
@@ -132,6 +149,7 @@ export const VendorInsights = ({ vendorId }: { vendorId: string }) => {
             }));
             built.sort((a, b) => b.revenue - a.revenue || b.views - a.views);
             setRows(built);
+            setDaily(toSeries(buckets));
 
             setSources(
                 Array.from(sourceCount.entries())
@@ -140,172 +158,26 @@ export const VendorInsights = ({ vendorId }: { vendorId: string }) => {
             );
 
             const abandonedOrders = (orders || []).filter((o) => o.status === "pending_payment");
-            const buyerOrderCounts = new Map<string, number>();
-            (orders || [])
-                .filter((o) => paidOrderIds.has(o.id) && o.customer_id)
-                .forEach((o) => buyerOrderCounts.set(o.customer_id!, (buyerOrderCounts.get(o.customer_id!) || 0) + 1));
-
             setTotals({
                 visitors: built.reduce((s, r) => s + r.visitors, 0),
                 orders: built.reduce((s, r) => s + r.orders, 0),
                 abandoned: abandonedOrders.length,
                 abandonedValue: abandonedOrders.reduce((s, o) => s + (o.total_ksh || 0), 0),
-                repeatBuyers: Array.from(buyerOrderCounts.values()).filter((n) => n > 1).length,
-                buyers: buyerOrderCounts.size,
             });
         } finally {
             setLoading(false);
         }
     };
 
-    if (loading) {
-        return (
-            <Card className="rounded-2xl border-border">
-                <CardContent className="py-10 text-center text-sm text-muted-foreground">
-                    Loading insights…
-                </CardContent>
-            </Card>
-        );
-    }
-
-    const conversion = totals.visitors > 0 ? (totals.orders / totals.visitors) * 100 : 0;
+    const conversion = totals.visitors > 0 ? (totals.orders / totals.visitors) * 100 : null;
     const totalSourceViews = sources.reduce((s, x) => s + x.count, 0);
 
-    const stat = (
-        label: string,
-        value: string,
-        hint: string,
-        Icon: typeof Users,
-        tone?: "warn"
-    ) => (
-        <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-muted-foreground">{label}</span>
-                <Icon size={15} strokeWidth={1.5} className={tone === "warn" ? "text-amber-500" : "text-muted-foreground"} />
-            </div>
-            <p className={`text-2xl font-bold ${tone === "warn" ? "text-amber-600 dark:text-amber-500" : ""}`}>{value}</p>
-            <p className="text-[11px] text-muted-foreground mt-1">{hint}</p>
-        </div>
-    );
-
-    return (
-        <div className="space-y-4">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                {stat("Real people", String(totals.visitors), `Last ${RANGE_DAYS} days, repeat visits merged`, Users)}
-                {stat(
-                    "Look-to-buy rate",
-                    totals.visitors > 0 ? `${conversion.toFixed(1)}%` : "-",
-                    totals.visitors > 0 ? `${totals.orders} bought of ${totals.visitors} who looked` : "No visitors yet",
-                    Target
-                )}
-                {stat(
-                    "Didn't pay",
-                    String(totals.abandoned),
-                    totals.abandoned > 0
-                        ? `KES ${totals.abandonedValue.toLocaleString()} reached checkout, never paid`
-                        : "No unpaid checkouts",
-                    ShoppingCart,
-                    totals.abandoned > 0 ? "warn" : undefined
-                )}
-                {stat(
-                    "Came back",
-                    String(totals.repeatBuyers),
-                    totals.buyers > 0
-                        ? `of ${totals.buyers} customer${totals.buyers === 1 ? "" : "s"} bought more than once`
-                        : "No customers yet",
-                    Repeat
-                )}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                {/* Which listing is working, which is dead */}
-                <Card className="lg:col-span-2 rounded-2xl border-border">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-semibold">How each product is doing</CardTitle>
-                        <p className="text-xs text-muted-foreground mt-0.5">Last {RANGE_DAYS} days</p>
-                    </CardHeader>
-                    <CardContent>
-                        {rows.length === 0 ? (
-                            <p className="py-8 text-center text-sm text-muted-foreground">No products yet</p>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="border-b text-xs text-muted-foreground">
-                                            <th className="text-left font-medium py-2">Product</th>
-                                            <th className="text-right font-medium py-2 px-2">People</th>
-                                            <th className="text-right font-medium py-2 px-2">Sold</th>
-                                            <th className="text-right font-medium py-2 px-2">Rate</th>
-                                            <th className="text-right font-medium py-2">Earned</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {rows.map((r) => {
-                                            const rate = r.visitors > 0 ? (r.orders / r.visitors) * 100 : null;
-                                            // Looked at but never bought - the listing itself is the
-                                            // problem, and that's the one thing worth flagging.
-                                            const deadStock = r.visitors >= 5 && r.orders === 0;
-                                            return (
-                                                <tr key={r.id} className="border-b last:border-0">
-                                                    <td className="py-2.5 pr-2">
-                                                        <span className="font-medium">{r.name}</span>
-                                                        {deadStock && (
-                                                            <span className="ml-2 text-[10px] rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 px-2 py-0.5">
-                                                                seen, not sold
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                    <td className="py-2.5 px-2 text-right tabular-nums">{r.visitors}</td>
-                                                    <td className="py-2.5 px-2 text-right tabular-nums">{r.orders}</td>
-                                                    <td className="py-2.5 px-2 text-right tabular-nums text-muted-foreground">
-                                                        {rate === null ? "-" : `${rate.toFixed(0)}%`}
-                                                    </td>
-                                                    <td className="py-2.5 text-right tabular-nums font-medium">
-                                                        {r.revenue > 0 ? `KES ${r.revenue.toLocaleString()}` : "-"}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-
-                {/* Is their own marketing working, or is it Solely's traffic */}
-                <Card className="rounded-2xl border-border">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-semibold">Where visitors came from</CardTitle>
-                        <p className="text-xs text-muted-foreground mt-0.5">Last {RANGE_DAYS} days</p>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        {totalSourceViews === 0 ? (
-                            <p className="py-8 text-center text-sm text-muted-foreground">No visits yet</p>
-                        ) : (
-                            sources.map(({ key, count }) => {
-                                const meta = SOURCE_LABEL[key] || SOURCE_LABEL.unknown;
-                                const pct = (count / totalSourceViews) * 100;
-                                const Icon = meta.icon;
-                                return (
-                                    <div key={key}>
-                                        <div className="flex items-center justify-between text-xs mb-1.5">
-                                            <span className="flex items-center gap-1.5">
-                                                <Icon size={13} strokeWidth={1.5} className="text-muted-foreground" />
-                                                {meta.label}
-                                            </span>
-                                            <span className="tabular-nums text-muted-foreground">{pct.toFixed(0)}%</span>
-                                        </div>
-                                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                                            <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-    );
+    return { loading, rows, sources, totals, daily, conversion, totalSourceViews };
 };
+
+const toSeries = (buckets: Map<string, number>) =>
+    Array.from(buckets.entries()).map(([date, views]) => ({
+        date,
+        label: new Date(date).toLocaleDateString("en-KE", { day: "numeric", month: "short" }),
+        views,
+    }));

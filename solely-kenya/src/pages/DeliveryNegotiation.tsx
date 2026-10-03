@@ -212,8 +212,8 @@ const DeliveryNegotiation = () => {
             </p>
           </div>
           {isAgreed && (
-            <Badge className="bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 text-sm px-3 py-1">
-              ✅ Agreed - KES {agreement.delivery_fee_ksh.toLocaleString()}
+            <Badge className="bg-success-soft text-success text-sm px-3 py-1">
+              Agreed · KES {agreement.delivery_fee_ksh.toLocaleString()}
             </Badge>
           )}
         </div>
@@ -260,7 +260,7 @@ const DeliveryNegotiation = () => {
                 </div>
                 {agreement.buyer_delivery_notes && (
                   <div className="bg-muted/50 rounded-lg p-2 text-xs text-muted-foreground">
-                    📝 {agreement.buyer_delivery_notes}
+                    {agreement.buyer_delivery_notes}
                   </div>
                 )}
                 {agreement.buyer_gps_lat && agreement.buyer_gps_lng && (
@@ -318,10 +318,10 @@ const DeliveryNegotiation = () => {
 
             {/* Current Proposal Status */}
             {latestProposal && !isAgreed && (
-              <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/20">
+              <Card className="border-primary/30 bg-primary/50">
                 <CardContent className="py-3">
-                  <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-                    💰 Latest proposal: KES {agreement.delivery_fee_ksh.toLocaleString()}
+                  <p className="text-sm font-medium text-primary-strong ">
+                    Latest proposal: KES {agreement.delivery_fee_ksh.toLocaleString()}
                     {agreement.delivery_method && ` via ${agreement.delivery_method}`}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -331,7 +331,7 @@ const DeliveryNegotiation = () => {
                     <Button
                       onClick={() => handleAcceptProposal(agreement.delivery_fee_ksh, agreement.delivery_method)}
                       disabled={sending}
-                      className="w-full mt-2 gap-2 bg-green-600 hover:bg-green-700"
+                      className="w-full mt-2 gap-2 bg-success hover:bg-success"
                       size="sm"
                     >
                       <Check size={16} strokeWidth={1.5} />
@@ -562,9 +562,9 @@ const InlineCheckout = ({
   };
 
   return (
-    <Card className="border-2 border-green-300 bg-green-50/50 dark:border-green-700 dark:bg-green-900/10 mb-4">
+    <Card className="border-2 border-success/30 bg-success/50 mb-4">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2 text-green-700 dark:text-green-400">
+        <CardTitle className="text-base flex items-center gap-2 text-success ">
           <ShieldCheck size={18} strokeWidth={1.5} />
           Ready to Pay - Delivery Agreed!
         </CardTitle>
@@ -583,7 +583,7 @@ const InlineCheckout = ({
           </div>
           <div className="flex justify-between border-t pt-2 font-bold text-base">
             <span>Total</span>
-            <span className="text-green-700 dark:text-green-400">KES {total.toLocaleString()}</span>
+            <span className="text-success ">KES {total.toLocaleString()}</span>
           </div>
         </div>
         <p className="text-xs text-muted-foreground">
@@ -597,7 +597,7 @@ const InlineCheckout = ({
           </p>
         )}
         <Button
-          className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+          className="w-full gap-2 bg-success hover:bg-success text-white"
           onClick={handleCheckout}
           disabled={processing || unresolved.length > 0}
         >

@@ -6,8 +6,9 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SearchBar, ActionButton, StatusPill, EmptyState } from "@/components/admin/AdminShared";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminAction } from "@/hooks/useAdminAction";
-import { Store, Star, ExternalLink } from "lucide-react";
+import { Store, Star, ExternalLink, Download, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toKenyanIntl, formatKenyanPhone } from "@/lib/phone";
 import { Link } from "react-router-dom";
 import {
   AlertDialog,
@@ -23,6 +24,15 @@ import {
 interface VendorDetails {
   id: string;
   full_name: string | null;
+  store_name: string | null;
+  email: string | null;
+  // The number buyers get once they order (Contact Vendor button, pickup email).
+  whatsapp_number: string | null;
+  store_phone: string | null;
+  vendor_address_line1: string | null;
+  vendor_address_line2: string | null;
+  vendor_city: string | null;
+  vendor_county: string | null;
   created_at: string;
   kyc_status?: string | null;
   rating?: number;
@@ -62,7 +72,7 @@ const AdminVendors = () => {
       }
 
       const [{ data: profiles, error: profilesError }, { data: ratingStats }, { data: completedOrders }] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, created_at, kyc_status").in("id", allVendorIds),
+        supabase.from("profiles").select("id, full_name, store_name, email, whatsapp_number, store_phone, vendor_address_line1, vendor_address_line2, vendor_city, vendor_county, created_at, kyc_status").in("id", allVendorIds),
         supabase.from("vendor_rating_stats").select("vendor_id, avg_rating, rating_count").in("vendor_id", allVendorIds),
         supabase.from("orders").select("vendor_id").eq("status", "completed").in("vendor_id", allVendorIds),
       ]);
@@ -122,9 +132,34 @@ const AdminVendors = () => {
   };
 
   const filteredVendors = vendors.filter(v => {
-    const fullName = (v.full_name || "").toLowerCase();
-    return fullName.includes(searchQuery.toLowerCase()) || v.id.includes(searchQuery);
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    const text = [v.full_name, v.store_name, v.email, v.vendor_city, v.vendor_county]
+      .filter(Boolean).join(" ").toLowerCase();
+    // Match phone searches regardless of format: "0712 345", "+254712", "712345" all hit.
+    const qDigits = q.replace(/\D/g, "").replace(/^(254|0)/, "");
+    const phoneHit = qDigits.length >= 3 && [v.whatsapp_number, v.store_phone]
+      .some(p => toKenyanIntl(p).includes(qDigits));
+    return text.includes(q) || v.id.includes(q) || phoneHit;
   });
+
+  const exportContacts = () => {
+    const cell = (val: string | number | null | undefined) => `"${String(val ?? "").replace(/"/g, '""')}"`;
+    const header = ["Store", "Owner", "Email", "WhatsApp (shown to buyers)", "Store phone (public)", "Address line 1", "Address line 2", "City", "County", "Status", "Verification", "Completed sales", "Joined"];
+    const rows = filteredVendors.map(v => [
+      v.store_name, v.full_name, v.email, v.whatsapp_number, v.store_phone,
+      v.vendor_address_line1, v.vendor_address_line2, v.vendor_city, v.vendor_county,
+      v.status, v.kyc_status, v.total_sales, v.created_at.slice(0, 10),
+    ]);
+    // BOM so Excel opens it as UTF-8 instead of mangling non-ASCII store names.
+    const csv = "﻿" + [header, ...rows].map(r => r.map(cell).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `solely-vendor-contacts-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const pendingReviews = vendors.filter(v => v.kyc_status === "pending").length;
 
@@ -135,11 +170,26 @@ const AdminVendors = () => {
           {pendingReviews} {pendingReviews === 1 ? "seller is" : "sellers are"} waiting for a verification review. They're at the top of the list.
         </div>
       )}
-      <SearchBar 
-        placeholder="Search vendors..." 
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
+      <div className="flex items-start gap-2">
+        <div className="flex-1 min-w-0">
+          <SearchBar
+            placeholder="Name, phone, email, town..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={exportContacts}
+          disabled={loading || filteredVendors.length === 0}
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-background text-sm text-muted-foreground hover:bg-muted transition disabled:opacity-50 disabled:pointer-events-none"
+          title="Download the contacts of the vendors shown below as a spreadsheet"
+        >
+          <Download size={13} strokeWidth={1.75} />
+          <span className="hidden sm:inline">Export contacts</span>
+          <span className="sm:hidden">CSV</span>
+        </button>
+      </div>
 
       {loading ? (
         <ListSkeleton rows={8} />
@@ -154,46 +204,69 @@ const AdminVendors = () => {
       ) : (
         <div className="rounded-xl border border-border bg-card shadow-soft divide-y divide-border">
           {filteredVendors.map(v => (
-            <div key={v.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 transition-colors">
-              
-              {/* Avatar */}
-              <div className="w-9 h-9 rounded-full bg-primary/15 flex-shrink-0 flex items-center justify-center text-xs font-medium text-primary">
-                {(v.full_name || "V")[0].toUpperCase()}
-              </div>
+            <div key={v.id} className="flex flex-col gap-2.5 px-4 py-3 hover:bg-muted/40 transition-colors sm:flex-row sm:items-center sm:gap-3">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                {/* Avatar */}
+                <div className="w-9 h-9 rounded-full bg-primary/15 flex-shrink-0 flex items-center justify-center text-xs font-medium text-primary">
+                  {(v.store_name || v.full_name || "V")[0].toUpperCase()}
+                </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <Link to={`/admin/vendors/${v.id}`} className="text-xs font-medium text-foreground truncate hover:text-primary transition-colors block">
-                  {v.full_name || "Unknown Vendor"}
-                </Link>
-                {v.kyc_status === "pending" && (
-                  <Link to={`/admin/vendors/${v.id}`} className="mt-0.5 inline-block rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium text-foreground">
-                    Review verification
-                  </Link>
-                )}
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-[11px] text-muted-foreground">
-                    {v.total_sales} sales
-                  </span>
-                  <span className="text-muted-foreground/30 text-xs">·</span>
-                  <Star size={10} className="text-primary fill-primary" />
-                  <span className="text-[11px] text-muted-foreground">
-                    {v.rating?.toFixed(1) || "5.0"}
-                  </span>
-                  <Link
-                    to={`/store/${v.id}`}
-                    className="text-[10px] text-primary hover:underline flex items-center gap-0.5 ml-1 shrink-0"
-                  >
-                    <ExternalLink size={9} />
-                    Store
-                  </Link>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Link to={`/admin/vendors/${v.id}`} className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors">
+                      {v.store_name || v.full_name || "Unknown Vendor"}
+                    </Link>
+                    <span className="ml-auto shrink-0"><StatusPill status={v.status} /></span>
+                  </div>
+                  {v.store_name && v.full_name && (
+                    <p className="text-[11px] text-muted-foreground truncate">{v.full_name}</p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-1 text-xs text-muted-foreground">
+                    {v.whatsapp_number ? (
+                      <a
+                        href={`tel:+${toKenyanIntl(v.whatsapp_number)}`}
+                        className="inline-flex items-center gap-1 text-foreground hover:text-primary whitespace-nowrap"
+                      >
+                        <Phone size={11} strokeWidth={1.75} />
+                        {formatKenyanPhone(v.whatsapp_number)}
+                      </a>
+                    ) : (
+                      <span className="italic whitespace-nowrap">No contact number</span>
+                    )}
+                    {v.vendor_city && (
+                      <>
+                        <span className="text-muted-foreground/40">·</span>
+                        <span className="whitespace-nowrap">{v.vendor_city}</span>
+                      </>
+                    )}
+                  </div>
+                  {v.kyc_status === "pending" && (
+                    <Link to={`/admin/vendors/${v.id}`} className="mt-1 inline-block rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium text-foreground">
+                      Review verification
+                    </Link>
+                  )}
+                  <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
+                    <span className="whitespace-nowrap">{v.total_sales} {v.total_sales === 1 ? "sale" : "sales"}</span>
+                    <span className="text-muted-foreground/40">·</span>
+                    <span className="inline-flex items-center gap-0.5 whitespace-nowrap">
+                      <Star size={10} className="text-primary fill-primary" />
+                      {v.rating?.toFixed(1) || "5.0"}
+                    </span>
+                    <span className="text-muted-foreground/40">·</span>
+                    <Link
+                      to={`/store/${v.id}`}
+                      className="text-primary hover:underline inline-flex items-center gap-0.5 whitespace-nowrap"
+                    >
+                      <ExternalLink size={10} />
+                      Store
+                    </Link>
+                  </div>
                 </div>
               </div>
 
-              <StatusPill status={v.status} />
-
-              {/* Actions */}
-              <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+              {/* Actions: own line on phones so they don't squeeze the details */}
+              <div className="flex items-center gap-1.5 flex-shrink-0 pl-12 sm:pl-0">
                 {v.status !== "revoked" ? (
                   <>
                     <ActionButton

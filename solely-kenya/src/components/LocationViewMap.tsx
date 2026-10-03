@@ -108,32 +108,32 @@ export function LocationViewMap({
     }, [latitude, longitude]);
 
     return (
-        <Card className="overflow-hidden border-emerald-200 dark:border-emerald-800">
+        <Card className="overflow-hidden border-success/30 ">
             {/* Header - Always visible */}
             <button
                 type="button"
-                className="w-full flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors"
+                className="w-full flex items-center justify-between p-3 bg-success-soft hover:bg-success-soft transition-colors"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div className="flex items-center gap-2">
-                    <div className="bg-emerald-500 p-1.5 rounded-full">
+                    <div className="bg-success p-1.5 rounded-full">
                         <MapPin size={16} strokeWidth={1.5} className=" text-white" />
                     </div>
                     <div className="text-left">
-                        <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
-                            📍 GPS Location Pinned
+                        <p className="text-sm font-medium text-success ">
+                            GPS location pinned
                         </p>
                         {recipientName && (
-                            <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                            <p className="text-xs text-success ">
                                 {recipientName}'s delivery location
                             </p>
                         )}
                     </div>
                 </div>
                 {isExpanded ? (
-                    <ChevronUp size={20} strokeWidth={1.5} className=" text-emerald-600" />
+                    <ChevronUp size={20} strokeWidth={1.5} className=" text-success" />
                 ) : (
-                    <ChevronDown size={20} strokeWidth={1.5} className=" text-emerald-600" />
+                    <ChevronDown size={20} strokeWidth={1.5} className=" text-success" />
                 )}
             </button>
 
@@ -166,7 +166,7 @@ export function LocationViewMap({
                         <div className="flex flex-col sm:flex-row gap-2">
                             <Button
                                 asChild
-                                className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                                className="flex-1 bg-success hover:bg-success"
                             >
                                 <a
                                     href={googleMapsLink}

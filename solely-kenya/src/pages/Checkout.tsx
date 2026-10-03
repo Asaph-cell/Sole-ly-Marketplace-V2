@@ -476,10 +476,10 @@ const Checkout = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {deliveryAgreement ? (
-                <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded border border-green-200 dark:border-green-800">
+                <div className="p-3 bg-success-soft rounded border border-success/30">
                   <div className="flex items-center gap-2 mb-1">
-                    <Truck size={16} strokeWidth={1.5} className="text-green-600" />
-                    <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                    <Truck size={16} strokeWidth={1.5} className="text-success" />
+                    <p className="text-sm font-semibold text-success ">
                       Delivery Fee Agreed: KES {deliveryAgreement.delivery_fee_ksh.toLocaleString()}
                     </p>
                   </div>
@@ -491,8 +491,8 @@ const Checkout = () => {
                   </p>
                 </div>
               ) : (
-                <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-800">
-                  <p className="text-sm text-blue-900 dark:text-blue-100">
+                <div className="p-3 bg-muted rounded border border-border">
+                  <p className="text-sm text-foreground ">
                     ℹ️ <strong>Free delivery!</strong> This order qualifies for free delivery by the vendor.
                   </p>
                 </div>
@@ -608,7 +608,7 @@ const Checkout = () => {
               {shippingFee > 0 ? (
                 <span className="font-medium text-foreground">KES {shippingFee.toLocaleString()}</span>
               ) : (
-                <Badge variant="secondary" className="text-green-600 text-xs">FREE</Badge>
+                <Badge variant="secondary" className="text-success text-xs">FREE</Badge>
               )}
             </div>
             <div className="flex justify-between font-semibold text-base pt-2 border-t">

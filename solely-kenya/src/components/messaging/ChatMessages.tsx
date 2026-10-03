@@ -146,7 +146,7 @@ export const ChatMessages = ({
               </div>
             ) : type === "delivery_accepted" ? (
               <div className="my-2 flex justify-center">
-                <p className="flex max-w-[88%] items-start gap-2 rounded-xl bg-[#1a5138]/10 px-3.5 py-2 text-xs font-medium text-[#1a5138] dark:text-emerald-300">
+                <p className="flex max-w-[88%] items-start gap-2 rounded-xl bg-[#1a5138]/10 px-3.5 py-2 text-xs font-medium text-[#1a5138] ">
                   <Handshake size={14} strokeWidth={2} className="mt-px shrink-0" />
                   Delivery fee agreed: {Number(msg.metadata?.delivery_fee ?? 0) === 0 ? "free" : `KES ${Number(msg.metadata?.delivery_fee).toLocaleString()}`}
                   {msg.metadata?.delivery_method ? ` · ${msg.metadata.delivery_method}` : ""}

@@ -149,7 +149,7 @@ const BuyNow = () => {
   const handleWhatsAppShare = () => {
     if (!product) return;
     const msg = encodeURIComponent(
-      `Hey! Check out *${product.name}* for KES ${product.price_ksh.toLocaleString()} 🛍️\n\nPay safely through Solely's escrow. Your money is protected until you confirm delivery 🔒\n\n👉 ${window.location.href}`
+      `Hey! Check out *${product.name}* for KES ${product.price_ksh.toLocaleString()}\n\nPay safely through Solely. Your money is protected until you confirm delivery.\n\n${window.location.href}`
     );
     window.open(`https://wa.me/?text=${msg}`, "_blank");
   };
@@ -224,7 +224,7 @@ const BuyNow = () => {
           onClick={handleCopyLink}
           className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
         >
-          {copied ? <CheckCircle size={16} strokeWidth={1.5} className=" text-green-500" /> : <Share2 size={16} strokeWidth={1.5}  />}
+          {copied ? <CheckCircle size={16} strokeWidth={1.5} className=" text-success" /> : <Share2 size={16} strokeWidth={1.5}  />}
         </button>
       </header>
 
@@ -300,11 +300,11 @@ const BuyNow = () => {
             </p>
             <div className="flex items-center gap-2 mt-2">
               {product.stock > 0 ? (
-                <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
-                  ✓ In Stock ({product.stock} available)
+                <span className="text-xs font-semibold text-success bg-success-soft px-2.5 py-1 rounded-full">
+                  In stock · {product.stock} available
                 </span>
               ) : (
-                <span className="text-xs font-semibold text-red-600 bg-red-50 px-2.5 py-1 rounded-full">
+                <span className="text-xs font-semibold text-destructive bg-destructive-soft px-2.5 py-1 rounded-full">
                   Out of Stock
                 </span>
               )}
@@ -333,7 +333,7 @@ const BuyNow = () => {
               <div className="flex items-center gap-3 mt-0.5">
                 {vendorStats.rating > 0 && (
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Star strokeWidth={1.5} className="h-3 w-3 fill-amber-400 text-amber-400" />
+                    <Star strokeWidth={1.5} className="h-3 w-3 fill-primary-strong text-primary-strong" />
                     {vendorStats.rating.toFixed(1)} ({vendorStats.reviews})
                   </span>
                 )}
@@ -436,7 +436,7 @@ const BuyNow = () => {
                 onClick={handleCopyLink}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-muted text-sm font-semibold hover:bg-muted/70 transition-colors"
               >
-                {copied ? <CheckCircle size={16} strokeWidth={1.5} className=" text-green-500" /> : <Copy size={16} strokeWidth={1.5}  />}
+                {copied ? <CheckCircle size={16} strokeWidth={1.5} className=" text-success" /> : <Copy size={16} strokeWidth={1.5}  />}
                 {copied ? "Copied!" : "Copy Link"}
               </button>
               <button
@@ -464,7 +464,7 @@ const BuyNow = () => {
             Buy Securely - KES {product.price_ksh.toLocaleString()}
           </button>
           <p className="text-center text-[11px] text-muted-foreground">
-            🔒 Funds held in escrow · Released only when you confirm delivery
+            Funds held in escrow · Released only when you confirm delivery
           </p>
         </div>
       </div>

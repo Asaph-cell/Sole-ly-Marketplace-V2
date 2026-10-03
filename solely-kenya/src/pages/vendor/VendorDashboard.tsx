@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { DashboardSkeleton } from "@/components/skeletons";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,60 +6,88 @@ import { useAuth } from "@/hooks/useAuth";
 import { VendorNavbar } from "@/components/vendor/VendorNavbar";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import { VendorBalanceCard } from "@/components/vendor/VendorBalanceCard";
-import { PayoutHistory } from "@/components/vendor/PayoutHistory";
-import { VendorInsights } from "@/components/vendor/VendorInsights";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
-import {
-  Package, Star, Eye, ShoppingCart, TrendingUp,
-  DollarSign, AlertTriangle, ArrowRight, Clock,
-  CheckCircle, Zap, Share2, Link2, Copy, Palette
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useVendorInsights, RANGE_DAYS, SOURCE_LABEL } from "@/components/vendor/VendorInsights";
 import { StoreSetupCard } from "@/components/vendor/StoreSetupCard";
+import { usePendingOrders } from "@/components/vendor/PendingOrdersBanner";
+import { useWaitingDeliveryChats } from "@/components/vendor/DeliveryInquiryBanner";
+import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/lib/toast";
+import { ArrowRight, Check, ChevronRight, Copy, Link2, MessageCircle, PackageCheck, PackageMinus, Plus, Scale } from "lucide-react";
+import { Area, AreaChart, XAxis, ResponsiveContainer, Tooltip } from "recharts";
 
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
-
-// ── Status badge colour map ───────────────────────────────────────────────────
-const STATUS_COLOR: Record<string, string> = {
-  completed:                   "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400",
-  arrived:                     "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400",
-  pending_vendor_confirmation: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400",
-  processing:                  "bg-blue-100  text-blue-700  dark:bg-blue-900/40  dark:text-blue-400",
-  shipped:                     "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400",
-  cancelled:                   "bg-red-100   text-red-700   dark:bg-red-900/40   dark:text-red-400",
+// Dot colour + wording for each order state. Plain words the seller would use.
+const STATUS: Record<string, { label: string; dot: string }> = {
+  pending_payment:             { label: "Awaiting payment", dot: "bg-muted-foreground/50" },
+  pending_vendor_confirmation: { label: "Needs you",        dot: "bg-primary" },
+  accepted:                    { label: "Accepted",         dot: "bg-foreground" },
+  processing:                  { label: "Processing",       dot: "bg-foreground" },
+  shipped:                     { label: "In transit",       dot: "bg-foreground" },
+  arrived:                     { label: "Delivered",        dot: "bg-success" },
+  completed:                   { label: "Completed",        dot: "bg-success" },
+  disputed:                    { label: "Disputed",         dot: "bg-destructive" },
+  refunded:                    { label: "Refunded",         dot: "bg-muted-foreground/50" },
+  cancelled:                   { label: "Cancelled",        dot: "bg-muted-foreground/50" },
+  cancelled_by_vendor:         { label: "Cancelled",        dot: "bg-muted-foreground/50" },
+  cancelled_by_customer:       { label: "Cancelled",        dot: "bg-muted-foreground/50" },
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  completed:                   "Completed",
-  arrived:                     "Arrived",
-  pending_vendor_confirmation: "Needs Action",
-  processing:                  "Processing",
-  shipped:                     "Shipped",
-  cancelled:                   "Cancelled",
-};
+const LOW_STOCK = 5;
+const TOP_PRODUCTS = 5;
+
+// Pill shape only; colour, hover and press come from the Button variants.
+const pillQuiet =
+  "h-10 rounded-full px-4";
+const pillGold =
+  "h-10 rounded-full px-5";
+
+const Panel = ({ title, action, children, className = "" }: {
+  title: string;
+  action?: { label: string; to: string };
+  children: ReactNode;
+  className?: string;
+}) => (
+  <section className={`rounded-2xl border border-border bg-card p-5 sm:p-6 ${className}`}>
+    <div className="mb-4 flex items-baseline justify-between gap-3">
+      <h2 className="font-sans text-sm font-semibold tracking-normal">{title}</h2>
+      {action && (
+        <Link
+          to={action.to}
+          className="group inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {action.label}
+          <ArrowRight size={12} className="transition-transform group-hover:translate-x-0.5" />
+        </Link>
+      )}
+    </div>
+    {children}
+  </section>
+);
+
+const Stat = ({ label, value, hint }: { label: string; value: string; hint?: string }) => (
+  <div className="min-w-0 px-0 sm:px-5 sm:first:pl-0 sm:last:pr-0">
+    <p className="text-xs text-muted-foreground">{label}</p>
+    <p className="mt-1 whitespace-nowrap font-display text-[clamp(1.5rem,2.4vw,1.875rem)] leading-none tabular-nums">{value}</p>
+    {hint && <p className="mt-1.5 truncate text-[11px] text-muted-foreground">{hint}</p>}
+  </div>
+);
 
 const VendorDashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  const [profile, setProfile]               = useState<any>(null);
-  const [dataLoading, setDataLoading]       = useState(true);
-  const [stats, setStats] = useState({
-    totalProducts:  0,
-    averageRating:  0,
-    totalViews:     0,
-    ordersReceived: 0,
-    totalEarned:    0,
-    paidOut:        0,
-    pendingBalance: 0,
-    pendingOrders:  0,
-  });
-  const [viewsData, setViewsData]           = useState<Array<{ date: string; views: number }>>([]);
-  const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
-  const [recentOrders, setRecentOrders]     = useState<any[]>([]);
+  const [profile, setProfile] = useState<any>(null);
+  const [rating, setRating] = useState<{ avg: number; count: number }>({ avg: 0, count: 0 });
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [openDisputes, setOpenDisputes] = useState(0);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const [showAllProducts, setShowAllProducts] = useState(false);
+
+  const insights = useVendorInsights(user?.id);
+  // Same live sources as the strips on other pages, so the numbers always match.
+  const pending = usePendingOrders();
+  const deliveryChats = useWaitingDeliveryChats();
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -67,12 +95,33 @@ const VendorDashboard = () => {
 
   useEffect(() => {
     if (user) loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadData = async () => {
     setDataLoading(true);
     try {
-      await Promise.all([fetchProfile(), fetchStats(), fetchViewsData()]);
+      const [{ data: prof }, { data: ratings }, { data: orders }, { count }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user!.id).single(),
+        supabase.from("vendor_ratings").select("rating").eq("vendor_id", user!.id),
+        supabase
+          .from("orders")
+          .select("id, status, created_at, total_ksh")
+          .eq("vendor_id", user!.id)
+          .order("created_at", { ascending: false })
+          .limit(5),
+        supabase
+          .from("disputes")
+          .select("id", { count: "exact", head: true })
+          .eq("vendor_id", user!.id)
+          .eq("status", "open"),
+      ]);
+
+      setProfile(prof);
+      setRecentOrders(orders || []);
+      setOpenDisputes(count || 0);
+      const n = ratings?.length || 0;
+      setRating({ avg: n ? ratings!.reduce((s, r) => s + r.rating, 0) / n : 0, count: n });
     } catch (e) {
       console.error("Dashboard load error:", e);
     } finally {
@@ -80,90 +129,67 @@ const VendorDashboard = () => {
     }
   };
 
-  const fetchProfile = async () => {
-    const { data } = await supabase.from("profiles").select("*").eq("id", user?.id).single();
-    setProfile(data);
-  };
-
-  const fetchStats = async () => {
-    const { data: products } = await supabase
-      .from("products").select("id, name, stock, views").eq("vendor_id", user?.id);
-
-    const totalViews = products?.reduce((s, p) => s + (p.views || 0), 0) || 0;
-    setLowStockProducts(products?.filter(p => p.stock < 5 && p.stock > 0).slice(0, 5) || []);
-
-    const { data: ratings } = await supabase
-      .from("vendor_ratings").select("rating").eq("vendor_id", user?.id);
-    const averageRating = ratings?.length
-      ? ratings.reduce((s, r) => s + r.rating, 0) / ratings.length : 0;
-
-    const { data: orders } = await supabase
-      .from("orders").select("*").eq("vendor_id", user?.id)
-      .order("created_at", { ascending: false });
-
-    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
-    const pendingOrdersCount = orders?.filter(o =>
-      o.status === "pending_vendor_confirmation" &&
-      new Date(o.created_at) >= cutoff
-    ).length || 0;
-    setRecentOrders(orders?.slice(0, 5) || []);
-
-    const completedOrders = orders?.filter(o => o.status === "completed" || o.status === "arrived") || [];
-    const totalEarnings = completedOrders.reduce((s, o) => s + (o.payout_amount || 0), 0);
-
-    const { data: payouts } = await supabase
-      .from("payouts").select("amount_ksh, status").eq("vendor_id", user?.id);
-    const paidOut = (payouts || [])
-      .filter((p: any) => p.status === "paid" || p.status === "processing")
-      .reduce((s: number, p: any) => s + (p.amount_ksh || 0), 0);
-
-    const { data: balanceData } = await supabase
-      .from("vendor_balances").select("pending_balance").eq("vendor_id", user?.id).single();
-
-    setStats({
-      totalProducts:  products?.length || 0,
-      averageRating:  Number(averageRating.toFixed(1)),
-      totalViews,
-      ordersReceived: orders?.length || 0,
-      totalEarned:    totalEarnings,
-      paidOut,
-      pendingBalance: balanceData?.pending_balance || 0,
-      pendingOrders:  pendingOrdersCount,
-    });
-  };
-
-  const fetchViewsData = async () => {
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0);
-
-    const { data: views } = await supabase
-      .from("product_views").select("viewed_at, product_id")
-      .gte("viewed_at", startOfMonth.toISOString())
-      .order("viewed_at", { ascending: true });
-
-    if (!views) { setViewsData([]); return; }
-
-    const { data: vendorProducts } = await supabase
-      .from("products").select("id").eq("vendor_id", user?.id);
-
-    const ids = new Set(vendorProducts?.map(p => p.id) || []);
-    const filtered = views.filter(v => ids.has(v.product_id));
-
-    const byDate: Record<string, number> = {};
-    filtered.forEach(v => {
-      const d = new Date(v.viewed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      byDate[d] = (byDate[d] || 0) + 1;
-    });
-
-    setViewsData(Object.entries(byDate).map(([date, views]) => ({ date, views })));
-  };
-
   if (loading) return <DashboardSkeleton />;
 
-  // ── Greeting ─────────────────────────────────────────────────────────────────
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-  const vendorName = profile?.full_name?.split(" ")[0] || "Vendor";
+  const firstName = profile?.full_name?.split(" ")[0];
+
+  const copyStoreLink = async () => {
+    const link = `${window.location.origin}/store/${profile?.store_link || profile?.id}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      toast.success("Store link copied", { description: "Paste it in your Instagram bio or WhatsApp status." });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Couldn't copy the link", { description: link });
+    }
+  };
+
+  const { rows, totals, daily, conversion, sources, totalSourceViews } = insights;
+  const lowStock = rows.filter((r) => r.stock !== null && r.stock > 0 && r.stock < LOW_STOCK);
+  const visibleRows = showAllProducts ? rows : rows.slice(0, TOP_PRODUCTS);
+  const busy = dataLoading || insights.loading;
+
+  // Only things the seller can act on right now, most urgent first. This is
+  // the dashboard's one place for alerts; the strips under the navbar hide here.
+  const pendingCount = pending.active.length;
+  const waitingCount = deliveryChats.waiting.length;
+  const todos = [
+    pendingCount > 0 && {
+      icon: PackageCheck,
+      title: `${pendingCount} order${pendingCount === 1 ? "" : "s"} waiting for you`,
+      detail: pending.deadline ? `${pending.deadline.text} to accept. Confirm so the buyer knows you're on it.` : "Confirm so the buyer knows you're on it.",
+      cta: "Confirm",
+      to: "/vendor/orders",
+      urgent: !!pending.deadline?.urgent,
+    },
+    openDisputes > 0 && {
+      icon: Scale,
+      title: `${openDisputes} dispute${openDisputes === 1 ? " needs" : "s need"} your side`,
+      detail: "Reply with what happened. Unanswered disputes usually go the buyer's way.",
+      cta: "Respond",
+      to: "/vendor/disputes",
+      urgent: true,
+    },
+    waitingCount > 0 && {
+      icon: MessageCircle,
+      title: waitingCount === 1 ? "A buyer is waiting on you" : `${waitingCount} buyers are waiting on you`,
+      detail: "Agree the delivery fee so they can pay.",
+      cta: "Open chat",
+      to: deliveryChats.to,
+      urgent: false,
+    },
+    lowStock.length > 0 && {
+      icon: PackageMinus,
+      title: `${lowStock.length} product${lowStock.length === 1 ? " is" : "s are"} almost sold out`,
+      detail: lowStock.slice(0, 3).map((p) => `${p.name} (${p.stock})`).join(", "),
+      cta: "Restock",
+      to: "/vendor/products",
+      urgent: false,
+    },
+  ].filter(Boolean) as Array<{ icon: typeof PackageCheck; title: string; detail: string; cta: string; to: string; urgent: boolean }>;
 
   return (
     <div className="min-h-screen bg-muted/30 overflow-x-hidden">
@@ -171,318 +197,255 @@ const VendorDashboard = () => {
       <div className="flex">
         <VendorSidebar />
 
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 pb-10">
+        <main className="flex-1 min-w-0 px-4 py-6 pb-12 sm:px-6 lg:px-10 lg:py-8">
+          <div className="mx-auto max-w-6xl space-y-6">
 
-          {/* ── Header ── */}
-          <div className="flex items-start justify-between mb-5 sm:mb-6">
-            <div>
-              <p className="text-xs sm:text-sm text-muted-foreground font-medium">{greeting},</p>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{vendorName} 👋</h1>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Button size="sm" onClick={() => navigate("/vendor/list-item")} className="gap-1.5 text-xs sm:text-sm">
-                <Package size={14} strokeWidth={1.5}  /> List Item
-              </Button>
-            </div>
-          </div>
+            {/* ── Header ── */}
+            <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h1 className="font-display text-3xl leading-tight sm:text-4xl">
+                  {greeting}{firstName && <>, <span className="italic text-primary">{firstName}</span></>}
+                </h1>
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:flex">
+                <Button variant="outline" className={pillQuiet} onClick={copyStoreLink} disabled={!profile}>
+                  {copied ? <Check size={15} strokeWidth={2} /> : <Copy size={15} strokeWidth={1.75} />}
+                  Store link
+                </Button>
+                <Button variant="outline" className={pillQuiet} onClick={() => navigate("/vendor/payment-links")}>
+                  <Link2 size={15} strokeWidth={1.75} /> Payment link
+                </Button>
+                <Button className={`${pillGold} order-first col-span-2 sm:order-last`} onClick={() => navigate("/vendor/list-item")}>
+                  <Plus size={16} strokeWidth={2} /> List an item
+                </Button>
+              </div>
+            </header>
 
-          {/* ── Push notification prompt ── */}
-          <PushNotificationPrompt variant="banner" />
-
-          {dataLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-24 rounded-2xl bg-muted animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <>
-              {/* ── Store setup progress (hides itself at 100%) ── */}
-              <StoreSetupCard profile={profile} className="mb-4 sm:mb-6" />
-
-              {/* ── Quick Actions ── */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                {/* Storefront Link Card */}
-                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Share2 size={16} strokeWidth={1.5} className="text-primary" />
+            {/* ── Things that need the seller today ── */}
+            {!busy && todos.length > 0 && (
+              <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-primary/30 bg-card">
+                {todos.map(({ icon: Icon, title, detail, cta, to, urgent }) => (
+                  <li key={title}>
+                    <Link to={to} className="group flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/50 sm:px-5">
+                      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${urgent ? "bg-destructive/10 text-destructive" : "bg-primary/15"}`}>
+                        <Icon size={16} strokeWidth={1.75} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold">{title}</p>
+                        <p className="truncate text-xs text-muted-foreground">{detail}</p>
                       </div>
-                      <h3 className="font-semibold">Your Storefront Link</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Share this link on your Instagram bio or WhatsApp to direct customers to your entire product catalog. List items so they appear here!
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="bg-muted px-3 py-2 rounded-md flex-1 overflow-hidden">
-                      <p className="text-xs font-mono truncate text-muted-foreground">
-                        solelymarketplace.com/store/{profile?.store_link || profile?.id?.substring(0, 8)}
-                      </p>
-                    </div>
-                    <Button 
-                      variant="default" 
-                      size="sm"
-                      onClick={() => {
-                        const link = `${window.location.origin}/store/${profile?.store_link || profile?.id}`;
-                        navigator.clipboard.writeText(link);
-                        toast({ title: "Link Copied!", description: "Store link copied to clipboard." });
-                      }}
-                    >
-                      <Copy size={14} className="mr-1.5" /> Copy
-                    </Button>
-                  </div>
-                  <Button variant="outline" className="w-full mt-3" onClick={() => navigate("/vendor/website")}>
-                    <Palette size={15} strokeWidth={1.5} className="mr-2" /> Customize your website
-                  </Button>
-                </div>
+                      <span className="hidden text-xs font-semibold sm:inline">{cta}</span>
+                      <ChevronRight size={16} className="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
 
-                {/* Create Payment Link Card */}
-                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-                        <Link2 size={16} strokeWidth={1.5} className="text-blue-600" />
+            {!dataLoading && <StoreSetupCard profile={profile} />}
+            <PushNotificationPrompt variant="banner" />
+
+            {/* ── Main grid ── */}
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+
+              <div className="min-w-0 space-y-6">
+                {/* Performance */}
+                <Panel title={`Last ${RANGE_DAYS} days`}>
+                  {busy ? (
+                    <div className="h-64 rounded-xl bg-muted animate-pulse" />
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-y-5 sm:grid-cols-4 sm:divide-x sm:divide-border">
+                        <Stat label="Visitors" value={totals.visitors.toLocaleString()} />
+                        <Stat label="Sales" value={totals.orders.toLocaleString()} />
+                        <Stat
+                          label="Look-to-buy"
+                          value={conversion === null ? "–" : `${conversion.toFixed(1)}%`}
+                          hint={conversion === null ? "No visitors yet" : undefined}
+                        />
+                        <Stat
+                          label="Rating"
+                          value={rating.count ? rating.avg.toFixed(1) : "–"}
+                          hint={rating.count ? `From ${rating.count} review${rating.count === 1 ? "" : "s"}` : "No reviews yet"}
+                        />
                       </div>
-                      <h3 className="font-semibold">Create Payment Link</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Close deals in the DMs securely. Generate a quick, professional checkout link for any item so your buyer feels safe paying upfront.
-                    </p>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    className="w-full bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40"
-                    onClick={() => navigate("/vendor/payment-links")}
-                  >
-                    <Link2 size={16} className="mr-2" /> Generate Secure Link
-                  </Button>
-                </div>
-              </div>
-              {/* ── Urgent action banner (only when needed) ── */}
-              {stats.pendingOrders > 0 && (
-                <Link
-                  to="/vendor/orders"
-                  className="flex items-center gap-3 px-4 py-3 mb-4 rounded-xl bg-amber-500/10 border border-amber-400/30 hover:bg-amber-500/15 transition-colors"
-                >
-                  <Zap size={16} strokeWidth={1.5} className=" text-amber-600 shrink-0" />
-                  <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 flex-1">
-                    {stats.pendingOrders} order{stats.pendingOrders !== 1 ? "s" : ""} need your confirmation
-                  </p>
-                  <ArrowRight size={16} strokeWidth={1.5} className=" text-amber-600 shrink-0" />
-                </Link>
-              )}
 
-              {/* ── 4 KPI cards in 2×2 (mobile) / 4×1 (desktop) ── */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
-                {/* Products */}
-                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col gap-1.5 hover:shadow-sm transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Products</span>
-                    <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Package size={14} strokeWidth={1.5} className=" text-primary" />
-                    </div>
-                  </div>
-                  <p className="text-2xl font-bold">{stats.totalProducts}</p>
-                  <Link to="/vendor/products" className="text-[11px] text-primary font-medium flex items-center gap-0.5 hover:underline">
-                    Manage <ArrowRight strokeWidth={1.5} className="h-3 w-3" />
-                  </Link>
-                </div>
-
-                {/* Rating */}
-                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col gap-1.5 hover:shadow-sm transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Rating</span>
-                    <div className="h-7 w-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                      <Star size={14} strokeWidth={1.5} className=" text-amber-500" />
-                    </div>
-                  </div>
-                  <p className="text-2xl font-bold">
-                    {stats.averageRating > 0 ? stats.averageRating : "-"}
-                  </p>
-                  <span className="text-[11px] text-muted-foreground">
-                    {stats.averageRating > 0 ? "out of 5 ★" : "No ratings yet"}
-                  </span>
-                </div>
-
-                {/* Views */}
-                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col gap-1.5 hover:shadow-sm transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Views</span>
-                    <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                      <Eye size={14} strokeWidth={1.5} className=" text-blue-500" />
-                    </div>
-                  </div>
-                  <p className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</p>
-                  <span className="text-[11px] text-muted-foreground">Product page views</span>
-                </div>
-
-                {/* Orders */}
-                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col gap-1.5 hover:shadow-sm transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Orders</span>
-                    <div className="h-7 w-7 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                      <ShoppingCart size={14} strokeWidth={1.5} className=" text-purple-500" />
-                    </div>
-                  </div>
-                  <p className="text-2xl font-bold">{stats.ordersReceived}</p>
-                  <Link to="/vendor/orders" className="text-[11px] text-primary font-medium flex items-center gap-0.5 hover:underline">
-                    View all <ArrowRight strokeWidth={1.5} className="h-3 w-3" />
-                  </Link>
-                </div>
-              </div>
-
-              {/* ── Earnings summary row ── */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-5">
-                <div className="bg-card rounded-2xl border border-border p-4 flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <TrendingUp size={14} strokeWidth={1.5} className=" text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Earned</span>
-                  </div>
-                  <p className="text-xl font-bold">KES {stats.totalEarned.toLocaleString()}</p>
-                  <span className="text-[11px] text-muted-foreground">From completed orders</span>
-                </div>
-
-                <div className="bg-green-50 dark:bg-green-950/30 rounded-2xl border border-green-200 dark:border-green-800 p-4 flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <CheckCircle size={14} strokeWidth={1.5} className=" text-green-600" />
-                    <span className="text-xs font-medium text-green-700 dark:text-green-400 uppercase tracking-wide">Paid Out</span>
-                  </div>
-                  <p className="text-xl font-bold text-green-700 dark:text-green-400">KES {stats.paidOut.toLocaleString()}</p>
-                  <span className="text-[11px] text-green-600 dark:text-green-500">Sent to M-Pesa</span>
-                </div>
-              </div>
-
-              {/* ── Wallet + Payout History ── */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
-                <VendorBalanceCard vendorId={user?.id!} />
-                <PayoutHistory vendorId={user?.id!} />
-              </div>
-
-              {/* ── Insights: what the view counter never answered ── */}
-              {user?.id && (
-                <div className="mb-4">
-                  <VendorInsights vendorId={user.id} />
-                </div>
-              )}
-
-              {/* ── Chart + Sidebar (alerts & recent orders) ── */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-                {/* Chart */}
-                <Card className="lg:col-span-2 rounded-2xl border-border">
-                  <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle className="text-sm font-semibold">Product Views</CardTitle>
-                      <p className="text-xs text-muted-foreground mt-0.5">This month</p>
-                    </div>
-                    <Eye size={16} strokeWidth={1.5} className=" text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    {viewsData.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-10 text-center">
-                        <Eye strokeWidth={1.5} className="h-10 w-10 text-muted-foreground/30 mb-3" />
-                        <p className="text-sm text-muted-foreground">No views recorded this month</p>
+                      <div className="mt-6 -mx-1">
+                        <ResponsiveContainer width="100%" height={150}>
+                          <AreaChart data={daily} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id="fillViews" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.28} />
+                                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <XAxis
+                              dataKey="label"
+                              tickLine={false}
+                              axisLine={false}
+                              interval="preserveStartEnd"
+                              minTickGap={40}
+                              tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                            />
+                            <Tooltip
+                              formatter={(v: number) => [v, "Views"]}
+                              labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+                              contentStyle={{
+                                borderRadius: 10,
+                                border: "1px solid hsl(var(--border))",
+                                background: "hsl(var(--card))",
+                                fontSize: 12,
+                              }}
+                              cursor={{ stroke: "hsl(var(--border))" }}
+                            />
+                            <Area type="monotone" dataKey="views" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#fillViews)" dot={false} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                        <p className="px-1 text-[11px] text-muted-foreground">Product views per day</p>
                       </div>
-                    ) : (
-                      <ResponsiveContainer width="100%" height={220}>
-                        <AreaChart data={viewsData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id="fillViews" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%"  stopColor="hsl(var(--primary))" stopOpacity={0.25} />
-                              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={6} tick={{ fontSize: 11 }} />
-                          <YAxis tickLine={false} axisLine={false} tickMargin={4} tick={{ fontSize: 11 }} />
-                          <Tooltip
-                            contentStyle={{ borderRadius: 10, border: "1px solid hsl(var(--border))", fontSize: 12 }}
-                            cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "4 4" }}
-                          />
-                          <Area
-                            type="monotone" dataKey="views"
-                            stroke="hsl(var(--primary))" strokeWidth={2}
-                            fill="url(#fillViews)" dot={false}
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    )}
-                  </CardContent>
-                </Card>
 
-                {/* Right column: Low stock + Recent orders */}
-                <div className="space-y-4">
-
-                  {/* Low stock */}
-                  <Card className="rounded-2xl border-border">
-                    <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                      <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-                        <AlertTriangle size={16} strokeWidth={1.5} className=" text-destructive" />
-                        Low Stock
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {lowStockProducts.length === 0 ? (
-                        <p className="text-xs text-muted-foreground py-2">All products well stocked ✓</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {lowStockProducts.map((p: any) => (
-                            <div key={p.id} className="flex items-center justify-between text-xs">
-                              <span className="truncate max-w-[65%] font-medium">{p.name}</span>
-                              <span className="font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full">
-                                {p.stock} left
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                      {totals.abandoned > 0 && (
+                        <p className="mt-4 border-t border-border pt-4 text-xs text-muted-foreground">
+                          <span className="font-semibold text-foreground tabular-nums">KES {totals.abandonedValue.toLocaleString()}</span>{" "}
+                          reached checkout but wasn't paid ({totals.abandoned} order{totals.abandoned === 1 ? "" : "s"}).
+                        </p>
                       )}
-                    </CardContent>
-                  </Card>
+                    </>
+                  )}
+                </Panel>
 
-                  {/* Recent orders */}
-                  <Card className="rounded-2xl border-border">
-                    <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                      <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-                        <Clock size={16} strokeWidth={1.5} className=" text-muted-foreground" />
-                        Recent Orders
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {recentOrders.length === 0 ? (
-                        <p className="text-xs text-muted-foreground py-2">No orders yet.</p>
-                      ) : (
-                        <div className="space-y-2.5">
-                          {recentOrders.map((order: any) => (
-                            <div key={order.id} className="flex items-center justify-between gap-2">
-                              <div>
-                                <p className="text-xs font-semibold">#{order.id.slice(0, 8)}</p>
+                {/* Products */}
+                <Panel title="Your products" action={{ label: "Manage", to: "/vendor/products" }}>
+                  {busy ? (
+                    <div className="space-y-2">
+                      {[0, 1, 2].map((i) => <div key={i} className="h-10 rounded-lg bg-muted animate-pulse" />)}
+                    </div>
+                  ) : rows.length === 0 ? (
+                    <div className="flex flex-col items-start gap-3 py-2">
+                      <p className="text-sm text-muted-foreground">Nothing listed yet. Your first item takes about two minutes.</p>
+                      <Button className={pillGold} onClick={() => navigate("/vendor/list-item")}>
+                        <Plus size={16} strokeWidth={2} /> List an item
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="-mx-5 overflow-x-auto sm:-mx-6">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="text-xs text-muted-foreground">
+                              <th className="pb-2 pl-5 text-left font-medium sm:pl-6">Product</th>
+                              <th className="hidden px-3 pb-2 text-right font-medium sm:table-cell">Visitors</th>
+                              <th className="px-3 pb-2 text-right font-medium">Sold</th>
+                              <th className="pb-2 pl-3 pr-5 text-right font-medium sm:pr-6">Earned</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border border-t border-border">
+                            {visibleRows.map((r) => {
+                              // Looked at but never bought: the listing itself needs work.
+                              const unsold = r.visitors >= 5 && r.orders === 0;
+                              const low = r.stock !== null && r.stock < LOW_STOCK;
+                              return (
+                                <tr key={r.id}>
+                                  <td className="w-full max-w-0 py-3 pl-5 pr-3 sm:pl-6">
+                                    <p className="truncate font-medium">{r.name}</p>
+                                    {(unsold || low) && (
+                                      <p className="text-[11px] text-muted-foreground">
+                                        {low && <span className="font-medium text-destructive">{r.stock === 0 ? "Sold out" : `${r.stock} left`}</span>}
+                                        {low && unsold && " · "}
+                                        {unsold && "Seen but not sold yet"}
+                                      </p>
+                                    )}
+                                  </td>
+                                  <td className="hidden px-3 py-3 text-right tabular-nums text-muted-foreground sm:table-cell">{r.visitors}</td>
+                                  <td className="px-3 py-3 text-right tabular-nums text-muted-foreground">{r.orders}</td>
+                                  <td className="whitespace-nowrap py-3 pl-3 pr-5 text-right font-medium tabular-nums sm:pr-6">
+                                    {r.revenue > 0 ? `KES ${r.revenue.toLocaleString()}` : "–"}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      {rows.length > TOP_PRODUCTS && (
+                        <button
+                          type="button"
+                          onClick={() => setShowAllProducts((v) => !v)}
+                          className="mt-3 text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                        >
+                          {showAllProducts ? "Show top 5" : `Show all ${rows.length}`}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </Panel>
+              </div>
+
+              {/* ── Right rail ── */}
+              <aside className="order-first min-w-0 space-y-6 lg:order-none">
+                {user?.id && <VendorBalanceCard vendorId={user.id} />}
+
+                <Panel title="Recent orders" action={{ label: "All orders", to: "/vendor/orders" }}>
+                  {dataLoading ? (
+                    <div className="space-y-2">
+                      {[0, 1, 2].map((i) => <div key={i} className="h-10 rounded-lg bg-muted animate-pulse" />)}
+                    </div>
+                  ) : recentOrders.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No orders yet. Share your store link to get the first one.</p>
+                  ) : (
+                    <ul className="-my-2.5 divide-y divide-border">
+                      {recentOrders.map((order) => {
+                        const expired = order.status === "pending_vendor_confirmation" && Date.now() - new Date(order.created_at).getTime() > 48 * 60 * 60 * 1000;
+                        const s = expired
+                          ? { label: "Expired", dot: "bg-muted-foreground/50" }
+                          : STATUS[order.status] ?? { label: order.status.replace(/_/g, " "), dot: "bg-muted-foreground/50" };
+                        return (
+                          <li key={order.id}>
+                            <Link to="/vendor/orders" className="flex items-center justify-between gap-3 py-2.5 transition-opacity hover:opacity-70">
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium tabular-nums">KES {(order.total_ksh || 0).toLocaleString()}</p>
                                 <p className="text-[11px] text-muted-foreground">
                                   {new Date(order.created_at).toLocaleDateString("en-KE", { day: "numeric", month: "short" })}
+                                  {" · "}
+                                  <span className="font-mono">#{order.id.slice(0, 6)}</span>
                                 </p>
                               </div>
-                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[order.status] ?? "bg-muted text-muted-foreground"}`}>
-                                {STATUS_LABEL[order.status] ?? order.status.replace(/_/g, " ")}
+                              <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
+                                <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
+                                {s.label}
                               </span>
-                            </div>
-                          ))}
-                          <Button
-                            variant="outline" size="sm"
-                            className="w-full mt-1 text-xs h-8 rounded-lg"
-                            onClick={() => navigate("/vendor/orders")}
-                          >
-                            View all orders
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </Panel>
 
-                </div>
-              </div>
-            </>
-          )}
+                {!busy && totalSourceViews > 0 && (
+                  <Panel title="Where visitors came from">
+                    <ul className="space-y-3">
+                      {sources.map(({ key, count }) => {
+                        const meta = SOURCE_LABEL[key] || SOURCE_LABEL.unknown;
+                        const pct = (count / totalSourceViews) * 100;
+                        return (
+                          <li key={key}>
+                            <div className="mb-1.5 flex items-center justify-between text-xs">
+                              <span>{meta.label}</span>
+                              <span className="tabular-nums text-muted-foreground">{pct.toFixed(0)}%</span>
+                            </div>
+                            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                              <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </Panel>
+                )}
+              </aside>
+            </div>
+          </div>
         </main>
       </div>
     </div>

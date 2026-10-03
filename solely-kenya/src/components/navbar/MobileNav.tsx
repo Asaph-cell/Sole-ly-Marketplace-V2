@@ -8,6 +8,7 @@ import {
   ShoppingCart, Download, Home, Info, HelpCircle, Tag, ChevronRight, Heart, MessageCircle, Shield,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
@@ -159,7 +160,7 @@ export const MobileNav = ({
               <MessageCircle size={16} strokeWidth={1.5} className=" shrink-0 text-muted-foreground" />
               Messages
               {unreadMessages > 0 ? (
-                <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full px-2 py-0.5">
+                <span className="ml-auto bg-destructive text-white text-[10px] font-bold rounded-full px-2 py-0.5">
                   {unreadMessages}
                 </span>
               ) : (
@@ -173,7 +174,7 @@ export const MobileNav = ({
             <div className="px-4 mt-1">
               <button
                 onClick={handleInstallClick}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-primary/10 to-amber-400/10 text-primary border border-primary/20 hover:bg-primary/10 transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-primary-soft text-primary-strong border border-primary/20 hover:bg-primary/20 transition-colors"
               >
                 <Download size={16} strokeWidth={1.5} className=" shrink-0" />
                 Install App
@@ -275,7 +276,11 @@ export const MobileNav = ({
         </div>
 
         {/* ── Footer ── */}
-        <div className="border-t border-border px-4 py-3 bg-sunken">
+        <div className="border-t border-border px-4 py-3 bg-sunken space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Theme</span>
+            <ThemeToggle />
+          </div>
           <a
             href={`mailto:${supportEmail}`}
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"

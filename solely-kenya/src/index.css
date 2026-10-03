@@ -9,29 +9,31 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Backgrounds */
-    --background: 0 0% 100%;
+    --background: 40 22% 96%;
     /* Pure White */
-    --background-alt: 0 0% 96%;
+    --background-alt: 40 16% 93%;
     /* Muted surfaces */
-    --sidebar: 0 0% 98%;
+    --sidebar: 40 25% 98.5%;
     /* Sidebar bg */
 
     /* Foreground / Text */
-    --foreground: 0 0% 20%;
+    --foreground: 30 10% 9%;
     /* Primary text */
-    --foreground-muted: 0 0% 45%;
+    --foreground-muted: 30 6% 38%;
     /* Muted / secondary text */
 
     /* Brand */
     --primary: 45 69% 50%;
     /* Golden Yellow, main accent */
-    --primary-hover: 45 69% 42%;
+    --primary-hover: 43 72% 44%;
     /* Darker gold on hover */
     --primary-foreground: 0 0% 10%;
+    --primary-strong: 40 62% 31%;
+    /* Gold as text/icon on light surfaces (brand gold alone fails contrast) */
     /* Text on primary buttons */
 
     /* Secondary */
-    --secondary: 0 0% 10%;
+    --secondary: 30 8% 11%;
     /* Very dark gray */
     --secondary-foreground: 0 0% 98%;
     /* Text on secondary buttons */
@@ -43,39 +45,43 @@ All colors MUST be HSL.
     --surface-cream: 44 68% 91%;
 
     /* Surfaces */
-    --muted: 0 0% 96%;
+    --muted: 40 16% 92.5%;
     /* Muted background */
-    --muted-foreground: 0 0% 40%;
+    --muted-foreground: 30 6% 36%;
     /* Text on muted bg */
 
     /* Borders & Inputs */
-    --border: 0 0% 89.8%;
+    --border: 38 14% 85%;
     /* Default border */
-    --input: 0 0% 89.8%;
+    --input: 38 14% 80%;
     /* Input border */
     --ring: 45 69% 50%;
     /* Focus ring, matches primary */
 
     /* Feedback */
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 4 64% 49%;
     /* Error / delete */
     --destructive-foreground: 0 0% 98%;
+    /* Tinted surfaces for status notes, so no page reaches for raw amber-50 */
+    --destructive-soft: 4 70% 96%;
 
-    --success: 142 71% 45%;
+    --success: 152 46% 33%;
     /* Emerald green */
     --success-foreground: 0 0% 98%;
+    --success-soft: 150 35% 95%;
+    --primary-soft: 44 70% 94%;
 
     /* Card */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 20%;
+    --card-foreground: 30 10% 9%;
 
     /* Shadows & gradients - referenced by tailwind.config.ts's shadow-soft/
        shadow-card/shadow-hover/shadow-glass and bg-gradient-hero/gradient-card
        utilities, which previously no-op'd since these were never defined. */
-    --shadow-soft: 0 1px 2px 0 hsl(0 0% 0% / 0.04), 0 1px 3px 0 hsl(0 0% 0% / 0.06);
-    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.06), 0 4px 12px -2px hsl(0 0% 0% / 0.08);
-    --shadow-hover: 0 8px 24px -4px hsl(45 69% 50% / 0.18), 0 2px 8px -2px hsl(0 0% 0% / 0.08);
-    --shadow-glass: 0 8px 32px 0 hsl(0 0% 0% / 0.10);
+    --shadow-soft: 0 1px 2px 0 hsl(30 20% 20% / 0.05), 0 1px 3px 0 hsl(30 20% 20% / 0.06);
+    --shadow-card: 0 1px 2px 0 hsl(30 20% 20% / 0.05), 0 6px 16px -4px hsl(30 20% 20% / 0.08);
+    --shadow-hover: 0 10px 28px -8px hsl(40 60% 30% / 0.22), 0 2px 6px -2px hsl(30 20% 20% / 0.08);
+    --shadow-glass: 0 8px 32px 0 hsl(30 20% 20% / 0.10);
     --gradient-hero: linear-gradient(135deg, hsl(45 69% 50%) 0%, hsl(35 75% 55%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(45 30% 97%) 100%);
 
@@ -93,55 +99,61 @@ All colors MUST be HSL.
 
     /* Keep existing tokens not mentioned but maybe used */
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 20%;
+    --popover-foreground: 30 10% 9%;
     --accent: 45 69% 50%;
-    --accent-foreground: 0 0% 100%;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --accent-foreground: 30 8% 11%;
+    --sidebar-background: 40 25% 98.5%;
+    --sidebar-foreground: 30 6% 25%;
+    --sidebar-primary: 30 8% 11%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 40 14% 95.5%;
+    --sidebar-accent-foreground: 30 8% 11%;
+    --sidebar-border: 38 14% 85%;
+    --sidebar-ring: 45 69% 50%;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
+    --background: 30 6% 5%;
     /* Almost Black */
-    --background-alt: 0 0% 7%;
-    --sidebar: 240 5.9% 10%;
+    --background-alt: 30 5% 8%;
+    --sidebar: 30 5% 7%;
     /* Very Dark Gray */
 
-    --foreground: 0 0% 98%;
+    --foreground: 40 15% 95%;
     /* Almost White */
-    --foreground-muted: 0 0% 60%;
+    --foreground-muted: 35 5% 62%;
 
     --primary: 45 69% 50%;
     /* Golden Yellow, unchanged */
-    --primary-hover: 45 69% 58%;
+    --primary-hover: 45 72% 58%;
     /* Lighter gold in dark mode */
     --primary-foreground: 0 0% 10%;
+    --primary-strong: 45 75% 62%;
 
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 30 5% 17%;
+    --secondary-foreground: 40 15% 95%;
 
     --surface-sunken: 0 0% 7.5%;
     --surface-cream: 38 24% 10%;
 
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 55%;
+    --muted: 30 5% 13%;
+    --muted-foreground: 35 5% 62%;
 
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
+    --border: 30 5% 17%;
+    --input: 30 5% 20%;
     --ring: 45 69% 50%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 4 66% 58%;
     /* Darker red in dark mode */
     --destructive-foreground: 0 0% 98%;
+    --destructive-soft: 4 40% 13%;
+    --success: 152 42% 50%;
+    --success-foreground: 30 8% 9%;
+    --success-soft: 152 25% 11%;
+    --primary-soft: 42 35% 12%;
 
-    --card: 0 0% 6%;
-    --card-foreground: 0 0% 98%;
+    --card: 30 5% 8%;
+    --card-foreground: 40 15% 95%;
 
     /* Shadows & gradients - dark surface versions */
     --shadow-soft: 0 1px 2px 0 hsl(0 0% 0% / 0.30), 0 1px 3px 0 hsl(0 0% 0% / 0.40);
@@ -152,18 +164,18 @@ All colors MUST be HSL.
     --gradient-card: linear-gradient(180deg, hsl(0 0% 8%) 0%, hsl(0 0% 5%) 100%);
 
     /* Keep existing tokens not mentioned but maybe used */
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 30 5% 8%;
+    --popover-foreground: 40 15% 95%;
     --accent: 45 69% 50%;
-    --accent-foreground: 0 0% 100%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --accent-foreground: 30 8% 9%;
+    --sidebar-background: 30 5% 7%;
+    --sidebar-foreground: 40 10% 88%;
+    --sidebar-primary: 45 69% 50%;
+    --sidebar-primary-foreground: 30 8% 9%;
+    --sidebar-accent: 30 5% 13%;
+    --sidebar-accent-foreground: 40 15% 95%;
+    --sidebar-border: 30 5% 17%;
+    --sidebar-ring: 45 69% 50%;
   }
 
   /* Admin dashboard gets its own richer palette, scoped so the public
@@ -221,8 +233,9 @@ All colors MUST be HSL.
 
   /* Page headings use the display serif site-wide (the admin console keeps
      its own sans look). DM Serif Display has one weight, so override any
-     font-bold/extrabold utilities that would otherwise fake-bold it. */
-  :where(h1, h2):not(.admin-shell *):not(.sw-display) {
+     font-bold/extrabold utilities that would otherwise fake-bold it.
+     Small section labels opt out with font-sans. */
+  :where(h1, h2):not(.admin-shell *):not(.font-sans):not(.sw-display) {
     font-family: theme("fontFamily.display");
     font-weight: 400 !important;
     letter-spacing: -0.01em;
@@ -651,26 +664,26 @@ a {
    mobile-first utilities, so they opt out of these blanket clamps. */
 /* Hero / Page title headings (text-5xl, text-4xl) */
 @media (max-width: 639px) {
-  h1:not(.font-display):not(.sw-display) {
+  h1:not(.font-display):not(.sw-display):not([class*="text-xs"]):not([class*="text-sm"]):not([class*="text-base"]):not([class*="text-lg"]) {
     font-size: clamp(1.5rem, 6vw, 2.5rem) !important;
     line-height: 1.15 !important;
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
 
-  h2:not(.font-display):not(.sw-display) {
+  h2:not(.font-display):not(.sw-display):not([class*="text-xs"]):not([class*="text-sm"]):not([class*="text-base"]):not([class*="text-lg"]) {
     font-size: clamp(1.25rem, 5vw, 2rem) !important;
     line-height: 1.2 !important;
   }
 
-  h3:not(.font-display):not(.sw-display) {
+  h3:not(.font-display):not(.sw-display):not([class*="text-xs"]):not([class*="text-sm"]):not([class*="text-base"]):not([class*="text-lg"]) {
     font-size: clamp(1rem, 3.5vw, 1.5rem) !important;
     line-height: 1.25 !important;
   }
 
-  h4,
-  h5,
-  h6 {
+  h4:not(.font-display):not([class*="text-xs"]):not([class*="text-sm"]):not([class*="text-base"]):not([class*="text-lg"]),
+  h5:not(.font-display):not([class*="text-xs"]):not([class*="text-sm"]):not([class*="text-base"]):not([class*="text-lg"]),
+  h6:not(.font-display):not([class*="text-xs"]):not([class*="text-sm"]):not([class*="text-base"]):not([class*="text-lg"]) {
     font-size: clamp(0.875rem, 3vw, 1.25rem) !important;
     line-height: 1.3 !important;
   }
@@ -678,15 +691,15 @@ a {
 
 /* Even tighter for very small screens (320px) */
 @media (max-width: 359px) {
-  h1:not(.font-display):not(.sw-display) {
+  h1:not(.font-display):not(.sw-display):not([class*="text-xs"]):not([class*="text-sm"]):not([class*="text-base"]):not([class*="text-lg"]) {
     font-size: clamp(1.25rem, 7vw, 1.75rem) !important;
   }
 
-  h2:not(.font-display):not(.sw-display) {
+  h2:not(.font-display):not(.sw-display):not([class*="text-xs"]):not([class*="text-sm"]):not([class*="text-base"]):not([class*="text-lg"]) {
     font-size: clamp(1.1rem, 5.5vw, 1.5rem) !important;
   }
 
-  h3:not(.font-display):not(.sw-display) {
+  h3:not(.font-display):not(.sw-display):not([class*="text-xs"]):not([class*="text-sm"]):not([class*="text-base"]):not([class*="text-lg"]) {
     font-size: clamp(0.9rem, 4vw, 1.25rem) !important;
   }
 }
@@ -856,4 +869,268 @@ a {
 .swiper-button-disabled {
   opacity: 0 !important;
   pointer-events: none;
+}
+/* ==========================================
+   BUTTON MOTION
+   Press: the button dips 2px in 70ms, then springs back up on release.
+   Filled buttons are magnetic: they lean a few px toward the cursor (set
+   from Button's pointer handlers as --tx/--ty) and spring home on leave.
+   Icons act out what the button does. Hover is gated to real pointers so
+   nothing sticks after a tap on a phone; reduced-motion keeps colour only.
+   ========================================== */
+@layer components {
+  .btn-fx {
+    --fx-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --fx-out: cubic-bezier(0.23, 1, 0.32, 1);
+    transform: translate(var(--tx, 0px), var(--ty, 0px));
+    transition:
+      transform 500ms var(--fx-spring),
+      background-color 200ms var(--fx-out),
+      border-color 200ms var(--fx-out),
+      box-shadow 200ms var(--fx-out),
+      color 200ms var(--fx-out);
+  }
+  /* Dip: down fast while held, springs back up on release. */
+  .btn-fx:active:not(:disabled) {
+    transform: translate(var(--tx, 0px), calc(var(--ty, 0px) + 2px));
+    transition-duration: 70ms, 200ms, 200ms, 120ms, 200ms;
+    transition-timing-function: var(--fx-out);
+  }
+
+  /* Icons, and the parts inside them, move on the same spring. view-box
+     origins let a part pivot on its real hinge (a lid, a shackle, a hand). */
+  svg.lucide,
+    svg.lucide * {
+    transition:
+      transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      fill 200ms ease,
+      stroke-dashoffset 400ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  svg.lucide { transform-origin: 50% 50%; }
+  svg.lucide * { transform-box: view-box; }
+
+  @media (hover: hover) and (pointer: fine) {
+    /* Magnetic: follow the cursor quickly while inside; the 500ms spring
+       above takes over again when it leaves. */
+    .btn-magnetic:hover:not(:disabled) {
+      transition-duration: 140ms, 200ms, 200ms, 200ms, 200ms;
+      transition-timing-function: var(--fx-out);
+    }
+
+    /* ── Whole-icon moves ── */
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-plus,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-plus,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-circle-plus,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-circle-plus,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-plus-circle,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-plus-circle,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-x,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-x { transform: rotate(90deg); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-arrow-right,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-arrow-right,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-chevron-right,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-chevron-right,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-move-right,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-move-right { transform: translateX(3px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-arrow-left,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-arrow-left,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-chevron-left,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-chevron-left { transform: translateX(-3px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-arrow-up-right,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-arrow-up-right,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-external-link,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-external-link,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-share2,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-share2,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-link2,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-link2,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-link,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-link { transform: translate(2px, -2px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-arrow-down-to-line,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-arrow-down-to-line,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-download,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-download,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-image-down,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-image-down { transform: translateY(2px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-upload,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-upload { transform: translateY(-2px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-refresh-cw,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-refresh-cw,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-rotate-cw,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-rotate-cw { transform: rotate(180deg); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-settings,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-settings { transform: rotate(90deg); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-pencil,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-pencil,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-edit,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-edit,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-square-pen,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-square-pen { transform: rotate(-14deg) translateY(-1px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-search,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-search { transform: rotate(-12deg) scale(1.12); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-shopping-bag,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-shopping-bag,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-shopping-cart,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-shopping-cart { transform: translateY(-2px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-tag,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-tag { transform: rotate(-14deg); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-credit-card,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-credit-card { transform: translateX(2px) rotate(-8deg); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-thumbs-up,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-thumbs-up { transform: rotate(-16deg) translateY(-1px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-sun,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-sun { transform: rotate(45deg); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-moon,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-moon { transform: rotate(-20deg); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-filter,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-filter { transform: scaleY(0.82); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-wallet,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-wallet { transform: rotate(-6deg) translateY(-1px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-qr-code,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-qr-code { transform: scale(1.12); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-save,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-save,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-check-circle,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-check-circle,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-check-circle2,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-check-circle2 { transform: scale(1.14); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-message-circle,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-message-circle { transform: rotate(-12deg) scale(1.06); }
+
+    /* ── Part moves: the icon does its thing ── */
+    /* Padlock: shackle lifts. */
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-lock path,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-lock path { transform: translateY(-2.5px); }
+    /* Bin: lid tips open on its left hinge. */
+    .lucide-trash2 path[d="M3 6h18"],
+    .lucide-trash2 path[d^="M8 6V4"] { transform-origin: 3px 6px; }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-trash2 path[d="M3 6h18"],
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-trash2 path[d="M3 6h18"],
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-trash2 path[d^="M8 6V4"],
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-trash2 path[d^="M8 6V4"] { transform: rotate(-16deg) translateY(-1px); }
+    /* Copy: the two sheets slide apart. */
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-copy rect,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-copy rect { transform: translate(1.5px, 1.5px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-copy path,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-copy path { transform: translate(-1px, -1px); }
+    /* Clock: hands sweep a full turn. */
+    .lucide-clock polyline { transform-origin: 12px 12px; }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-clock polyline,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-clock polyline { transform: rotate(360deg); transition-duration: 700ms; }
+    /* Exit: arrow slides out of the door. */
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-log-out polyline,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-log-out polyline,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-log-out line,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-log-out line { transform: translateX(3px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-log-in polyline,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-log-in polyline,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-log-in line,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-log-in line { transform: translateX(2px); }
+    /* Mail: the flap lifts. */
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-mail path,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-mail path { transform: translateY(-2px); }
+    /* Printer: the page comes out. */
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-printer rect,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-printer rect { transform: translateY(2px); }
+    /* Gift: the lid pops. */
+    .lucide-gift rect { transform-origin: 3px 12px; }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-gift rect,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-gift rect { transform: translateY(-2px) rotate(-8deg); }
+    /* Tick draws itself in (on its own and inside the shield). */
+    .lucide-check path,
+    .lucide-shield-check path[d^="m9 12"],
+    .lucide-circle-check path,
+    .lucide-badge-check path + path { stroke-dasharray: 24; stroke-dashoffset: 0; }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-check path,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-check path,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-shield-check path[d^="m9 12"],
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-shield-check path[d^="m9 12"],
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-circle-check path,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-circle-check path,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-badge-check path + path,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-badge-check path + path { animation: fx-draw 500ms cubic-bezier(0.23, 1, 0.32, 1); }
+    /* Hover never fills: a filled heart/star/bookmark would read as already
+       liked or rated. The like pop plays on click instead (ProductCard). */
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-star,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-star { transform: rotate(72deg) scale(1.1); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-bookmark,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-bookmark { transform: translateY(-1px); }
+
+    /* Dashboard: the four tiles spread apart. */
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-layout-dashboard rect:nth-child(1),
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-layout-dashboard rect:nth-child(1) { transform: translate(-1px, -1px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-layout-dashboard rect:nth-child(2),
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-layout-dashboard rect:nth-child(2) { transform: translate(1px, -1px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-layout-dashboard rect:nth-child(3),
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-layout-dashboard rect:nth-child(3) { transform: translate(1px, 1px); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-layout-dashboard rect:nth-child(4),
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-layout-dashboard rect:nth-child(4) { transform: translate(-1px, 1px); }
+    /* Warnings: a short alarm shake. */
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-triangle-alert,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-triangle-alert,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-alert-triangle,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-alert-triangle,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-circle-alert,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-circle-alert,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-alert-circle,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-alert-circle,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-shield-alert,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-shield-alert { animation: fx-alarm 480ms ease-out; }
+    /* Disputes: the scales tip one way, then the other. */
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-scale,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-scale { animation: fx-weigh 700ms ease-out; }
+
+    /* ── One-shot gestures (short keyframes, decorative) ── */
+    .lucide-bell { transform-origin: 50% 8%; }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-bell,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-bell { animation: fx-ring 700ms ease-out; }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-phone,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-phone { animation: fx-buzz 450ms ease-out; }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-eye,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-eye { animation: fx-blink 380ms ease-in-out; }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-map-pin,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-map-pin,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-package,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-package { animation: fx-hop 520ms cubic-bezier(0.23, 1, 0.32, 1); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-truck,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-truck { animation: fx-drive 600ms cubic-bezier(0.23, 1, 0.32, 1); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-send,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-send { animation: fx-send 650ms cubic-bezier(0.23, 1, 0.32, 1); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-rocket,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-rocket { animation: fx-send 650ms cubic-bezier(0.23, 1, 0.32, 1); }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-sparkles,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-sparkles { animation: fx-twinkle 600ms ease-out; }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-zap,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-zap { animation: fx-flicker 420ms linear; }
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > .lucide-camera,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover > :not(button, a) > .lucide-camera { animation: fx-shutter 300ms ease-out; }
+  }
+
+  @keyframes fx-alarm { 0%, 100% { transform: translateX(0) rotate(0); } 15% { transform: translateX(-1.5px) rotate(-8deg); } 30% { transform: translateX(1.5px) rotate(8deg); } 45% { transform: translateX(-1px) rotate(-5deg); } 60% { transform: translateX(1px) rotate(4deg); } 80% { transform: translateX(0) rotate(-1deg); } }
+  @keyframes fx-weigh { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-10deg); } 60% { transform: rotate(7deg); } 80% { transform: rotate(-3deg); } }
+  /* Like pop on click (used by the wishlist heart): swell, settle, small echo. */
+  @keyframes fx-like { 0% { transform: scale(0.6); } 40% { transform: scale(1.3); } 65% { transform: scale(0.92); } 85% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  .fx-like-pop { animation: fx-like 520ms cubic-bezier(0.23, 1, 0.32, 1); }
+  @keyframes fx-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+  @keyframes fx-beat { 0% { transform: scale(1); } 30% { transform: scale(1.28); } 55% { transform: scale(0.96); } 75% { transform: scale(1.12); } 100% { transform: scale(1); } }
+  @keyframes fx-ring { 0%, 100% { transform: rotate(0); } 15% { transform: rotate(16deg); } 30% { transform: rotate(-14deg); } 45% { transform: rotate(10deg); } 60% { transform: rotate(-6deg); } 75% { transform: rotate(3deg); } }
+  @keyframes fx-buzz { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-12deg); } 40% { transform: rotate(10deg); } 60% { transform: rotate(-8deg); } 80% { transform: rotate(4deg); } }
+  @keyframes fx-blink { 0%, 100% { transform: scaleY(1); } 45% { transform: scaleY(0.1); } }
+  @keyframes fx-hop { 0%, 100% { transform: translateY(0); } 35% { transform: translateY(-4px); } 65% { transform: translateY(0); } 80% { transform: translateY(-1.5px); } }
+  @keyframes fx-drive { 0% { transform: translateX(0); } 45% { transform: translateX(4px) translateY(-0.5px); } 60% { transform: translateX(3px) translateY(0.5px); } 100% { transform: translateX(3px); } }
+  @keyframes fx-send { 0% { transform: translate(0, 0); opacity: 1; } 45% { transform: translate(10px, -10px); opacity: 0; } 46% { transform: translate(-8px, 8px); opacity: 0; } 100% { transform: translate(0, 0); opacity: 1; } }
+  @keyframes fx-twinkle { 0%, 100% { transform: scale(1) rotate(0); } 40% { transform: scale(1.2) rotate(15deg); } 70% { transform: scale(0.95) rotate(-5deg); } }
+  @keyframes fx-flicker { 0%, 100% { opacity: 1; } 20% { opacity: 0.3; } 35% { opacity: 1; } 55% { opacity: 0.5; } 70% { opacity: 1; } }
+  @keyframes fx-shutter { 0%, 100% { transform: scale(1); } 40% { transform: scale(0.85); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fx-like-pop { animation: none; }
+    .btn-fx,
+    svg.lucide,
+    svg.lucide * { transition-property: background-color, border-color, box-shadow, color, fill; }
+    .btn-fx,
+    .btn-fx:active:not(:disabled),
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover svg.lucide,
+    :is(button, a, [role="button"], [role="menuitem"], [role="tab"], summary):not(:disabled):hover svg.lucide * { transform: none !important; animation: none !important; }
+  }
 }

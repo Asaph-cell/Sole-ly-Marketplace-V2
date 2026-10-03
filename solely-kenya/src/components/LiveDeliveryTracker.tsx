@@ -135,7 +135,7 @@ export function LiveDeliveryTracker({ orderId, recipientName }: LiveDeliveryTrac
                     justify-center;
                     animation: pulse 2s infinite;
                 ">
-                    <div style="font-size: 20px;">🚚</div>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
                 </div>
                 <style>
                     @keyframes pulse {
@@ -172,18 +172,18 @@ export function LiveDeliveryTracker({ orderId, recipientName }: LiveDeliveryTrac
         : 0;
 
     return (
-        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/30 dark:bg-blue-950/20">
+        <Card className="border-border bg-muted/30">
             <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                    <div className="bg-blue-500 p-1.5 rounded-full">
-                        <MapPin size={16} strokeWidth={1.5} className=" text-white" />
+                    <div className="bg-primary-soft p-1.5 rounded-full">
+                        <MapPin size={16} strokeWidth={1.5} className="text-primary-strong" />
                     </div>
-                    🚚 Live Delivery Tracking
+                    Live delivery tracking
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-                <Alert className="bg-blue-100 dark:bg-blue-950/40 border-blue-300 dark:border-blue-700">
-                    <AlertDescription className="text-sm text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                <Alert className="bg-muted border-border">
+                    <AlertDescription className="text-sm text-foreground flex items-center gap-2">
                         {isConnected ? (
                             <>
                                 <Wifi size={16} strokeWidth={1.5}  />
@@ -201,7 +201,7 @@ export function LiveDeliveryTracker({ orderId, recipientName }: LiveDeliveryTrac
                 {/* Map */}
                 <div
                     id={`live-map-${orderId}`}
-                    className="h-64 w-full rounded-lg overflow-hidden border border-blue-200 dark:border-blue-800"
+                    className="h-64 w-full rounded-lg overflow-hidden border border-border "
                 />
 
                 {/* Status Info */}
@@ -213,7 +213,7 @@ export function LiveDeliveryTracker({ orderId, recipientName }: LiveDeliveryTrac
                         </span>
                     </div>
                     <div className="flex items-center gap-1">
-                        <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                        <div className="h-2 w-2 bg-success rounded-full animate-pulse" />
                         <span>Tracking active</span>
                     </div>
                 </div>
@@ -221,7 +221,7 @@ export function LiveDeliveryTracker({ orderId, recipientName }: LiveDeliveryTrac
                 {/* Open in Google Maps */}
                 <Button
                     asChild
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    className="w-full"
                     size="sm"
                 >
                     <a

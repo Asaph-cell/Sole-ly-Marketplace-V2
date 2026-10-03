@@ -322,7 +322,7 @@ serve(async (req) => {
           const siteUrl = Deno.env.get("SITE_URL") || "https://solelymarketplace.com";
           const emailResult = await sendEmail({
             to: targetProfile.email,
-            subject: "You've Been Added as an Admin on Sole-ly",
+            subject: "You've Been Added as an Admin on Solely",
             html: emailTemplates.adminGranted({
               recipientName: targetProfile.full_name || "there",
               grantedByName: grantedByProfile?.full_name || "An admin",

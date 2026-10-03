@@ -15,7 +15,7 @@ import { OrderConfirmationModal } from "@/components/OrderConfirmationModal";
 import { OrderReceipt } from "@/components/OrderReceipt";
 import { LiveDeliveryTracker } from "@/components/LiveDeliveryTracker";
 import { TrackingTimeline } from "@/components/tracking/TrackingTimeline";
-import { Phone, MessageCircle, PhoneCall, CheckCircle, Download } from "lucide-react";
+import { Phone, MessageCircle, PhoneCall, CheckCircle, Download, Lock } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -433,8 +433,8 @@ const Orders = () => {
                       </Button>
                     </div>
                     {isPickup && (
-                      <p className="text-xs text-muted-foreground bg-yellow-50 dark:bg-yellow-950/20 p-2 rounded border border-yellow-200 dark:border-yellow-800">
-                        📦 <strong>Important:</strong> Please go to the vendor's shop and collect your order first, then click "Confirm Pickup" once you have it in hand.
+                      <p className="text-xs text-muted-foreground bg-primary-soft p-2 rounded border border-primary/30">
+                        <strong>Collect it first.</strong> Tap "I Have Collected My Order" only once it's in your hands.
                       </p>
                     )}
                   </div>
@@ -503,20 +503,20 @@ const Orders = () => {
                     </div>
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>Paid</span>
-                      <span className="font-semibold text-green-600">KES {totalPaid.toLocaleString()}</span>
+                      <span className="font-semibold text-success">KES {totalPaid.toLocaleString()}</span>
                     </div>
 
                     {/* Payment Status Section */}
                     {hasPendingBalance ? (
-                      <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800 space-y-3">
+                      <div className="bg-destructive-soft p-4 rounded-lg border border-destructive/30 space-y-3">
                         <div className="flex items-center gap-2">
                           <Badge variant="destructive">Payment Required</Badge>
                         </div>
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-red-700 dark:text-red-400">Amount to pay</span>
-                          <span className="text-red-700 dark:text-red-400 font-bold">KES {pendingAmount.toLocaleString()}</span>
+                          <span className="text-destructive ">Amount to pay</span>
+                          <span className="text-destructive font-bold">KES {pendingAmount.toLocaleString()}</span>
                         </div>
-                        <p className="text-xs text-red-600 dark:text-red-400">
+                        <p className="text-xs text-destructive ">
                           Your payment was not completed. Please ensure you have sufficient funds and retry.
                         </p>
                         <Button
@@ -530,23 +530,23 @@ const Orders = () => {
                         </Button>
                       </div>
                     ) : order.status === "pending_vendor_confirmation" ? (
-                      <div className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="bg-success-soft p-3 rounded-lg border border-success/30">
                         <div className="flex items-center gap-2">
-                          <Badge variant="default" className="bg-green-600">Payment Complete</Badge>
+                          <Badge variant="default" className="bg-success">Payment Complete</Badge>
                         </div>
-                        <p className="text-sm text-green-700 dark:text-green-400 mt-2">
-                          ✓ Payment received. Awaiting vendor confirmation.
+                        <p className="text-sm text-success mt-2">
+                          Payment received. Waiting for the seller to confirm.
                         </p>
                       </div>
                     ) : order.status === "cancelled_by_vendor" ? (
-                      <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                      <div className="bg-destructive-soft p-4 rounded-lg border border-destructive/30">
                         <div className="flex items-center gap-2 mb-2">
                           <Badge variant="destructive">Order Declined</Badge>
                         </div>
-                        <p className="text-sm text-red-700 dark:text-red-400 font-medium">
+                        <p className="text-sm text-destructive font-medium">
                           The vendor has declined this order.
                         </p>
-                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                        <p className="text-sm text-destructive mt-1">
                           A full refund has been initiated. If you paid via M-Pesa, expect a reversal shortly.
                         </p>
                       </div>
@@ -607,23 +607,23 @@ const Orders = () => {
 
                     {/* Delivery OTP Display - Show to buyer when order is shipped or arrived */}
                     {(order.status === "shipped" || order.status === "arrived") && (order as any).delivery_otp && (
-                      <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="bg-muted p-4 rounded-lg border border-border">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xl">🔐</span>
-                          <p className="font-semibold text-blue-900 dark:text-blue-100">Your Delivery Code</p>
+                          <Lock size={18} strokeWidth={1.75} className="text-foreground " />
+                          <p className="font-semibold text-foreground ">Your Delivery Code</p>
                         </div>
-                        <div className="bg-white dark:bg-background p-4 rounded-lg text-center">
-                          <p className="text-3xl font-mono font-bold tracking-widest text-blue-900 dark:text-blue-100">
+                        <div className="bg-card dark:bg-background p-4 rounded-lg text-center">
+                          <p className="text-3xl font-mono font-bold tracking-widest text-foreground ">
                             {(order as any).delivery_otp}
                           </p>
                         </div>
-                        <p className="text-sm text-blue-700 dark:text-blue-300 mt-3">
+                        <p className="text-sm text-foreground mt-3">
                           <strong>Important:</strong> Share this code with the vendor when they deliver your order.
                           This confirms you received your order and releases payment to the vendor.
                         </p>
                         {isPickup && (
-                          <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
-                            📍 Show this code to the vendor when you collect your order.
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Show this code to the vendor when you collect your order.
                           </p>
                         )}
                       </div>
@@ -688,7 +688,7 @@ const Orders = () => {
                             Download Receipt
                           </Button>
                           {reviewedOrders.has(order.id) ? (
-                            <div className="flex items-center gap-2 text-sm text-green-600">
+                            <div className="flex items-center gap-2 text-sm text-success">
                               <CheckCircle size={16} strokeWidth={1.5}  />
                               Thank you for your review!
                             </div>

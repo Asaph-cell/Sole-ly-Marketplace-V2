@@ -14,8 +14,10 @@ import {
   Link2,
   MessageCircle,
   Globe,
+  LifeBuoy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -42,6 +44,7 @@ const menuItems = [
   { icon: Star, label: "Ratings", path: "/vendor/ratings", alertKey: null, action: null },
   { icon: AlertTriangle, label: "Disputes", path: "/vendor/disputes", alertKey: "openDisputes" as const, action: null },
   { icon: Settings, label: "Account Settings", path: "/vendor/settings", alertKey: null, action: null },
+  { icon: LifeBuoy, label: "Help & Support", path: "/contact", alertKey: null, action: null },
   { icon: LogOut, label: "Logout", path: "", alertKey: null, action: "logout" as const },
 ];
 
@@ -69,7 +72,7 @@ const SidebarContent = ({
             onInstall();
             onItemClick?.();
           }}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[48px] bg-gradient-to-r from-primary to-amber-500 text-white hover:from-primary/90 hover:to-amber-600 mb-2"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[48px] bg-primary-soft text-primary-strong hover:bg-primary/20 mb-2"
         >
           <Download size={20} strokeWidth={1.5} className=" flex-shrink-0" />
           <span className="flex-1 text-left font-medium">Install App</span>
@@ -106,18 +109,14 @@ const SidebarContent = ({
             to={item.path}
             onClick={onItemClick}
             className={cn(
-              "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[48px] relative",
+              "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-150 min-h-[48px] relative",
               isActive
-                ? "bg-primary text-primary-foreground"
-                : "hover:bg-muted text-muted-foreground"
+                ? "bg-primary-soft font-medium text-foreground before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-[3px] before:rounded-full before:bg-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
+            aria-current={isActive ? "page" : undefined}
           >
-            <div className="relative">
-              <Icon className="h-5 w-5 flex-shrink-0" />
-              {alertCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
-              )}
-            </div>
+            <Icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-primary-strong")} strokeWidth={isActive ? 2 : 1.75} />
             <span className="flex-1">{item.label}</span>
             {alertCount > 0 && (
               <Badge
@@ -130,6 +129,10 @@ const SidebarContent = ({
           </Link>
         );
       })}
+      <div className="mt-2 flex items-center justify-between border-t border-border px-4 pt-4">
+        <span className="text-xs text-muted-foreground">Theme</span>
+        <ThemeToggle />
+      </div>
     </nav>
   );
 };
@@ -197,7 +200,7 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
     // Show a browser notification if permission already granted
     const showOrderNotification = () => {
       if (Notification.permission === "granted") {
-        new Notification("🛒 New Order!", {
+        new Notification("New order", {
           body: "A customer just placed an order. Tap to review.",
           icon: "/favicon.ico",
           tag: "new-order",
@@ -303,7 +306,8 @@ export const VendorSidebar = ({ variant = "sidebar" }: { variant?: "sidebar" | "
             >
               <Menu size={20} strokeWidth={1.5} className=" text-primary" />
               {(alertCounts.pendingOrders > 0 || alertCounts.openDisputes > 0 || alertCounts.unreadMessages > 0) && (
-                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+                // Menu is closed on mobile, so this dot is the only hint; static, not pulsing.
+                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-card" aria-label="Something needs your attention" />
               )}
             </Button>
           </SheetTrigger>

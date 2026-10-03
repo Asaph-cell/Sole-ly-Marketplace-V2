@@ -37,7 +37,7 @@ export const WhatsAppModal = ({ open, onClose, userId }: WhatsAppModalProps) => 
         throw roleError;
       }
 
-      toast.success("WhatsApp number saved! You can now start selling.");
+      toast.success("WhatsApp number saved", { description: "You can start selling now." });
       onClose();
     } catch (error: any) {
       toast.error(error.message);

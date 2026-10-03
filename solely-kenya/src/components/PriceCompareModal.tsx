@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, TrendingDown, ArrowRight, Loader2 } from "lucide-react";
+import { Star, TrendingDown, ArrowRight, Loader2, Package } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface CompareProduct {
@@ -185,14 +185,14 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                                     className={`rounded-2xl border-2 transition ${listing.isCurrent
                                         ? "border-primary bg-primary/5"
                                         : isLowest
-                                            ? "border-green-500/50 bg-[#1a5138]/5"
+                                            ? "border-success/50 bg-[#1a5138]/5"
                                             : "border-border bg-card"
                                         }`}
                                 >
                                     <div className="flex items-center gap-3 p-3">
                                         {/* Rank */}
                                         <span
-                                            className={`text-sm font-bold w-6 text-center shrink-0 ${index === 0 ? "text-green-500" : "text-muted-foreground"
+                                            className={`text-sm font-bold w-6 text-center shrink-0 ${index === 0 ? "text-success" : "text-muted-foreground"
                                                 }`}
                                         >
                                             #{index + 1}
@@ -207,9 +207,7 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-2xl">
-                                                    👟
-                                                </div>
+                                                <div className="w-full h-full flex items-center justify-center"><Package size={24} strokeWidth={1.5} className="text-muted-foreground" /></div>
                                             )}
                                         </div>
 
@@ -250,7 +248,7 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                                                 <div>
                                                     <p
                                                         className={`text-sm font-bold leading-none ${isLowest
-                                                            ? "text-green-600 dark:text-green-400"
+                                                            ? "text-success "
                                                             : listing.isCurrent
                                                                 ? "text-primary"
                                                                 : ""
@@ -261,7 +259,7 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                                                     {!listing.isCurrent && priceDiff !== 0 && (
                                                         <p
                                                             className={`text-xs mt-0.5 ${priceDiff < 0
-                                                                ? "text-green-600 dark:text-green-400"
+                                                                ? "text-success "
                                                                 : "text-muted-foreground"
                                                                 }`}
                                                         >
@@ -290,7 +288,7 @@ export const PriceCompareModal = ({ open, onClose, currentProduct }: PriceCompar
                                             {/* Rating */}
                                             {listing.reviewCount != null && listing.reviewCount > 0 && listing.averageRating && (
                                                 <div className="flex items-center gap-1 mt-1">
-                                                    <Star strokeWidth={1.5} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                                    <Star strokeWidth={1.5} className="h-3 w-3 fill-primary-strong text-primary-strong" />
                                                     <span className="text-xs text-muted-foreground">
                                                         {listing.averageRating.toFixed(1)} ({listing.reviewCount})
                                                     </span>

@@ -83,7 +83,7 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         setWishlistIds((prev) => { const n = new Set(prev); n.delete(productId); return n; });
         toast.error("Could not add to wishlist");
       } else {
-        toast.success("Added to wishlist ♡", { duration: 1500 });
+        toast.success("Added to wishlist", { duration: 1500 });
       }
     }
   };

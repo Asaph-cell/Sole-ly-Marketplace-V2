@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/lib/toast";
 import { Mail, CheckCircle2, ArrowLeft, KeyRound } from "lucide-react";
-import logo from "@/assets/solely-logo.svg";
+import { BrandLogo } from "@/components/BrandLogo";
 import { getAttributionSource } from "@/lib/attribution";
 
 // Production URL for email verification redirect
@@ -250,7 +250,7 @@ const Auth = () => {
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
               <KeyRound size={32} strokeWidth={1.5} className="text-primary" />
             </div>
-            <CardTitle className="text-2xl text-blue-700">Check Your Email!</CardTitle>
+            <CardTitle className="text-2xl text-foreground">Check Your Email!</CardTitle>
             <CardDescription className="text-base mt-2">
               We've sent a password reset link to:
             </CardDescription>
@@ -265,9 +265,9 @@ const Auth = () => {
             </div>
 
             {/* Instructions */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-              <p className="text-blue-800 font-medium">
-                📧 Click the link in your email to reset your password.
+            <div className="bg-muted border border-border rounded-lg p-4 text-center">
+              <p className="text-foreground font-medium">
+                Click the link in your email to reset your password.
               </p>
             </div>
 
@@ -301,7 +301,7 @@ const Auth = () => {
       <div className="min-h-screen flex items-center justify-center py-12 px-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <img src={logo} alt="Solely" className="h-16 w-auto mx-auto mb-4" />
+            <BrandLogo className="h-16 w-auto mx-auto mb-4" />
             <CardTitle className="text-2xl">Forgot Password?</CardTitle>
             <CardDescription>
               Enter your email and we'll send you a link to reset your password
@@ -356,7 +356,7 @@ const Auth = () => {
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
               <CheckCircle2 size={32} strokeWidth={1.5} className="text-primary" />
             </div>
-            <CardTitle className="text-2xl text-green-700">Check Your Email!</CardTitle>
+            <CardTitle className="text-2xl text-success">Check Your Email!</CardTitle>
             <CardDescription className="text-base mt-2">
               We've sent a verification link to:
             </CardDescription>
@@ -371,9 +371,9 @@ const Auth = () => {
             </div>
 
             {/* Instructions */}
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
-              <p className="text-amber-800 font-medium">
-                📧 Please check your email and click the verification link to activate your account.
+            <div className="bg-primary-soft border border-primary/30 rounded-lg p-4 text-center">
+              <p className="text-primary-strong font-medium">
+                Please check your email and click the verification link to activate your account.
               </p>
             </div>
 
@@ -406,7 +406,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center py-12 pb-28 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <img src={logo} alt="Solely" className="h-16 w-auto mx-auto mb-4" />
+          <BrandLogo className="h-16 w-auto mx-auto mb-4" />
           <CardTitle className="text-2xl">Welcome to Solely</CardTitle>
           <CardDescription>Sign in or create an account to start shopping</CardDescription>
         </CardHeader>
