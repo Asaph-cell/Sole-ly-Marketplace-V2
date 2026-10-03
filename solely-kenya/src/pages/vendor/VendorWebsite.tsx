@@ -771,13 +771,6 @@ const VendorWebsite = () => {
                             </ul>
                             <p className="text-xs text-muted-foreground">Sections with nothing to show yet, like reviews before your first one, stay hidden on their own.</p>
                           </Block>
-
-                          <Block title="WhatsApp button" hint="A round chat button on every page, using the phone number in your Settings.">
-                            <div className="flex items-center gap-3">
-                              <Switch checked={settings.whatsapp_button} onCheckedChange={(v) => set("whatsapp_button", v)} aria-label="Show the WhatsApp chat button" />
-                              <span className="text-sm">{settings.whatsapp_button ? "Shown to buyers" : "Hidden"}</span>
-                            </div>
-                          </Block>
                         </>
                       )}
 

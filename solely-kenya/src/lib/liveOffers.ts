@@ -14,6 +14,8 @@ export interface MarketOffer {
   storeLink: string;
   shopName: string;
   logo: string | null;
+  /** Cover photo of the shop's newest listing, for the offers strip. */
+  photo: string | null;
 }
 
 type OfferMap = Map<string, MarketOffer>;
@@ -39,6 +41,20 @@ const load = async (): Promise<OfferMap> => {
     .in("id", rows.map((r) => r.vendor_id));
   const byId = new Map<string, any>(((profiles as any[]) ?? []).map((p) => [p.id, p]));
 
+  // One product photo per shop. Best effort: tiles fall back to the logo.
+  const { data: prods } = await (supabase as any)
+    .from("products")
+    .select("vendor_id, images")
+    .in("vendor_id", rows.map((r) => r.vendor_id))
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  const photoOf = new Map<string, string>();
+  ((prods as any[]) ?? []).forEach((p) => {
+    const img = Array.isArray(p.images) ? p.images.find(Boolean) : null;
+    if (img && !photoOf.has(p.vendor_id)) photoOf.set(p.vendor_id, img);
+  });
+
   rows.forEach((r) => {
     const p = byId.get(r.vendor_id);
     if (!p) return;
@@ -50,6 +66,7 @@ const load = async (): Promise<OfferMap> => {
       storeLink: p.store_link || p.id,
       shopName: (p.store_name || p.full_name || "Shop").trim(),
       logo: p.store_logo_url ?? null,
+      photo: photoOf.get(r.vendor_id) ?? null,
     });
   });
   return out;

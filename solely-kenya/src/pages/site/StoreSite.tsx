@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import {
   CONDITION_LABEL, SECTION_LABELS, checkoutPath, ksh, liveOffer, productPath, readableOn, shopName, shopPlace,
-  SCALE_FACTOR, socialHandle, socialUrl, timeLeft, whatsappNumber, type HeroStyle, type LiveOffer, type SectionId,
+  SCALE_FACTOR, socialHandle, socialUrl, timeLeft, type HeroStyle, type LiveOffer, type SectionId,
   type ShopProfile, type SiteProduct, type SiteReview, type SiteSettings, type ThemeId,
 } from "@/lib/storeSite";
 import { expandSizes } from "@/lib/sizes";
@@ -1000,7 +1000,6 @@ const About = () => {
 
 const Shell = ({ children, productPage }: { children: ReactNode; productPage?: boolean }) => {
   const { settings, theme, pal, accent, onAccent, name, base, preview, offer, profile } = useSite();
-  const wa = whatsappNumber(profile.store_phone);
   const centered = theme.id === "maison" || theme.id === "atlas";
   // The seller's type choices win over the look's own.
   const validHex = (c: string | null) => (c && /^#[0-9a-f]{6}$/i.test(c) ? c : null);
@@ -1094,15 +1093,6 @@ const Shell = ({ children, productPage }: { children: ReactNode; productPage?: b
           </div>
         </div>
       </footer>
-
-      {settings.whatsapp_button && wa && (
-        <a href={`https://wa.me/${wa}?text=${encodeURIComponent(`Hi ${name}, I'm on your Solely website.`)}`} target="_blank" rel="noopener noreferrer"
-          aria-label={`Chat with ${name} on WhatsApp`} onClick={() => { if (!preview) recordSiteEvent(profile.id, "whatsapp_click"); }}
-          className="fixed bottom-5 right-4 z-40 h-14 w-14 rounded-full inline-flex items-center justify-center shadow-[0_12px_30px_-8px_rgba(0,0,0,.5)] transition-transform hover:scale-105 active:scale-95 sw-focus"
-          style={{ background: "#25D366", color: "#fff" }}>
-          <MessageCircle size={26} aria-hidden="true" />
-        </a>
-      )}
 
       {preview && (
         <span className="fixed bottom-3 left-3 z-50 text-xs font-medium px-3 py-1.5 rounded-full bg-black/80 text-white pointer-events-none">
