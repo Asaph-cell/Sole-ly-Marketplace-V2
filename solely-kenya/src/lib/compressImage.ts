@@ -20,8 +20,13 @@ const RENDERABLE_TYPES = new Set(["image/jpeg", "image/png"]);
 // and crop to it. Only near-white borders are touched (a coloured backdrop may
 // be deliberate), and a photo is never cut by more than TRIM_MAX_SIDE per side
 // so a white product on a white background can't be cropped away.
+// Off: sellers found it altered their photos. Flip to true to trim blank borders again.
+const TRIM_ENABLED = false;
+
 const SCAN_SIZE = 400;       // scan a small copy, not the full-size photo
-const BG_MIN = 245;          // a pixel is background if every channel is >= this
+const BG_TOLERANCE = 18;     // a pixel is background if no channel differs from the backdrop by more than this
+const BG_MIN_BRIGHT = 170;   // only light backdrops (white, grey, cream) are trimmed, not dark or vivid ones
+const RING_UNIFORM = 0.9;    // this share of the border must match the backdrop for it to count as a backdrop
 const TRIM_MIN_GAIN = 0.08;  // skip unless trimming removes >= 8% of a side
 const TRIM_MAX_SIDE = 0.35;  // never remove more than 35% from one side
 const TRIM_PADDING = 0.04;   // breathing room kept around the product
@@ -29,6 +34,7 @@ const TRIM_PADDING = 0.04;   // breathing room kept around the product
 interface Box { sx: number; sy: number; sw: number; sh: number }
 
 function findContentBox(img: HTMLImageElement): Box | null {
+    if (!TRIM_ENABLED) return null;
     const w = img.naturalWidth || img.width;
     const h = img.naturalHeight || img.height;
     if (!w || !h) return null;
@@ -46,10 +52,23 @@ function findContentBox(img: HTMLImageElement): Box | null {
     ctx.drawImage(img, 0, 0, cw, ch);
     const { data } = ctx.getImageData(0, 0, cw, ch);
 
-    const isContent = (x: number, y: number) => {
-        const i = (y * cw + x) * 4;
-        return data[i] < BG_MIN || data[i + 1] < BG_MIN || data[i + 2] < BG_MIN;
+    // The backdrop is the typical colour around the edge. Studio shots are
+    // rarely pure white (240 grey, cream, a faint gradient), so comparing to
+    // 255 would see a backdrop that is not there and never trim.
+    const ring: number[] = [];
+    for (let x = 0; x < cw; x++) { ring.push((x) * 4, ((ch - 1) * cw + x) * 4); }
+    for (let y = 0; y < ch; y++) { ring.push((y * cw) * 4, (y * cw + cw - 1) * 4); }
+    const median = (k: number) => {
+        const v = ring.map((i) => data[i + k]).sort((a, b) => a - b);
+        return v[Math.floor(v.length / 2)];
     };
+    const bg = [median(0), median(1), median(2)];
+    if (Math.min(bg[0], bg[1], bg[2]) < BG_MIN_BRIGHT) return null;
+    const near = (i: number) =>
+        Math.abs(data[i] - bg[0]) <= BG_TOLERANCE && Math.abs(data[i + 1] - bg[1]) <= BG_TOLERANCE && Math.abs(data[i + 2] - bg[2]) <= BG_TOLERANCE;
+    if (ring.filter(near).length / ring.length < RING_UNIFORM) return null; // edges are the photo itself
+
+    const isContent = (x: number, y: number) => !near((y * cw + x) * 4);
 
     // A row or column counts as content when a few pixels in it are, so stray
     // JPEG specks on a clean border don't stop the trim.
@@ -180,7 +199,9 @@ export async function compressImage(file: File): Promise<File> {
             img.src = e.target?.result as string;
         };
 
-        reader.onerror = () => reject(new Error("Failed to read image file"));
+        // Unreadable (e.g. a phone revoked access to the picked file): hand it back
+        // untouched so the caller decides, instead of failing the whole save.
+        reader.onerror = () => resolve(file);
         reader.readAsDataURL(file);
     });
 }
