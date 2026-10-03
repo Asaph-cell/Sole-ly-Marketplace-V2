@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { FormSkeleton } from "@/components/skeletons";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
@@ -12,8 +12,9 @@ import { PricingCalculator } from "@/components/vendor/PricingCalculator";
 import {
   ChevronLeft, ChevronRight, Upload, X, ImagePlus, Loader2,
   Footprints, Shirt, Baby, Sparkles, ShoppingBag,
-  Dumbbell, Smartphone, Home, LucideIcon
+  Dumbbell, Smartphone, Home, CheckCircle2, CopyPlus, LucideIcon
 } from "lucide-react";
+import { aiListingFill, aiListingStatus, type AiListingFields } from "@/lib/aiListing";
 import { VideoUploader } from "@/components/VideoUploader";
 import { parseSizesInput } from "@/lib/sizes";
 import { usePersistentState } from "@/hooks/usePersistentState";
@@ -216,9 +217,15 @@ const getSpecFields = (category: string, subcategory: string): SpecField[] => {
 };
 
 // ── Tiny input/select components ──────────────────────────────────────────────
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+const Field = ({ label, children, ai, action }: { label: string; children: React.ReactNode; ai?: boolean; action?: React.ReactNode }) => (
   <div className="space-y-1.5">
-    <label className="text-sm font-medium text-foreground">{label}</label>
+    <div className="flex items-center justify-between gap-3">
+      <label className="text-sm font-medium text-foreground">
+        {label}
+        {ai && <span className="ml-1.5 align-middle text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary" title="Suggested by AI. Check it.">AI</span>}
+      </label>
+      {action}
+    </div>
     {children}
   </div>
 );
@@ -310,25 +317,148 @@ const listingStrength = (d: Draft, specFields: SpecField[]) => {
 
 const storagePathFromUrl = (url: string) => url.split("/product-images/")[1] ?? null;
 
+// ── "List another like this" ───────────────────────────────────────────────────
+// A new draft that keeps everything about an existing item except its photos
+// and video: a seller listing the same shoe in another size or colour only
+// adds new photos and changes what differs.
+const VARIANT_KEYS = ["sizes", "size", "storage", "volume", "capacity", "waist"];
+const CONDITION_FROM_DB: Record<string, string> = { good: "thrifted", fair: "thrifted", like_new: "refurbished" };
+
+/** A saved product row, as a fresh draft at the photos step. */
+const draftFromProduct = (p: any): Draft => {
+  const category: string = p.category ?? "";
+  const subcategory: string = p.subcategory ?? "";
+  const fields = category ? getSpecFields(category, subcategory) : [];
+  const elec = isElectronics(category, subcategory);
+
+  const specs: Record<string, string> = { ...(p.specs ?? {}) };
+  const sizes = Array.isArray(p.sizes) ? p.sizes.filter(Boolean).join(", ") : "";
+  // Sizes live under a different spec key per category (sizes, storage, volume...).
+  if (sizes) specs[fields.find((f) => VARIANT_KEYS.includes(f.key))?.key ?? "sizes"] = sizes;
+  const colors = Array.isArray(p.colors) ? p.colors.filter(Boolean).join(", ") : "";
+  if (colors) specs.colors = colors;
+  if (elec && p.brand && !specs.brand) specs.brand = p.brand;
+
+  let condition: string = CONDITION_FROM_DB[p.condition] ?? p.condition ?? "new";
+  // Each group offers two conditions; map the stored one onto its own.
+  if (!elec && condition === "refurbished") condition = "thrifted";
+  if (elec && condition === "thrifted") condition = "refurbished";
+
+  return {
+    ...EMPTY_DRAFT,
+    step: 1,
+    category,
+    subcategory,
+    name: p.name ?? "",
+    description: p.description ?? "",
+    price: p.price_ksh ? String(Math.round(p.price_ksh)) : "",
+    stock: String(p.stock ?? 1),
+    brand: elec ? "" : p.brand ?? "",
+    condition,
+    conditionNotes: p.condition_notes ?? "",
+    freeDelivery: !!p.free_delivery,
+    keyFeatures: Array.isArray(p.key_features) ? p.key_features.join(", ") : "",
+    specs,
+    updatedAt: Date.now(),
+  };
+};
+
+/** A draft that was just published, as the starting point for the next one. */
+const templateOf = (d: Draft): Draft => ({ ...d, images: [], videoUrl: null, step: 1, updatedAt: Date.now() });
+
+/** What AI help may fill in for an item: only blanks, unless the seller asked for a new description. */
+const planAiFill = (d: Draft, f: AiListingFields, mode: "all" | "description") => {
+  const patch: Partial<Draft> = {};
+  const filled: string[] = [];
+
+  if (mode === "description") {
+    if (f.description) { patch.description = f.description; filled.push("description"); }
+    if (!d.keyFeatures.trim() && f.key_features.length) { patch.keyFeatures = f.key_features.join(", "); filled.push("features"); }
+    return { patch, filled };
+  }
+
+  if (!d.category && f.category) {
+    patch.category = f.category;
+    patch.subcategory = f.subcategory;
+  } else if (d.category === f.category && !d.subcategory && f.subcategory) {
+    patch.subcategory = f.subcategory;
+  }
+  const category = patch.category ?? d.category;
+  const subcategory = patch.subcategory ?? d.subcategory;
+  const elec = isElectronics(category, subcategory);
+
+  if (!d.name.trim() && f.name) { patch.name = f.name; filled.push("name"); }
+  if (!d.description.trim() && f.description) { patch.description = f.description; filled.push("description"); }
+  if (!d.keyFeatures.trim() && f.key_features.length) { patch.keyFeatures = f.key_features.join(", "); filled.push("features"); }
+
+  const specs = { ...d.specs };
+  if (f.brand) {
+    if (elec) { if (!specs.brand) { specs.brand = f.brand; filled.push("brand"); } }
+    else if (!d.brand.trim()) { patch.brand = f.brand; filled.push("brand"); }
+  }
+  if (f.colors.length && category && getSpecFields(category, subcategory).some((s) => s.key === "colors") && !specs.colors) {
+    specs.colors = f.colors.join(", ");
+    filled.push("colours");
+  }
+  if (specs.brand !== d.specs.brand || specs.colors !== d.specs.colors) patch.specs = specs;
+
+  // "New" is the default, so only a clear used/refurbished reading changes it.
+  const allowed = elec ? ["refurbished"] : ["thrifted"];
+  if (d.condition === "new" && allowed.includes(f.condition)) { patch.condition = f.condition; filled.push("condition"); }
+
+  patch.step = 3;
+  return { patch, filled };
+};
+
 // ── Main component ─────────────────────────────────────────────────────────────
 // userId comes from the page wrapper, which waits for auth. useAuth() isn't
 // shared state, so reading it here would start as "no user", mount the draft
 // under the wrong key, and wipe the real draft when the id arrived.
 const VendorListItem = ({ userId }: { userId: string }) => {
   const navigate = useNavigate();
-  const [draft, setDraft] = usePersistentState<Draft>(`list-item-draft:${userId}`, EMPTY_DRAFT);
+  const location = useLocation();
+  // Set when a seller came here from "List another like this" on a product.
+  const cloneFrom = (location.state as { cloneFrom?: any } | null)?.cloneFrom;
+  const [draft, setDraft, { clear: clearLocalDraft }] = usePersistentState<Draft>(`list-item-draft:${userId}`, EMPTY_DRAFT);
   const [serverChecked, setServerChecked] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "offline">("idle");
   const [showRestored, setShowRestored] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  // The item just listed. While set, the page says so instead of showing the form again.
+  const [done, setDone] = useState<{ id: string; name: string; image: string; template: Draft } | null>(null);
+  // Name of the item a new draft was copied from.
+  const [copiedFrom, setCopiedFrom] = useState<string | null>(null);
+  // AI help: null until the server says whether it is on and under budget.
+  const [aiAvailable, setAiAvailable] = useState<boolean | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiFilled, setAiFilled] = useState<string[]>([]);
+  const [aiUnsure, setAiUnsure] = useState<string[]>([]);
 
   // Update helper: every change stamps the draft so the newer copy wins.
   const update = (patch: Partial<Draft> | ((d: Draft) => Partial<Draft>)) =>
     setDraft((d) => ({ ...d, ...(typeof patch === "function" ? patch(d) : patch), updatedAt: Date.now() }));
 
+  // Editing a field an AI suggestion filled makes it the seller's own again.
+  const own = (key: string) => setAiFilled((l) => (l.includes(key) ? l.filter((k) => k !== key) : l));
+
+  useEffect(() => {
+    let live = true;
+    aiListingStatus().then((ok) => live && setAiAvailable(ok));
+    return () => { live = false; };
+  }, []);
+
   // On open, take whichever copy is newer: this device's or the account's.
   useEffect(() => {
+    // Coming from "List another like this": start from that item, and drop the
+    // router state so a refresh doesn't copy it again.
+    if (cloneFrom) {
+      setDraft(draftFromProduct(cloneFrom));
+      setCopiedFrom(cloneFrom.name ?? "your item");
+      setServerChecked(true);
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
     let cancelled = false;
     (async () => {
       const { data } = await (supabase as any)
@@ -412,14 +542,70 @@ const VendorListItem = ({ userId }: { userId: string }) => {
       if (paths.length) void supabase.storage.from("product-images").remove(paths);
     }
     await (supabase as any).from("product_drafts").delete().eq("vendor_id", userId);
-    setDraft(EMPTY_DRAFT);
+    // clear() wipes this device's copy right now. Setting EMPTY_DRAFT alone is
+    // not enough: the browser copy is only cleared on a short delay, and
+    // leaving the page right after publishing cancelled it, so the next visit
+    // greeted a seller who had already listed with "we kept your unfinished
+    // listing".
+    clearLocalDraft();
     setShowRestored(false);
+    setAiFilled([]);
+    setAiUnsure([]);
+  };
+
+  /** Ask AI to read the photos. "all" fills blanks across the form; "description" writes a fresh description. */
+  const runAi = async (mode: "all" | "description") => {
+    if (aiBusy || !draft.images.length) return;
+    setAiBusy(true);
+    const result = await aiListingFill(draft.images, draft.name.trim());
+    setAiBusy(false);
+    if (result.ok === false) {
+      if (result.unavailable) setAiAvailable(false);
+      toast.error(result.message);
+      return;
+    }
+    // Nothing readable in the photos (no category and no name): say so rather than jump ahead with a blank form.
+    if (mode === "all" && !result.fields.category && !result.fields.name) {
+      toast.error("AI couldn't tell what this is from the photos. Fill in the details yourself.");
+      return;
+    }
+    const { patch, filled } = planAiFill(draft, result.fields, mode);
+    update(patch);
+    setAiFilled((l) => Array.from(new Set([...l, ...filled])));
+    setAiUnsure(result.fields.uncertain);
+  };
+
+  /** Start the next listing from the one just published (same details, new photos). */
+  const startAnotherLikeThis = () => {
+    if (!done) return;
+    setDraft(done.template);
+    setCopiedFrom(done.name);
+    setDone(null);
+  };
+
+  const startFresh = () => {
+    clearLocalDraft();
+    setCopiedFrom(null);
+    setDone(null);
   };
 
   const handleSubmit = async () => {
     if (!canPublish) return;
     setSubmitting(true);
     try {
+      // Photos are uploaded once per listing, so a product that already uses
+      // this cover photo is this same listing. Don't list it twice: a seller
+      // who wasn't sure the first tap worked shouldn't end up with a duplicate.
+      const { data: existing } = await supabase
+        .from("products").select("id, status").eq("vendor_id", userId).contains("images", [draft.images[0]]).limit(1).maybeSingle();
+      if (existing) {
+        if (existing.status === "draft") await supabase.rpc("publish_product", { product_id_to_publish: existing.id });
+        await resetDraft(false);
+        setDone({ id: existing.id, name: draft.name.trim(), image: draft.images[0], template: templateOf(draft) });
+        toast.success("This item is already listed");
+        return;
+      }
+
       const { specs, condition } = draft;
       const variantRaw = specs.sizes || specs.size || specs.storage || specs.volume || specs.capacity || specs.waist || "";
       const sizesArr = parseSizesInput(variantRaw); // "38-45" becomes 38, 39 … 45
@@ -460,6 +646,7 @@ const VendorListItem = ({ userId }: { userId: string }) => {
 
       const { error: publishErr } = await supabase.rpc("publish_product", { product_id_to_publish: inserted.id });
       // The product row exists either way, so the local draft is done with.
+      const justListed = { name: draft.name.trim(), image: draft.images[0], template: templateOf(draft) };
       await resetDraft(false);
       if (publishErr) {
         toast.error("Saved, but not live yet", { description: "Open it in My Products and tap Publish." });
@@ -480,7 +667,8 @@ const VendorListItem = ({ userId }: { userId: string }) => {
       } else {
         toast.success("Item listed", { description: `Listing strength ${strength.percent}%` });
       }
-      navigate("/vendor/products");
+      // Stay on a clear "you're live" screen, with the next step one tap away.
+      setDone({ id: inserted.id, ...justListed });
     } catch (e: any) {
       toast.error(e, { retry: handleSubmit, description: "Your listing is still saved as a draft." });
     } finally {
@@ -490,6 +678,48 @@ const VendorListItem = ({ userId }: { userId: string }) => {
 
   const STEPS = ["Photos", "What is it?", "Details"];
   const goBack = () => (draft.step === 1 ? navigate("/vendor/products") : update({ step: (draft.step - 1) as Draft["step"] }));
+
+  // Listed. Say so plainly, and make the next listing one tap away.
+  if (done) {
+    return (
+      <div data-layout="designed" className="min-h-screen bg-sunken">
+        <div className="flex">
+          <VendorSidebar />
+          <main className="flex-1 min-w-0">
+            <div className="max-w-xl mx-auto px-4 sm:px-6 py-10">
+              <div className="rounded-3xl bg-card p-6 sm:p-8 shadow-card text-center space-y-6 animate-fade-in">
+                <div className="mx-auto h-16 w-16 rounded-full bg-success/15 text-success flex items-center justify-center">
+                  <CheckCircle2 size={34} strokeWidth={1.75} />
+                </div>
+                <div className="space-y-1.5">
+                  <h1 className="font-display text-2xl leading-tight">You've listed it</h1>
+                  <p className="text-sm text-muted-foreground">It's live in the shop. Nothing more to do for this one.</p>
+                </div>
+                <div className="flex items-center gap-3 rounded-2xl bg-sunken p-3 text-left">
+                  <img src={done.image} alt="" className="h-14 w-14 rounded-xl object-cover shrink-0" />
+                  <p className="font-medium text-sm leading-snug line-clamp-2">{done.name}</p>
+                </div>
+                <div className="space-y-2.5">
+                  <button onClick={startAnotherLikeThis}
+                    className="w-full inline-flex items-center justify-center gap-2 h-12 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary-hover transition-colors active:scale-[0.98]">
+                    <CopyPlus size={16} strokeWidth={2} /> List another like this
+                  </button>
+                  <p className="text-xs text-muted-foreground">Keeps the details. You add new photos and change what differs, like size or colour.</p>
+                  <button onClick={startFresh}
+                    className="w-full h-12 rounded-full border border-border bg-card font-semibold text-sm hover:border-foreground/40 transition-colors">
+                    List something different
+                  </button>
+                  <button onClick={() => navigate("/vendor/products")} className="w-full h-10 text-sm font-medium text-muted-foreground hover:text-foreground">
+                    View my products
+                  </button>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div data-layout="designed" className="min-h-screen bg-sunken">
@@ -536,6 +766,14 @@ const VendorListItem = ({ userId }: { userId: string }) => {
             </div>
           )}
 
+          {copiedFrom && (
+            <div className="mb-4 flex flex-nowrap items-center gap-3 rounded-2xl border border-primary/25 bg-cream px-4 py-3 text-sm animate-fade-in">
+              <CopyPlus size={16} className="shrink-0 text-primary" aria-hidden="true" />
+              <span className="flex-1 min-w-0">Started from <strong className="font-semibold">{copiedFrom}</strong>. Add new photos, then change what's different.</span>
+              <button onClick={() => setCopiedFrom(null)} className="py-2 -my-2 text-xs font-semibold">OK</button>
+            </div>
+          )}
+
           {/* ── STEP 1: Photos ── */}
           {draft.step === 1 && (
             <div className="space-y-4">
@@ -575,6 +813,20 @@ const VendorListItem = ({ userId }: { userId: string }) => {
               </div>
 
               <VideoUploader vendorId={userId} videoUrl={draft.videoUrl} onVideoChange={(v: string | null) => update({ videoUrl: v })} />
+
+              {/* Only shown while AI help is on and under budget. Once it isn't, the seller just fills the details in. */}
+              {aiAvailable && draft.images.length > 0 && uploadingCount === 0 && (
+                <button type="button" onClick={() => runAi("all")} disabled={aiBusy}
+                  className="w-full flex items-center gap-3 rounded-2xl border-2 border-primary/40 bg-primary/5 p-4 text-left transition hover:bg-primary/10 disabled:opacity-80 active:scale-[0.99]">
+                  <span className="h-10 w-10 shrink-0 rounded-full bg-primary/15 text-primary flex items-center justify-center">
+                    {aiBusy ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} strokeWidth={1.75} />}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">{aiBusy ? "Looking at your photos…" : "Fill in the details for me"}</span>
+                    <span className="block text-xs text-muted-foreground">AI reads your photos and suggests the type, name and description. You check it before you publish.</span>
+                  </span>
+                </button>
+              )}
 
               <button
                 onClick={() => update({ step: 2 })}
@@ -642,10 +894,21 @@ const VendorListItem = ({ userId }: { userId: string }) => {
           {/* ── STEP 3: Details ── */}
           {draft.step === 3 && (
             <div className="space-y-4">
+              {aiFilled.length > 0 && (
+                <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 text-sm space-y-1 animate-fade-in">
+                  <p className="font-semibold flex items-center gap-2"><Sparkles size={15} className="text-primary" aria-hidden="true" /> AI filled in the {aiFilled.slice(0, 4).join(", ")} from your photos</p>
+                  <p className="text-muted-foreground">
+                    It can get things wrong, so read each one before you publish.
+                    {aiUnsure.length > 0 && <> It wasn't sure about the <strong className="font-semibold text-foreground">{aiUnsure.join(", ")}</strong>, so check that most.</>}
+                    {" "}Add the price and how many you have.
+                  </p>
+                </div>
+              )}
+
               <div className="rounded-2xl bg-card p-4 sm:p-5 shadow-card space-y-4">
                 <p className="text-sm font-semibold">The essentials</p>
-                <Field label="Item name">
-                  <TextInput value={draft.name} onChange={(v) => update({ name: v })} placeholder={`e.g. ${selectedCat?.name ?? "Item"} in black, size 42`} />
+                <Field label="Item name" ai={aiFilled.includes("name")}>
+                  <TextInput value={draft.name} onChange={(v) => { own("name"); update({ name: v }); }} placeholder={`e.g. ${selectedCat?.name ?? "Item"} in black, size 42`} />
                 </Field>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Price (KES)">
@@ -675,14 +938,21 @@ const VendorListItem = ({ userId }: { userId: string }) => {
                   <p className="text-sm font-semibold">Make it stronger</p>
                   <p className="text-xs text-muted-foreground">Optional. Each one raises your listing strength.</p>
                 </div>
-                <Field label="Description">
-                  <textarea value={draft.description} onChange={(e) => update({ description: e.target.value })} rows={3}
+                <Field label="Description" ai={aiFilled.includes("description")}
+                  action={aiAvailable && draft.images.length > 0 ? (
+                    <button type="button" onClick={() => runAi("description")} disabled={aiBusy}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline disabled:opacity-60">
+                      {aiBusy ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                      {draft.description.trim() ? "Rewrite with AI" : "Write with AI"}
+                    </button>
+                  ) : undefined}>
+                  <textarea value={draft.description} onChange={(e) => { own("description"); update({ description: e.target.value }); }} rows={3}
                     placeholder="Fit, flaws, what's included. Honest details mean fewer returns."
                     className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition resize-none" />
                 </Field>
                 {showBrandField && (
-                  <Field label="Brand">
-                    <TextInput value={draft.brand} onChange={(v) => update({ brand: v })} placeholder="e.g. Nike, Samsung, Zara" />
+                  <Field label="Brand" ai={aiFilled.includes("brand")}>
+                    <TextInput value={draft.brand} onChange={(v) => { own("brand"); update({ brand: v }); }} placeholder="e.g. Nike, Samsung, Zara" />
                   </Field>
                 )}
                 {specFields.map((f) => (
@@ -699,8 +969,8 @@ const VendorListItem = ({ userId }: { userId: string }) => {
                       className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition resize-none" />
                   </Field>
                 )}
-                <Field label="Key features (comma-separated)">
-                  <TextInput value={draft.keyFeatures} onChange={(v) => update({ keyFeatures: v })} placeholder="e.g. Waterproof, padded collar, original box" />
+                <Field label="Key features (comma-separated)" ai={aiFilled.includes("features")}>
+                  <TextInput value={draft.keyFeatures} onChange={(v) => { own("features"); update({ keyFeatures: v }); }} placeholder="e.g. Waterproof, padded collar, original box" />
                 </Field>
                 <label className="flex items-start gap-3 cursor-pointer rounded-xl bg-sunken p-3.5">
                   <input type="checkbox" checked={draft.freeDelivery} onChange={(e) => update({ freeDelivery: e.target.checked })} className="mt-0.5 h-4 w-4 rounded" />

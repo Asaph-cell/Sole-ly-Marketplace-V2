@@ -7,7 +7,7 @@ import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import {
   Edit, Trash2, CheckCircle, Package, ShoppingBag,
   Plus, AlertTriangle, ChevronLeft, Share2, Copy,
-  X, Check, ExternalLink, ImageDown, Loader2,
+  X, Check, ExternalLink, ImageDown, Loader2, CopyPlus,
 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
@@ -341,6 +341,17 @@ const VendorProducts = () => {
             >
               <Edit size={14} strokeWidth={1.5}  /> Edit
             </button>
+            {/* Same details, new photos: for the same item in another size or colour. */}
+            {!isAccessory && (
+              <button
+                onClick={() => navigate("/vendor/list-item", { state: { cloneFrom: product } })}
+                className="h-8 w-8 flex items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                title="List another like this"
+                aria-label={`List another like ${product.name}`}
+              >
+                <CopyPlus size={14} strokeWidth={1.5} />
+              </button>
+            )}
             <button
               onClick={() => setToDelete(product)}
               aria-label={`Delete ${product.name}`}
