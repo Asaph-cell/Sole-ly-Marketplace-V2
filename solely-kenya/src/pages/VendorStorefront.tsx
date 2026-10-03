@@ -4,8 +4,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO } from "@/components/SEO";
+import { fetchVendorIdByOldLink } from "@/lib/storeSite";
 import ProductCard from "@/components/ProductCard";
-import { Store, MapPin, Star, AlertTriangle, ShieldCheck, Package, Phone } from "lucide-react";
+import { Store, MapPin, Star, AlertTriangle, ShieldCheck, Phone } from "lucide-react";
 
 const VendorStorefront = () => {
   const { vendorId, storeLink } = useParams();
@@ -38,9 +39,15 @@ const VendorStorefront = () => {
         profQuery = profQuery.eq("store_link", identifier);
       }
 
-      const { data: prof, error: profError } = await profQuery.single();
-        
-      if (profError || !prof) throw new Error("Vendor not found");
+      let { data: prof } = await profQuery.maybeSingle();
+
+      // The shop may have been renamed since this link was shared.
+      if (!prof && !isUUID && identifier) {
+        const oldId = await fetchVendorIdByOldLink(identifier);
+        if (oldId) ({ data: prof } = await supabase.from("public_vendor_profiles").select("*").eq("id", oldId).maybeSingle());
+      }
+
+      if (!prof) throw new Error("Vendor not found");
       setVendor(prof);
 
       // 2. Fetch active products
@@ -109,7 +116,7 @@ const VendorStorefront = () => {
     <div className="min-h-screen bg-muted/20 pb-20">
       <SEO 
         title={`${storeName}: Shop on Solely`}
-        description={`Shop ${products.length} items from ${storeName} on Solely. Your money is held until your order arrives.`}
+        description={`Shop from ${storeName} on Solely. Your money is held until your order arrives.`}
       />
       
       {/* Cover/Header area */}
@@ -138,9 +145,6 @@ const VendorStorefront = () => {
                     <MapPin size={16} /> {location}
                   </span>
                 )}
-                <span className="flex items-center gap-1.5">
-                  <Package size={16} /> {products.length} {products.length === 1 ? "product" : "products"}
-                </span>
                 {/* Only when the vendor opted in by filling it on their
                     settings page - a blank one simply shows nothing. */}
                 {vendor.store_phone && (
@@ -172,7 +176,7 @@ const VendorStorefront = () => {
       {/* Products Grid */}
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold tracking-tight">All products ({products.length})</h2>
+          <h2 className="text-xl font-bold tracking-tight">All products</h2>
         </div>
         
         {products.length === 0 ? (

@@ -266,7 +266,7 @@ const Shop = () => {
   const heading     = headingSub ?? headingCat;
 
   const seoTitle       = `${heading} for Sale in Kenya`;
-  const seoDescription = `Browse ${totalCount} ${heading.toLowerCase()} from sellers across Kenya. Your money is protected until you get what you ordered.`;
+  const seoDescription = `Browse ${heading.toLowerCase()} from sellers across Kenya. Your money is protected until you get what you ordered.`;
   const seoCanonical   = selectedCategory !== "all"
     ? `https://solelymarketplace.com/shop?category=${selectedCategory}${selectedSub !== "all" ? `&sub=${selectedSub}` : ""}`
     : "https://solelymarketplace.com/shop";
@@ -437,7 +437,7 @@ const Shop = () => {
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
             <Shield strokeWidth={1.5} className="h-3 w-3 text-primary shrink-0" />
-            {totalCount} items, every order escrow-protected
+            Every order is escrow-protected
           </p>
         </div>
 
@@ -522,13 +522,8 @@ const Shop = () => {
               </div>
             )}
 
-            {/* ── Sort + result count row ── */}
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <p className="text-xs sm:text-sm text-foreground/70 font-medium shrink-0">
-                <span className="font-bold text-foreground">{items.length}</span>
-                {" "}/  {" "}
-                <span className="font-bold text-foreground">{totalCount}</span> results
-              </p>
+            {/* ── Sort row (no item counts shown to shoppers) ── */}
+            <div className="flex items-center justify-end gap-3 mb-4">
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-[160px] sm:w-[200px] h-9 text-xs sm:text-sm">
                   <SelectValue placeholder="Sort by" />
@@ -591,7 +586,7 @@ const Shop = () => {
                       Loading…
                     </>
                   ) : (
-                    `Load More (${totalCount - items.length} remaining)`
+                    "Load more"
                   )}
                 </Button>
               </div>

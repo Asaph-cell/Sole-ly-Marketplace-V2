@@ -420,7 +420,7 @@ const Product = () => {
                       <img
                         src={product.images?.[selectedImage === -1 ? 0 : selectedImage] || "/placeholder.svg"}
                         alt={product.name}
-                        className="w-full h-full object-cover cursor-pointer"
+                        className="w-full h-full object-contain bg-white cursor-pointer"
                       />
                     </PhotoView>
                   )}
@@ -521,7 +521,7 @@ const Product = () => {
                   <img
                     src={product.images?.[selectedImage === -1 ? 0 : selectedImage] || "/placeholder.svg"}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-white"
                     fetchPriority="high"
                   />
                 )}
@@ -937,7 +937,7 @@ const Product = () => {
                 className="pb-6 !px-1 select-none"
               >
                 {similarProducts.map((simProd) => (
-                  <SwiperSlide key={simProd.id} className="h-auto py-1">
+                  <SwiperSlide key={simProd.id} className="!flex !h-auto py-1">
                     <ProductCard
                       id={simProd.id}
                       name={simProd.name}

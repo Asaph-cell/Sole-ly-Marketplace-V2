@@ -231,12 +231,12 @@ const BuyNow = () => {
       <div className="max-w-lg mx-auto pb-32">
 
         {/* ── Image gallery ── */}
-        <div className="relative bg-muted">
+        <div className="relative bg-white">
           {images.length > 0 ? (
             <img
               src={images[selectedImage]}
               alt={product.name}
-              className="w-full aspect-square object-cover"
+              className="w-full aspect-square object-contain"
             />
           ) : (
             <div className="w-full aspect-square flex items-center justify-center">
@@ -298,6 +298,12 @@ const BuyNow = () => {
             <p className="text-2xl sm:text-3xl font-black text-primary mt-2">
               KES {product.price_ksh.toLocaleString()}
             </p>
+            {product.original_price > product.price_ksh && (
+              <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                <s>KES {product.original_price.toLocaleString()}</s>
+                <span className="px-1.5 py-0.5 rounded-md bg-destructive/10 text-destructive text-xs font-extrabold">-{Math.round((1 - product.price_ksh / product.original_price) * 100)}%</span>
+              </p>
+            )}
             <div className="flex items-center gap-2 mt-2">
               {product.stock > 0 ? (
                 <span className="text-xs font-semibold text-success bg-success-soft px-2.5 py-1 rounded-full">

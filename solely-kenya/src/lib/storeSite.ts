@@ -208,7 +208,23 @@ export const fetchShopProfile = async (storeLink: string): Promise<ShopProfile |
     .select(PROFILE_COLUMNS)
     .eq(isUuid ? "id" : "store_link", storeLink)
     .maybeSingle();
-  return (data as ShopProfile) ?? null;
+  if (data || isUuid) return (data as ShopProfile) ?? null;
+
+  // The shop may have been renamed since this link was shared.
+  const vendorId = await fetchVendorIdByOldLink(storeLink);
+  if (!vendorId) return null;
+  const { data: renamed } = await (supabase as any)
+    .from("public_vendor_profiles")
+    .select(PROFILE_COLUMNS)
+    .eq("id", vendorId)
+    .maybeSingle();
+  return (renamed as ShopProfile) ?? null;
+};
+
+/** The shop a retired link used to point at, if any. Best effort: null if the table isn't there yet. */
+export const fetchVendorIdByOldLink = async (link: string): Promise<string | null> => {
+  const { data } = await (supabase as any).from("store_link_aliases").select("vendor_id").eq("link", link).maybeSingle();
+  return (data?.vendor_id as string) ?? null;
 };
 
 /** The seller's website settings, or null when they haven't made one. */

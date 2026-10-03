@@ -172,9 +172,11 @@ const VendorDirectory = () => {
 
       if (!error && data) {
         // Stores appear here once their public profile (setup level 2) is
-        // done. The pickup address is private, so it isn't checked here.
+        // done, or as soon as they are ID-verified: a verified shop shouldn't
+        // stay hidden for want of a logo. The pickup address is private, so
+        // it isn't checked here.
         const activeVendors = data
-          .filter((v) => v.store_name && v.store_logo_url && v.store_description && v.vendor_city)
+          .filter((v) => v.store_name && (v.kyc_status === "approved" || (v.store_logo_url && v.store_description && v.vendor_city)))
           .map((v) => ({ ...v, products: productsByVendor.get(v.id) || [], hasSite: withSite.has(v.id) }));
         setVendors(activeVendors);
       }

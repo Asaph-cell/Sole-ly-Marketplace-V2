@@ -858,8 +858,7 @@ const AllProducts = ({ category, setCategory, tilesShown }: { category: string; 
 
   return (
     <section id="products" className="max-w-6xl mx-auto px-4 scroll-mt-24">
-      <SectionHead title={title}
-        aside={<span className="text-sm text-[color:var(--muted)] pb-2">{products.length} {products.length === 1 ? "item" : "items"}</span>} />
+      <SectionHead title={title} />
 
       {((cats.length > 1 && !tilesShown) || products.length > 8 || category !== "all") && (
         <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between mb-6">
