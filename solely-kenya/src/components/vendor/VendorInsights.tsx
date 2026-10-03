@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Target, ShoppingCart, Repeat, Link2, Compass, Store } from "lucide-react";
+import { Users, Target, ShoppingCart, Repeat, Link2, Compass, Store, Globe } from "lucide-react";
 
 /**
  * The numbers a vendor needs to make a decision, which the raw view counter
@@ -25,6 +25,7 @@ const SOURCE_LABEL: Record<string, { label: string; icon: typeof Link2 }> = {
     buy_link: { label: "Links you shared", icon: Link2 },
     product_page: { label: "Browsing Solely", icon: Compass },
     storefront: { label: "Your storefront", icon: Store },
+    own_site: { label: "Your website", icon: Globe },
     unknown: { label: "Before tracking", icon: Compass },
 };
 

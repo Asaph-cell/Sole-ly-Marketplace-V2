@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Heart, Truck, RefreshCcw, Recycle, Play, Star, Check } from "lucide-react";
+import { Heart, Truck, RefreshCcw, Recycle, Play, Star, Check, Sparkles } from "lucide-react";
+import { useLiveOffers } from "@/lib/liveOffers";
 import { motion } from "framer-motion";
 
 import { useCart } from "@/contexts/CartContext";
@@ -80,6 +81,7 @@ const ProductCard = ({
   const { user } = useAuth();
   const navigate = useNavigate();
   const wished = isWished(String(id));
+  const offer = useLiveOffers().get(vendorId ?? "");
   const [justAdded, setJustAdded] = useState(false);
   const addedTimer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(addedTimer.current), []);
@@ -222,6 +224,14 @@ const ProductCard = ({
               </span>
             )}
           </div>
+
+          {/* Offer the seller posted on their own website, shown here too. */}
+          {offer && (
+            <span className="absolute bottom-3 left-3 right-14 z-10 flex items-center gap-1.5 px-2.5 py-1 bg-[#14213d] text-[#ffd166] text-[11px] font-extrabold rounded-full shadow-sm w-fit max-w-[calc(100%-4.25rem)]">
+              <Sparkles size={12} strokeWidth={2.5} className="shrink-0" />
+              <span className="truncate">{offer.title}</span>
+            </span>
+          )}
 
           {/* Wishlist button */}
           <button

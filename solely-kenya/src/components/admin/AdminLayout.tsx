@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Store, Scale, Package, Megaphone, Mail, History,
-  ClipboardList, Settings, Menu, Search, TrendingUp, ShieldAlert, type LucideIcon,
+  ClipboardList, Settings, Menu, Search, TrendingUp, ShieldAlert, Globe, type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,6 +78,7 @@ function useNavGroups(): NavGroup[] {
         { label: "Products", icon: Package, href: "/admin/products" },
         { label: "Reports", icon: ShieldAlert, href: "/admin/reports", badge: newReportCount },
         { label: "Growth", icon: TrendingUp, href: "/admin/growth" },
+        { label: "Websites", icon: Globe, href: "/admin/websites" },
       ],
     },
     {

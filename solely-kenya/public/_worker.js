@@ -26,20 +26,27 @@ const ROUTE_PATTERNS = [
     /^\/$/,
     /^\/(shop|vendors|blog|about|contact|how-it-works|terms|privacy-policy|feedback|report-listing|auth|reset-password|cart|checkout|wishlist|orders|messages|delivery-details|delivery-negotiation)\/?$/,
     /^\/(shop|store|product|blog|orders|buy|pay|track)\/[^/]+\/?$/,
-    /^\/vendor(\/(register|dashboard|setup|products|list-item|add-product|add-accessory|orders|ratings|disputes|payment-links|settings|messages))?\/?$/,
+    /^\/store\/[^/]+\/p\/[^/]+\/?$/,
+    /^\/vendor(\/(register|dashboard|setup|products|list-item|add-product|add-accessory|orders|ratings|disputes|payment-links|settings|messages|website))?\/?$/,
     /^\/vendor\/(edit-product|edit-accessory)\/[^/]+\/?$/,
-    /^\/admin(\/(dashboard|disputes|vendors|products|reports|comms|mailing-list|activity|settings|growth|orders))?\/?$/,
+    /^\/admin(\/(dashboard|disputes|vendors|products|reports|comms|mailing-list|activity|settings|growth|orders|websites))?\/?$/,
     /^\/admin\/vendors\/[^/]+\/?$/,
 ];
 
 // Point canonical/og:url at this path and, for known pages, swap in the
 // page's own title and description.
-function rewriteHead(response, pathname) {
+function rewriteHead(response, pathname, storeMeta) {
     var canonical = SITE_URL + (pathname === '/' ? '/' : pathname.replace(/\/$/, ''));
-    var meta = ROUTE_META[pathname.replace(/\/$/, '')];
+    var meta = storeMeta || ROUTE_META[pathname.replace(/\/$/, '')];
     var rewriter = new HTMLRewriter()
         .on('link[rel="canonical"]', { element: function (el) { el.setAttribute('href', canonical); } })
         .on('meta[property="og:url"]', { element: function (el) { el.setAttribute('content', canonical); } });
+    if (meta && meta[2]) {
+        var image = meta[2];
+        rewriter = rewriter.on('meta[property="og:image"], meta[name="twitter:image"]', {
+            element: function (el) { el.setAttribute('content', image); },
+        });
+    }
     if (meta) {
         var title = meta[0];
         var desc = meta[1];
@@ -53,6 +60,42 @@ function rewriteHead(response, pathname) {
             });
     }
     return rewriter.transform(response);
+}
+
+// /store/<link> and /store/<link>/p/<product>: the shop's (or product's) own
+// title, description and image, so a seller sharing their website link on
+// WhatsApp or Instagram gets a preview of their shop rather than Solely's.
+var SB_URL = 'https://ktoodrjfytteppnpyhvi.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0b29kcmpmeXR0ZXBwbnB5aHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMDA0MDMsImV4cCI6MjA5Mjg3NjQwM30.4VknmxjOv9YjyvOzXHHfOIo3h2czfuT5NNu0-pXz-As';
+
+function sbGet(path) {
+    return fetch(SB_URL + '/rest/v1/' + path, { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } })
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .catch(function () { return []; });
+}
+
+async function storeMetaFor(pathname) {
+    var m = pathname.match(/^\/store\/([^/]+)(?:\/p\/([^/]+))?\/?$/);
+    if (!m) return null;
+    var shops = await sbGet('public_vendor_profiles?select=id,store_name,full_name,store_description,store_logo_url&limit=1&store_link=eq.' + encodeURIComponent(decodeURIComponent(m[1])));
+    var shop = shops[0];
+    if (!shop) return null;
+    var sites = await sbGet('store_sites?select=tagline,about,banner_url&enabled=eq.true&vendor_id=eq.' + shop.id);
+    var site = sites[0] || {};
+    var name = (shop.store_name || shop.full_name || 'Shop').trim();
+
+    if (m[2]) {
+        var ref = decodeURIComponent(m[2]);
+        var isUuid = /^[0-9a-f-]{36}$/i.test(ref);
+        var items = await sbGet('products?select=name,price_ksh,description,images&limit=1&vendor_id=eq.' + shop.id + '&' + (isUuid ? 'id=eq.' + ref : 'short_code=eq.' + encodeURIComponent(ref.toUpperCase())));
+        var item = items[0];
+        if (item) {
+            var d = item.description || item.name + ' from ' + name + '.';
+            return [item.name + ', KES ' + Number(item.price_ksh).toLocaleString('en-US') + ' | ' + name, d.slice(0, 160), (item.images && item.images[0]) || site.banner_url || shop.store_logo_url];
+        }
+    }
+    var desc = site.tagline || site.about || shop.store_description || 'Shop ' + name + ' on Solely. Your money is held until your order arrives.';
+    return [site.tagline ? name + ': ' + site.tagline : name + ' | Shop on Solely', desc.slice(0, 160), site.banner_url || shop.store_logo_url];
 }
 
 export default {
@@ -263,7 +306,8 @@ export default {
 
             try {
                 var known = ROUTE_PATTERNS.some(function (re) { return re.test(url.pathname); });
-                var rewritten = rewriteHead(spaResponse, url.pathname);
+                var storeMeta = url.pathname.indexOf('/store/') === 0 ? await storeMetaFor(url.pathname) : null;
+                var rewritten = rewriteHead(spaResponse, url.pathname, storeMeta);
                 if (known) return rewritten;
                 var notFoundHeaders = new Headers(rewritten.headers);
                 notFoundHeaders.set('X-Robots-Tag', 'noindex');

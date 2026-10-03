@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SEO } from "@/components/SEO";
-import { Store, MapPin, ShieldCheck, Search, ArrowRight } from "lucide-react";
+import { Store, MapPin, ShieldCheck, Search, ArrowRight, Globe, Sparkles } from "lucide-react";
+import { useLiveOffers } from "@/lib/liveOffers";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -23,9 +24,12 @@ interface VendorData {
   vendor_county: string | null;
   kyc_status: string | null;
   products: VendorProduct[];
+  /** Has switched on their own website (shown at the same /store link). */
+  hasSite?: boolean;
 }
 
 const VendorCard = ({ vendor }: { vendor: VendorData }) => {
+  const offer = useLiveOffers().get(vendor.id);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const allImages = vendor.products
@@ -90,6 +94,11 @@ const VendorCard = ({ vendor }: { vendor: VendorData }) => {
           {vendor.kyc_status === "approved" && (
             <ShieldCheck size={16} className="text-primary shrink-0" fill="currentColor" stroke="white" />
           )}
+          {vendor.hasSite && (
+            <span className="ml-auto shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-foreground text-background">
+              <Globe size={11} aria-hidden="true" /> Website
+            </span>
+          )}
         </h3>
 
         <div className="flex items-center gap-2 mt-1 mb-3 text-xs text-muted-foreground font-medium">
@@ -103,12 +112,19 @@ const VendorCard = ({ vendor }: { vendor: VendorData }) => {
           )}
         </div>
 
+        {offer && (
+          <p className="mb-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#14213d] px-2.5 py-1 text-[11px] font-extrabold text-[#ffd166]">
+            <Sparkles size={12} className="shrink-0" aria-hidden="true" />
+            <span className="truncate">{offer.title}</span>
+          </p>
+        )}
+
         <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed h-10">
           {vendor.store_description || `Shop the latest ${dealsIn.toLowerCase()} from ${name}. Guaranteed quality and fast delivery.`}
         </p>
 
         <div className="mt-4 flex items-center justify-between text-sm font-semibold text-primary group-hover:underline">
-          Visit Store
+          {vendor.hasSite ? "Visit website" : "Visit Store"}
           <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
         </div>
       </div>
@@ -144,6 +160,11 @@ const VendorDirectory = () => {
         productsByVendor.set(p.vendor_id, list);
       }
 
+      // Shops that switched on their own website get a badge. Best effort:
+      // no rows (or no table yet) just means no badges.
+      const { data: sites } = await (supabase as any).from("store_sites").select("vendor_id").eq("enabled", true);
+      const withSite = new Set<string>(((sites as { vendor_id: string }[]) || []).map((r) => r.vendor_id));
+
       const { data, error } = await supabase
         .from("public_vendor_profiles")
         .select("id, store_name, full_name, store_logo_url, store_description, store_link, vendor_city, vendor_county, kyc_status")
@@ -154,7 +175,7 @@ const VendorDirectory = () => {
         // done. The pickup address is private, so it isn't checked here.
         const activeVendors = data
           .filter((v) => v.store_name && v.store_logo_url && v.store_description && v.vendor_city)
-          .map((v) => ({ ...v, products: productsByVendor.get(v.id) || [] }));
+          .map((v) => ({ ...v, products: productsByVendor.get(v.id) || [], hasSite: withSite.has(v.id) }));
         setVendors(activeVendors);
       }
     } finally {

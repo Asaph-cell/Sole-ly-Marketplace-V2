@@ -5,6 +5,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import ProductCard from "@/components/ProductCard";
+import { LiveOffersRow } from "@/components/LiveOffersRow";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -439,6 +440,8 @@ const Shop = () => {
             {totalCount} items, every order escrow-protected
           </p>
         </div>
+
+        {!searchQuery && selectedCategory === "all" && <LiveOffersRow />}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
 

@@ -13,6 +13,7 @@ import {
   Download,
   Link2,
   MessageCircle,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +37,7 @@ const menuItems = [
   { icon: PlusCircle, label: "List Item", path: "/vendor/list-item", alertKey: null, action: null },
   { icon: ShoppingBag, label: "Orders", path: "/vendor/orders", alertKey: "pendingOrders" as const, action: null },
   { icon: Link2, label: "Payment Links", path: "/vendor/payment-links", alertKey: null, action: null },
+  { icon: Globe, label: "My Website", path: "/vendor/website", alertKey: null, action: null },
   { icon: MessageCircle, label: "Messages", path: "/vendor/messages", alertKey: "unreadMessages" as const, action: null },
   { icon: Star, label: "Ratings", path: "/vendor/ratings", alertKey: null, action: null },
   { icon: AlertTriangle, label: "Disputes", path: "/vendor/disputes", alertKey: "openDisputes" as const, action: null },

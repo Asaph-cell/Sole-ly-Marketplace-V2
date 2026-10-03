@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type ViewSource = "buy_link" | "product_page" | "storefront";
+export type ViewSource = "buy_link" | "product_page" | "storefront" | "own_site";
 
 const VISITOR_KEY = "solely_visitor_id";
 // One view per product per visitor per window. Without this a vendor's numbers

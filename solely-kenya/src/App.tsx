@@ -73,6 +73,9 @@ const VendorOrders = lazyRetry(() => import("./pages/vendor/VendorOrders"), "Ven
 const VendorRatings = lazyRetry(() => import("./pages/vendor/VendorRatings"), "VendorRatings");
 const VendorDisputes = lazyRetry(() => import("./pages/vendor/VendorDisputes"), "VendorDisputes");
 const VendorPaymentLinks = lazyRetry(() => import("./pages/vendor/VendorPaymentLinks"), "VendorPaymentLinks");
+const VendorWebsite = lazyRetry(() => import("./pages/vendor/VendorWebsite"), "VendorWebsite");
+const StorePage = lazyRetry(() => import("./pages/site/StorePage").then(m => ({ default: m.StorePage })), "StorePage");
+const StorePreview = lazyRetry(() => import("./pages/site/StorePage").then(m => ({ default: m.StorePreview })), "StorePreview");
 const AdminDashboard = lazyRetry(() => import("./pages/admin/AdminDashboard"), "AdminDashboard");
 const AdminDisputes = lazyRetry(() => import("./pages/admin/AdminDisputes"), "AdminDisputes");
 const AdminVendors = lazyRetry(() => import("./pages/admin/AdminVendors"), "AdminVendors");
@@ -82,6 +85,7 @@ const AdminMailingList = lazyRetry(() => import("./pages/admin/AdminMailingList"
 const AdminActivity = lazyRetry(() => import("./pages/admin/AdminActivity"), "AdminActivity");
 const AdminSettings = lazyRetry(() => import("./pages/admin/AdminSettings"), "AdminSettings");
 const AdminGrowth = lazyRetry(() => import("./pages/admin/AdminGrowth"), "AdminGrowth");
+const AdminWebsites = lazyRetry(() => import("./pages/admin/AdminWebsites"), "AdminWebsites");
 const AdminOrders = lazyRetry(() => import("./pages/admin/AdminOrders"), "AdminOrders");
 const AdminVendorDetail = lazyRetry(() => import("./pages/admin/AdminVendorDetail"), "AdminVendorDetail");
 const AdminReports = lazyRetry(() => import("./pages/admin/AdminReports"), "AdminReports");
@@ -139,7 +143,9 @@ const AnimatedRoutes = () => {
       <Route path="/vendors" element={<PageWrapper><MainLayout><VendorDirectory /></MainLayout></PageWrapper>} />
       <Route path="/vendor" element={<PageWrapper><MainLayout><Vendor /></MainLayout></PageWrapper>} />
       {/* New Vanity URL Route */}
-      <Route path="/store/:storeLink" element={<PageWrapper><MainLayout><VendorStorefront /></MainLayout></PageWrapper>} />
+      {/* A seller's own website when switched on, else the standard store page */}
+      <Route path="/store/:storeLink" element={<PageWrapper><StorePage fallback={<MainLayout><VendorStorefront /></MainLayout>} /></PageWrapper>} />
+      <Route path="/store/:storeLink/p/:productRef" element={<PageWrapper><StorePage fallback={null} /></PageWrapper>} />
       {/* Legacy Route */}
       <Route path="/shop/:vendorId" element={<PageWrapper><MainLayout><VendorStorefront /></MainLayout></PageWrapper>} />
       <Route path="/vendor/register" element={<PageWrapper><MainLayout><VendorRegistration /></MainLayout></PageWrapper>} />
@@ -173,6 +179,7 @@ const AnimatedRoutes = () => {
       <Route path="/vendor/ratings" element={<PageWrapper><VendorRatings /></PageWrapper>} />
       <Route path="/vendor/disputes" element={<PageWrapper><VendorDisputes /></PageWrapper>} />
       <Route path="/vendor/payment-links" element={<PageWrapper><VendorPaymentLinks /></PageWrapper>} />
+      <Route path="/vendor/website" element={<PageWrapper><VendorWebsite /></PageWrapper>} />
       <Route path="/vendor/settings" element={<PageWrapper><VendorSettings /></PageWrapper>} />
       <Route path="/vendor/setup" element={<PageWrapper><VendorSetup /></PageWrapper>} />
       <Route path="/vendor/messages" element={<PageWrapper><VendorMessages /></PageWrapper>} />
@@ -187,6 +194,7 @@ const AnimatedRoutes = () => {
       <Route path="/admin/activity" element={<PageWrapper><AdminGuard><AdminActivity /></AdminGuard></PageWrapper>} />
       <Route path="/admin/settings" element={<PageWrapper><AdminGuard><AdminSettings /></AdminGuard></PageWrapper>} />
       <Route path="/admin/growth" element={<PageWrapper><AdminGuard><AdminGrowth /></AdminGuard></PageWrapper>} />
+      <Route path="/admin/websites" element={<PageWrapper><AdminGuard><AdminWebsites /></AdminGuard></PageWrapper>} />
       <Route path="/admin/orders" element={<PageWrapper><AdminGuard><AdminOrders /></AdminGuard></PageWrapper>} />
       <Route path="/admin/vendors/:vendorId" element={<PageWrapper><AdminGuard><AdminVendorDetail /></AdminGuard></PageWrapper>} />
 
@@ -194,6 +202,8 @@ const AnimatedRoutes = () => {
       <Route path="/buy/:productId" element={<PageWrapper><BuyNow /></PageWrapper>} />
       <Route path="/pay/:id" element={<PageWrapper><SecureInvoice /></PageWrapper>} />
       <Route path="/track/:orderId" element={<PageWrapper><GuestTracking /></PageWrapper>} />
+      <Route path="/site-preview/:storeLink" element={<React.Suspense fallback={null}><StorePreview /></React.Suspense>} />
+      <Route path="/site-preview/:storeLink/p/:productRef" element={<React.Suspense fallback={null}><StorePreview /></React.Suspense>} />
 
       <Route path="*" element={<PageWrapper><MainLayout><NotFound /></MainLayout></PageWrapper>} />
     </Routes>
@@ -234,7 +244,8 @@ const AppLayout = () => {
       <ScrollToTop />
       <React.Suspense fallback={<RouteSkeleton />}>
         <AnimatedRoutes />
-        <ChatBot />
+        {/* Seller websites are the seller's space, so no Solely assistant there. */}
+        {!/^\/(site-preview|store)\//.test(location.pathname) && <ChatBot />}
       </React.Suspense>
     </div>
   );

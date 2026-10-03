@@ -222,7 +222,7 @@ All colors MUST be HSL.
   /* Page headings use the display serif site-wide (the admin console keeps
      its own sans look). DM Serif Display has one weight, so override any
      font-bold/extrabold utilities that would otherwise fake-bold it. */
-  :where(h1, h2):not(.admin-shell *) {
+  :where(h1, h2):not(.admin-shell *):not(.sw-display) {
     font-family: theme("fontFamily.display");
     font-weight: 400 !important;
     letter-spacing: -0.01em;
@@ -651,19 +651,19 @@ a {
    mobile-first utilities, so they opt out of these blanket clamps. */
 /* Hero / Page title headings (text-5xl, text-4xl) */
 @media (max-width: 639px) {
-  h1:not(.font-display) {
+  h1:not(.font-display):not(.sw-display) {
     font-size: clamp(1.5rem, 6vw, 2.5rem) !important;
     line-height: 1.15 !important;
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
 
-  h2:not(.font-display) {
+  h2:not(.font-display):not(.sw-display) {
     font-size: clamp(1.25rem, 5vw, 2rem) !important;
     line-height: 1.2 !important;
   }
 
-  h3:not(.font-display) {
+  h3:not(.font-display):not(.sw-display) {
     font-size: clamp(1rem, 3.5vw, 1.5rem) !important;
     line-height: 1.25 !important;
   }
@@ -678,15 +678,15 @@ a {
 
 /* Even tighter for very small screens (320px) */
 @media (max-width: 359px) {
-  h1:not(.font-display) {
+  h1:not(.font-display):not(.sw-display) {
     font-size: clamp(1.25rem, 7vw, 1.75rem) !important;
   }
 
-  h2:not(.font-display) {
+  h2:not(.font-display):not(.sw-display) {
     font-size: clamp(1.1rem, 5.5vw, 1.5rem) !important;
   }
 
-  h3:not(.font-display) {
+  h3:not(.font-display):not(.sw-display) {
     font-size: clamp(0.9rem, 4vw, 1.25rem) !important;
   }
 }

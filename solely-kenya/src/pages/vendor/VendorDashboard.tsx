@@ -14,7 +14,7 @@ import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 import {
   Package, Star, Eye, ShoppingCart, TrendingUp,
   DollarSign, AlertTriangle, ArrowRight, Clock,
-  CheckCircle, Zap, Share2, Link2, Copy
+  CheckCircle, Zap, Share2, Link2, Copy, Palette
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { StoreSetupCard } from "@/components/vendor/StoreSetupCard";
@@ -233,6 +233,9 @@ const VendorDashboard = () => {
                       <Copy size={14} className="mr-1.5" /> Copy
                     </Button>
                   </div>
+                  <Button variant="outline" className="w-full mt-3" onClick={() => navigate("/vendor/website")}>
+                    <Palette size={15} strokeWidth={1.5} className="mr-2" /> Customize your website
+                  </Button>
                 </div>
 
                 {/* Create Payment Link Card */}

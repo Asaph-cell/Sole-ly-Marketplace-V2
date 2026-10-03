@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { FormSkeleton } from "@/components/skeletons";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "@/lib/toast";
@@ -15,6 +15,9 @@ import { recordProductView } from "@/lib/productViews";
 
 const BuyNow = () => {
   const { productId } = useParams();
+  // ?via=site: the buyer came from the seller's own website, which already
+  // counted the view (on its own domain, so it can't be de-duplicated here).
+  const fromSellerSite = useSearchParams()[0].get("via") === "site";
   const navigate = useNavigate();
   const { addItem, clearCart } = useCart();
 
@@ -68,7 +71,7 @@ const BuyNow = () => {
 
       // Attribute the visit to the shared link, so the vendor can tell traffic
       // they drove from traffic that found them by browsing.
-      recordProductView(p.id, "buy_link");
+      if (!fromSellerSite) recordProductView(p.id, "buy_link");
 
       // Vendor profile
       const { data: prof } = await supabase
