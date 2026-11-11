@@ -112,7 +112,7 @@ const HOW_IT_WORKS = [
     icon: KeyRound,
     short: "Release",
     title: "Confirm and release",
-    desc: "Enter your delivery PIN and share the release code. The seller gets paid on the spot. If the order never arrives, you get a full refund.",
+    desc: "Check your order, then tap \"Yes, I got it\" or give the seller your code. They're paid on the spot. If it never arrives, you get a full refund.",
     image: "/images/how-it-works/4-release.png"
   },
 ];
@@ -120,7 +120,7 @@ const HOW_IT_WORKS = [
 const SELLER_STEPS = [
   { icon: Link2,         title: "Create a protected link",   desc: "List the item once and get a checkout link to share." },
   { icon: MessageCircle, title: "Drop it in the chat",        desc: "WhatsApp, Instagram, TikTok, wherever your customers are." },
-  { icon: Shield,        title: "Get paid on delivery",       desc: "The buyer confirms and you're paid. If they go quiet after confirming, the money releases to you after 6 hours." },
+  { icon: Shield,        title: "Get paid on delivery",       desc: "The buyer confirms and you're paid. If they go quiet after delivery, the money releases to you after 6 daytime hours." },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────

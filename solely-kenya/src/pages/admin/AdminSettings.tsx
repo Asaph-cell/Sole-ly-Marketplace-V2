@@ -439,7 +439,7 @@ const AdminSettings = () => {
             onMaxAdminsChange={(v) => setField("max_admins", v)}
           />
 
-          <Section icon={Clock} title="Time windows" description="How long the platform waits before auto-cancelling, auto-disputing, or auto-releasing escrow.">
+          <Section icon={Clock} title="Time windows" description="How long each step waits before Solely acts. Shipping and payment release only count 7am-6pm hours (paused overnight).">
             <NumberRow
               label="Vendor confirmation deadline"
               hint="Before an unconfirmed order auto-cancels and refunds"
@@ -448,19 +448,50 @@ const AdminSettings = () => {
               suffix="hours"
             />
             <NumberRow
-              label="Undelivered auto-dispute window"
-              hint="Before an undelivered order is auto-raised for review"
-              value={settings.auto_dispute_days ?? 5}
-              onChange={(v) => setField("auto_dispute_days", v)}
-              suffix="days"
-            />
-            <NumberRow
-              label="Escrow release backstop"
-              hint="Funds normally release the moment the vendor enters the buyer's 6-digit code. This only fires if they never do, delivery orders only, pickup never auto-releases."
-              value={settings.pin_release_hours ?? 6}
-              onChange={(v) => setField("pin_release_hours", v)}
+              label="Ship deadline after accepting"
+              hint="Daytime hours. Then the buyer is refunded and the vendor gets a strike. Each vendor update adds 3h (max 2)."
+              value={settings.ship_deadline_hours ?? 8}
+              onChange={(v) => setField("ship_deadline_hours", v)}
               suffix="hours"
             />
+            <NumberRow
+              label="Payment release after arrival"
+              hint="Daytime hours. The buyer is asked twice; if they don't report a problem, the vendor is paid. Pickup never auto-releases."
+              value={settings.release_window_hours ?? 6}
+              onChange={(v) => setField("release_window_hours", v)}
+              suffix="hours"
+            />
+            <NumberRow
+              label="Buyer unavailable grace period"
+              hint="After the vendor reports the buyer unavailable, before the order cancels (buyer refunded the item price, vendor keeps the delivery fee)"
+              value={settings.buyer_unavailable_grace_hours ?? 12}
+              onChange={(v) => setField("buyer_unavailable_grace_hours", v)}
+              suffix="hours"
+            />
+          </Section>
+
+          <Section icon={Clock} title="Delivery windows" description="How long a shipped order has to arrive. The vendor is asked for an update before the deadline; each update adds 24h (max 3), then Solely steps in.">
+            <NumberRow label="Same town or county" value={settings.deliver_same_county_hours ?? 24}
+              onChange={(v) => { setField("deliver_same_county_hours", v); setField("deliver_same_town_hours", v); }} suffix="hours" />
+            <NumberRow label="Different county" value={settings.deliver_other_county_hours ?? 48}
+              onChange={(v) => setField("deliver_other_county_hours", v)} suffix="hours" />
+            <NumberRow label="Coast or border counties" value={settings.deliver_far_hours ?? 72}
+              onChange={(v) => setField("deliver_far_hours", v)} suffix="hours" />
+            <NumberRow label="East Africa (outside Kenya)" value={settings.deliver_east_africa_hours ?? 240}
+              onChange={(v) => setField("deliver_east_africa_hours", v)} suffix="hours" />
+          </Section>
+
+          <Section icon={Clock} title="Disputes & strikes" description="How long problems wait for a response, and when accounts are suspended.">
+            <NumberRow label="Vendor must respond to a problem within" hint="Otherwise the buyer is refunded in full"
+              value={settings.vendor_response_hours ?? 48} onChange={(v) => setField("vendor_response_hours", v)} suffix="hours" />
+            <NumberRow label="Time to agree before Solely decides"
+              value={settings.negotiation_hours ?? 48} onChange={(v) => setField("negotiation_hours", v)} suffix="hours" />
+            <NumberRow label="Strikes that suspend a vendor" hint="Counted over the strike window below"
+              value={settings.strikes_to_suspend ?? 3} onChange={(v) => setField("strikes_to_suspend", v)} suffix="strikes" />
+            <NumberRow label="Strike window" hint="Strikes and lost buyer disputes older than this stop counting"
+              value={settings.strike_window_days ?? 90} onChange={(v) => setField("strike_window_days", v)} suffix="days" />
+            <NumberRow label="Lost disputes that suspend a buyer" hint="Admins are emailed at 3"
+              value={settings.buyer_lost_disputes_suspend ?? 5} onChange={(v) => setField("buyer_lost_disputes_suspend", v)} suffix="disputes" />
           </Section>
         </div>
 

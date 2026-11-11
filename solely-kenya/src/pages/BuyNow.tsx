@@ -418,8 +418,8 @@ const BuyNow = () => {
             <div className="space-y-3">
               {[
                 { icon: Lock, title: "You pay securely", desc: "Your payment goes into Solely escrow, not to the seller yet" },
-                { icon: Truck, title: "Seller delivers", desc: "Seller ships or hands over the item. You receive a Package PIN" },
-                { icon: ThumbsUp, title: "You confirm & release", desc: "Happy with the item? Enter your PIN. Seller gets paid instantly." },
+                { icon: Truck, title: "Seller delivers", desc: "Seller ships or hands over the item. You check it first" },
+                { icon: ThumbsUp, title: "You confirm & release", desc: "Happy with it? Tap \"Yes, I got it\". Seller gets paid instantly." },
               ].map(({ icon: Icon, title, desc }, i) => (
                 <div key={i} className="flex gap-3">
                   <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

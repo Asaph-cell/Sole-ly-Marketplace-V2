@@ -19,26 +19,26 @@ const steps = [
     title: "We hold the money",
     details: [
       "Your payment goes into a Solely holding account, not to the seller",
-      "The seller accepts or declines within 24 hours",
+      "The seller accepts or declines within 48 hours",
       "If they decline, you get your money back straight away",
     ],
   },
   {
     icon: Package,
-    title: "Receive and check",
+    title: "Check what's packed",
     details: [
-      "The seller dispatches and writes a 3-digit PIN on your package",
-      "Check the item, then enter the PIN to confirm you have it",
-      "Solely then gives you a 6-digit release code",
+      "Before it ships, the seller shows you exactly what's in the package",
+      "Not what you ordered? Tap \"This is wrong\" and it's held back",
+      "If it isn't shipped in time, you're refunded automatically",
     ],
   },
   {
     icon: KeyRound,
-    title: "Release the payment",
+    title: "Receive and release",
     details: [
-      "Show the release code to the seller, in person or as a screenshot",
-      "The seller enters it and gets paid on the spot",
-      "If you don't share it, the money releases 6 hours after your PIN",
+      "When it arrives, check it first",
+      "Tap \"Yes, I got it\" or give the seller your code, and they're paid",
+      "Something wrong? Tap \"Something wrong?\" and the payment stays held",
     ],
   },
 ];
@@ -47,29 +47,33 @@ const pickupSteps = [
   "Pay with M-Pesa. We hold the money",
   "The seller gets your item ready",
   "Collect it and check it in person",
-  "Show the release code and the seller is paid",
+  "Confirm in the app or show your code, and the seller is paid",
 ];
 
 const faqs = [
   {
     q: "What if my order never arrives?",
-    a: "Your money stays locked until you enter the delivery PIN. Open a dispute and we'll refund you in full if the seller can't prove they dispatched it.",
+    a: "Every delivery has a deadline based on distance. If it doesn't arrive and the seller can't tell us where it is, you're refunded in full automatically.",
   },
   {
     q: "What if it's damaged or not as described?",
-    a: "Open a dispute any time before the money is released. Our team reviews every dispute within 24 hours and can refund you or release the payment to the seller.",
+    a: "Tap \"Something wrong?\" before the money is released. The seller is asked to fix it (a partial refund, a replacement, or a full refund once they collect it), and they cover any delivery costs. If they don't respond, you're refunded. If you can't agree, Solely decides.",
   },
   {
-    q: "I entered the PIN. What happens if I never share the release code?",
-    a: "The money releases to the seller automatically 6 hours after you enter the PIN. Only enter it once the item is in your hands and you've checked it.",
+    q: "What happens if I don't confirm?",
+    a: "Once the seller marks your order as arrived, we ask you twice. If you don't report a problem within 6 daytime hours (the clock pauses from 6pm to 7am), the seller is paid. If it didn't arrive, tell us and the payment stays held.",
   },
   {
-    q: "How long does the seller have to dispatch?",
-    a: "Sellers must dispatch within the time shown on the product page. If they don't, you can cancel and get a full refund.",
+    q: "How long does the seller have to ship?",
+    a: "Sellers must ship within 8 daytime hours of accepting (most within 3), or send you an update. If they don't, you're refunded in full automatically.",
+  },
+  {
+    q: "Can I return something I just don't want?",
+    a: "Not once it's shipped. Returns are only for items that arrive damaged, not as described, or not what you ordered.",
   },
   {
     q: "How do pickup orders work?",
-    a: "There's no PIN on a package. You collect the item, Solely gives you the release code, and you show it to the seller.",
+    a: "You collect the item and check it there. Then tap \"I've collected it\" or give the seller your code, and they're paid.",
   },
 ];
 
@@ -115,7 +119,7 @@ const HowItWorks = () => {
       <section className="py-14 sm:py-16 lg:py-20 bg-sunken">
         <div className="container mx-auto px-6">
           <SectionIntro eyebrow="Delivery orders" title="Four steps, and the seller is paid last">
-            The PIN on your package is your proof of receipt. Until you enter it, the seller can't touch the money.
+            You see what's packed before it ships, and the seller can't touch the money until you've got it.
           </SectionIntro>
           <ol className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {steps.map((step, i) => {
@@ -151,7 +155,7 @@ const HowItWorks = () => {
               Simpler, <Accent>still protected.</Accent>
             </h2>
             <p className="mt-5 text-muted-foreground text-lg leading-relaxed max-w-md">
-              No PIN needed. Collect, check and release, all in one visit.
+              Collect, check and release, all in one visit.
             </p>
           </div>
           <ol className="lg:col-span-7 divide-y divide-primary/25 border-y border-primary/25">

@@ -1,26 +1,28 @@
 /**
  * Resolve Dispute
  *
- * Single entry point for every admin dispute resolution action. Runs under
- * the service-role key so it's exempt from the orders_update_guardrails
- * trigger's customer/vendor-only actor check (that trigger only recognizes
- * an order's own customer/vendor or service_role - never admin - which is
- * why the old client-side "release funds" path in AdminDisputes.tsx always
- * failed after that trigger shipped). This also fixes a second, independent
- * bug: that old path never created a payout record, so a "release" never
- * actually credited the vendor even when it appeared to succeed.
+ * Single entry point for every admin dispute decision. Money moves only
+ * through _shared/order-money.ts, so admin decisions follow the same rules
+ * as automatic ones (commission on products only, refunds out of products
+ * first, never more than the buyer paid).
  *
  * Actions:
- *   - release:        pay the vendor the full held amount
- *   - refund:         refund the buyer in full (via process-refund), no vendor payout
- *   - partial_refund: refund the buyer a specified amount AND auto-release
- *                      the vendor's remaining share in the same action
- *   - close:           dismiss with no financial action; restores the order
- *                      to its pre-dispute status
+ *   - release:        pay the vendor everything that's held
+ *   - refund:         refund the buyer in full, no vendor payout
+ *   - partial_refund: refund the buyer a set amount and release the rest
+ *                     to the vendor. (Previously the vendor was also paid
+ *                     their full original share - the transfer used the
+ *                     order's unchanged payout_amount.)
+ *   - close:          dismiss with no money moved; the order goes back to
+ *                     where it was and its clock restarts
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { refundOrder, releaseOrder } from "../_shared/order-money.ts";
+import { closeDispute } from "../_shared/disputes.ts";
+import { deliverClock, releaseClock, startTimer } from "../_shared/timers.ts";
+import { UserError } from "../_shared/errors.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -28,6 +30,9 @@ const corsHeaders = {
 };
 
 type ResolveAction = "release" | "refund" | "partial_refund" | "close";
+
+const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
@@ -41,29 +46,17 @@ serve(async (req: Request) => {
 
         // ── Verify caller is an admin ──────────────────────────────────────
         const authHeader = req.headers.get("Authorization");
-        if (!authHeader) {
-            return new Response(JSON.stringify({ error: "Unauthorized" }), {
-                status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-        }
+        if (!authHeader) return json({ error: "Unauthorized" }, 401);
         const token = authHeader.replace("Bearer ", "");
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-        if (authError || !user) {
-            return new Response(JSON.stringify({ error: "Unauthorized" }), {
-                status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-        }
+        if (authError || !user) return json({ error: "Unauthorized" }, 401);
         const { data: adminRole } = await supabase
             .from("user_roles")
             .select("role")
             .eq("user_id", user.id)
             .eq("role", "admin")
-            .single();
-        if (!adminRole) {
-            return new Response(JSON.stringify({ error: "Admin access required" }), {
-                status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-        }
+            .maybeSingle();
+        if (!adminRole) return json({ error: "Admin access required" }, 403);
         // ── End auth ────────────────────────────────────────────────────────
 
         const {
@@ -80,154 +73,39 @@ serve(async (req: Request) => {
             resolutionNotes?: string;
         } = await req.json();
 
-        if (!disputeId || !action) {
-            return new Response(JSON.stringify({ error: "disputeId and action are required" }), {
-                status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-        }
+        if (!disputeId || !action) return json({ error: "disputeId and action are required" }, 400);
 
         const { data: dispute, error: disputeError } = await supabase
             .from("disputes")
             .select("*")
             .eq("id", disputeId)
             .single();
-        if (disputeError || !dispute) {
-            return new Response(JSON.stringify({ error: "Dispute not found" }), {
-                status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-        }
+        if (disputeError || !dispute) return json({ error: "Dispute not found" }, 404);
 
-        if (dispute.status.startsWith("resolved") || dispute.status === "closed") {
-            return new Response(JSON.stringify({ error: "Dispute already resolved" }), {
-                status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-        }
+        // An appeal reopens an automatically-resolved dispute for an admin
+        // decision; anything else that's resolved stays resolved.
+        const resolved = dispute.status.startsWith("resolved") || dispute.status === "closed";
+        if (resolved && !dispute.appeal_requested_at) return json({ error: "Dispute already resolved" }, 409);
 
         const { data: order, error: orderError } = await supabase
             .from("orders")
-            .select("id, vendor_id, total_ksh, commission_rate, pre_dispute_status")
+            .select("id, vendor_id, total_ksh, refunded_ksh, status, pre_dispute_status")
             .eq("id", dispute.order_id)
             .single();
-        if (orderError || !order) {
-            return new Response(JSON.stringify({ error: "Order not found" }), {
-                status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-        }
+        if (orderError || !order) return json({ error: "Order not found" }, 404);
 
-        const now = new Date().toISOString();
-
-        // Releases funds to the vendor from the held escrow amount (or a computed
-        // remainder for a partial refund) - shared by "release" and "partial_refund".
-        const releaseToVendor = async (amountKsh: number, commissionAmount: number) => {
-            const { error: payoutError } = await supabase.from("payouts").insert({
-                order_id: order.id,
-                vendor_id: order.vendor_id,
-                status: "pending",
-                method: "mpesa",
-                amount_ksh: amountKsh,
-                commission_amount: commissionAmount,
-            });
-            if (payoutError) throw new Error(`Failed to create payout: ${payoutError.message}`);
-
-            const { error: ledgerError } = await supabase.from("commission_ledger").insert({
-                order_id: order.id,
-                vendor_id: order.vendor_id,
-                commission_rate: order.commission_rate,
-                commission_amount: commissionAmount,
-                notes: `Admin-resolved dispute (${disputeId})`,
-            });
-            if (ledgerError) console.error("[Resolve Dispute] Failed to record commission:", ledgerError);
-
-            const transferResponse = await fetch(`${supabaseUrl}/functions/v1/transfer-to-vendor-wallet`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${supabaseServiceKey}`,
-                },
-                body: JSON.stringify({ order_id: order.id }),
-            });
-            const transferResult = await transferResponse.json().catch(() => null);
-            if (!transferResponse.ok || transferResult?.error) {
-                // Don't fail the whole resolution over this - the payout row stays
-                // 'pending' and can be retried, same fallback behavior as
-                // auto-release-escrow/verify-delivery-otp use elsewhere.
-                console.error("[Resolve Dispute] transfer-to-vendor-wallet failed:", transferResult);
-            }
-
-            fetch(`${supabaseUrl}/functions/v1/notify-order-completed`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseServiceKey}` },
-                body: JSON.stringify({ orderId: order.id }),
-            }).catch((err) => console.error("[Resolve Dispute] Failed to trigger notify-order-completed:", err));
-        };
-
-        let newDisputeStatus: string;
+        const notes = resolutionNotes || null;
+        const activityDetails: Record<string, unknown> = { order_id: order.id, resolution_notes: notes };
 
         if (action === "release") {
-            const { data: escrow } = await supabase
-                .from("escrow_transactions")
-                .select("*")
-                .eq("order_id", order.id)
-                .single();
-            if (!escrow || escrow.status !== "held") {
-                return new Response(JSON.stringify({ error: "Escrow not in a releasable state" }), {
-                    status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
-                });
-            }
+            const result = await releaseOrder(supabase, order.id, { note: `Admin-resolved dispute (${disputeId})` });
+            if (!result.released) return json({ error: "This order can't be paid out from its current state." }, 409);
+            await closeDispute(supabase, disputeId, "vendor", notes ?? "Solely decided in the vendor's favour", user.id);
+            activityDetails.amount_released = result.payout;
 
-            const { data: claimed } = await supabase
-                .from("escrow_transactions")
-                .update({ status: "released", released_at: now })
-                .eq("id", escrow.id)
-                .eq("status", "held")
-                .select("id")
-                .maybeSingle();
-            if (!claimed) {
-                return new Response(JSON.stringify({ error: "Escrow was already released by another request" }), {
-                    status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
-                });
-            }
-
-            const { error: orderUpdateError } = await supabase
-                .from("orders")
-                .update({ status: "completed" })
-                .eq("id", order.id);
-            if (orderUpdateError) throw new Error(`Failed to complete order: ${orderUpdateError.message}`);
-
-            await releaseToVendor(escrow.release_amount, escrow.commission_amount);
-            newDisputeStatus = "resolved_release";
-
-        } else if (action === "refund" || action === "partial_refund") {
-            if (action === "partial_refund") {
-                if (!partialRefundAmount || partialRefundAmount <= 0 || partialRefundAmount >= Number(order.total_ksh)) {
-                    return new Response(JSON.stringify({ error: "Invalid partial refund amount" }), {
-                        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-                    });
-                }
-            }
-
-            // Reuse process-refund rather than duplicating IntaSend chargeback logic.
-            // Forward the ADMIN's own auth header - process-refund needs a resolvable
-            // user (it does its own admin-role check), not the service-role key.
-            const refundResponse = await fetch(`${supabaseUrl}/functions/v1/process-refund`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": authHeader },
-                body: JSON.stringify({
-                    orderId: order.id,
-                    disputeId,
-                    reason: dispute.reason,
-                    refundAmount: action === "partial_refund" ? partialRefundAmount : undefined,
-                }),
-            });
-            const refundResult = await refundResponse.json().catch(() => null);
-            if (!refundResponse.ok || !refundResult?.success) {
-                return new Response(
-                    JSON.stringify({ error: refundResult?.error || "Failed to process refund" }),
-                    { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-                );
-            }
-
-            if (action === "refund" && (applyVendorPenalty ?? true)) {
+        } else if (action === "refund") {
+            const result = await refundOrder(supabase, order.id, { reason: dispute.dispute_type ?? dispute.reason ?? "other" });
+            if (applyVendorPenalty ?? true) {
                 const { error: penaltyError } = await supabase.from("vendor_ratings").insert({
                     vendor_id: dispute.vendor_id,
                     order_id: order.id,
@@ -237,63 +115,47 @@ serve(async (req: Request) => {
                 });
                 if (penaltyError) console.error("[Resolve Dispute] Failed to apply vendor penalty:", penaltyError);
             }
+            await closeDispute(supabase, disputeId, "buyer", notes ?? "Solely refunded the buyer in full", user.id);
+            activityDetails.refund_amount = result.refunded;
+            activityDetails.vendor_penalized = applyVendorPenalty ?? true;
 
-            if (action === "partial_refund") {
-                // process-refund already set orders.status='refunded' and
-                // escrow_transactions.status='refunded' - now settle the vendor's
-                // share of what's left and mark the order fully wound down.
-                const remainder = Number(order.total_ksh) - partialRefundAmount!;
-                const commissionOnRemainder = Number((remainder * (Number(order.commission_rate) / 100)).toFixed(2));
-                const vendorShare = Number((remainder - commissionOnRemainder).toFixed(2));
-
-                await releaseToVendor(vendorShare, commissionOnRemainder);
-
-                const { error: completeError } = await supabase
-                    .from("orders")
-                    .update({ status: "completed" })
-                    .eq("id", order.id);
-                if (completeError) console.error("[Resolve Dispute] Failed to mark order completed after partial refund:", completeError);
+        } else if (action === "partial_refund") {
+            const remaining = Number(order.total_ksh) - Number(order.refunded_ksh ?? 0);
+            if (!partialRefundAmount || partialRefundAmount <= 0 || partialRefundAmount >= remaining) {
+                return json({ error: `Enter a partial refund between 1 and ${Math.floor(remaining - 1)}.` }, 400);
             }
-
-            newDisputeStatus = "resolved_refund";
+            await refundOrder(supabase, order.id, { amount: partialRefundAmount, reason: dispute.dispute_type ?? "other" });
+            const result = await releaseOrder(supabase, order.id, { note: `Admin partial refund of ${partialRefundAmount} (${disputeId})` });
+            await closeDispute(supabase, disputeId, "split", notes ?? `Solely refunded ${partialRefundAmount} and released the rest`, user.id);
+            activityDetails.refund_amount = partialRefundAmount;
+            activityDetails.amount_released = result.payout;
 
         } else if (action === "close") {
+            if (order.status !== "disputed") return json({ error: "This order isn't on hold, so there's nothing to restore." }, 409);
+            const restored = order.pre_dispute_status || "arrived";
             const { error: restoreError } = await supabase
                 .from("orders")
-                .update({ status: order.pre_dispute_status || "accepted" })
+                .update({ status: restored })
                 .eq("id", order.id);
             if (restoreError) throw new Error(`Failed to restore order status: ${restoreError.message}`);
+            await supabase.from("escrow_transactions").update({ status: "held" }).eq("order_id", order.id).eq("status", "withheld");
 
-            newDisputeStatus = "closed";
+            // Restart the clock the order would have been on.
+            const now = new Date();
+            if (restored === "shipped") {
+                const clock = await deliverClock(supabase, order.id, now, 24);
+                await startTimer(supabase, order.id, "deliver", clock.due, { schedule: clock.schedule });
+            } else if (["arrived", "delivered"].includes(restored)) {
+                const clock = await releaseClock(supabase, now);
+                await startTimer(supabase, order.id, "release", clock.due, { schedule: clock.schedule });
+            }
+            await closeDispute(supabase, disputeId, "vendor", notes ?? "Dismissed by Solely", user.id, "closed");
+            activityDetails.restored_status = restored;
 
         } else {
-            return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
-                status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
+            return json({ error: `Unknown action: ${action}` }, 400);
         }
 
-        const { error: disputeUpdateError } = await supabase
-            .from("disputes")
-            .update({
-                status: newDisputeStatus,
-                resolved_at: now,
-                resolved_by: user.id,
-                resolution_notes: resolutionNotes || null,
-            })
-            .eq("id", disputeId);
-        if (disputeUpdateError) throw new Error(`Failed to update dispute: ${disputeUpdateError.message}`);
-
-        const activityDetails: Record<string, unknown> = { order_id: order.id, resolution_notes: resolutionNotes };
-        if (action === "release") {
-            activityDetails.amount_released = order.total_ksh;
-        } else if (action === "refund") {
-            activityDetails.refund_amount = order.total_ksh;
-            activityDetails.vendor_penalized = applyVendorPenalty ?? true;
-        } else if (action === "partial_refund") {
-            activityDetails.refund_amount = partialRefundAmount;
-        } else if (action === "close") {
-            activityDetails.restored_status = order.pre_dispute_status;
-        }
         const { error: activityError } = await supabase.from("admin_activity_log").insert({
             admin_id: user.id,
             action_type: `resolve_dispute_${action}`,
@@ -310,16 +172,14 @@ serve(async (req: Request) => {
             body: JSON.stringify({ disputeId }),
         }).catch((err) => console.error("[Resolve Dispute] Failed to trigger notify-dispute-update:", err));
 
-        return new Response(
-            JSON.stringify({ success: true, disputeStatus: newDisputeStatus, message: "Dispute resolved" }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        const disputeStatus = action === "release" ? "resolved_release" : action === "close" ? "closed" : "resolved_refund";
+        return json({ success: true, disputeStatus, message: "Dispute resolved" });
 
     } catch (error) {
         console.error("[Resolve Dispute] Error:", error);
-        return new Response(
-            JSON.stringify({ error: error instanceof Error ? error.message : "Failed to resolve dispute" }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        return json(
+            { error: error instanceof Error ? error.message : "Failed to resolve dispute" },
+            error instanceof UserError ? 409 : 500,
         );
     }
 });

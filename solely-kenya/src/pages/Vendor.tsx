@@ -17,7 +17,7 @@ const BENEFITS = [
   },
   {
     title: "Paid the moment they confirm",
-    desc: "The buyer enters the delivery PIN and shows you a release code. If they go quiet after confirming, the money releases to you after 6 hours anyway.",
+    desc: "The buyer confirms in the app or gives you their code. If they go quiet after you mark it arrived, the money releases to you after 6 daytime hours anyway.",
   },
   {
     title: "A store page that sells for you",
@@ -50,7 +50,7 @@ const FAQS = [
   },
   {
     q: "What if the buyer takes the item and goes quiet?",
-    a: "Once the buyer enters the delivery PIN, the money releases to you automatically after 6 hours, even if they never share the release code.",
+    a: "Once you mark the order as arrived, the buyer is asked twice to confirm. If they don't report a problem, the money releases to you automatically after 6 daytime hours (the clock pauses from 6pm to 7am).",
   },
   {
     q: "How do I get paid?",

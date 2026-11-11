@@ -95,9 +95,11 @@ const Terms = () => {
                                 <h3 className="text-xl font-semibold mb-3">3. Ordering Process &amp; Timelines</h3>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>Confirmation Window:</strong> Vendors must accept or decline your order within <strong>48 hours</strong>. If they fail to do so, the order is automatically cancelled, and you receive a full refund</li>
-                                    <li><strong>Delivery Window:</strong> Once confirmed, vendors have <strong>5 days</strong> to deliver your order. If it is not marked as arrived in that time, a dispute is automatically raised for admin review</li>
-                                    <li><strong>Updates:</strong> You will receive order updates via the platform, email, and push notifications (if enabled) as your order progresses</li>
-                                    <li><strong>Current windows:</strong> The 48-hour and 5-day windows above are the current settings. We may adjust them to keep the marketplace working well, and the values in force always apply to orders placed after the change</li>
+                                    <li><strong>Shipping:</strong> Once they accept, vendors must ship within <strong>8 daytime hours</strong> (we expect most to ship within 3). Daytime means 7am to 6pm Kenya time; the clock pauses overnight. A vendor who sends you an update gets a little more time. If they neither ship nor update you, the order is cancelled and you are refunded in full</li>
+                                    <li><strong>Before it ships:</strong> The vendor confirms exactly what is in your package and we show it to you. If it is not what you ordered, tap "This is wrong" and the package is held back</li>
+                                    <li><strong>Delivery Window:</strong> Each delivery has a deadline based on distance: <strong>24 hours</strong> within the same town or county, <strong>48 hours</strong> to another county, <strong>72 hours</strong> to the coast or border counties, and <strong>10 days</strong> elsewhere in East Africa. Before the deadline we ask the vendor where your order is and pass any update on to you. If the deadline passes without an update, you are refunded in full</li>
+                                    <li><strong>Updates:</strong> You will receive order updates via the platform, email, push notifications (if enabled) and SMS for urgent steps as your order progresses</li>
+                                    <li><strong>Current windows:</strong> The time windows in these terms are the current settings. We may adjust them to keep the marketplace working well, and the values in force always apply to orders placed after the change</li>
                                 </ul>
                             </section>
 
@@ -126,35 +128,34 @@ const Terms = () => {
                             <section>
                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
                                     <KeyRound size={20} strokeWidth={1.5} className=" text-success" />
-                                    4. Confirming Delivery: Package PIN and OTP (Critical)
+                                    4. Confirming Delivery (Critical)
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
-                                    Solely uses a two-step handover. Read this section carefully. It determines when your money leaves escrow.
+                                    Read this section carefully. It determines when the vendor is paid.
                                 </p>
 
                                 <div className="bg-success-soft border border-success/30 p-4 rounded-lg mb-4">
                                     <h4 className="font-semibold text-success mb-2">How confirmation works</h4>
                                     <ol className="list-decimal pl-6 space-y-2 text-sm text-muted-foreground">
-                                        <li>The vendor ships your order with a <strong>3-digit Package PIN</strong> shown on the package</li>
+                                        <li>When your order arrives, the vendor marks it as arrived and we ask you to confirm</li>
                                         <li><strong>Inspect the item first.</strong> Check that it is correct, complete, and in the condition described</li>
-                                        <li>Once you are satisfied, enter the 3-digit Package PIN in the Solely app to confirm you have received it</li>
-                                        <li>Solely then shows you a <strong>6-digit OTP</strong>. Give it to the vendor to release their payment immediately</li>
-                                        <li>If the vendor does not enter the OTP, the escrowed funds are released to them automatically <strong>6 hours</strong> after you entered the Package PIN</li>
+                                        <li>If you are satisfied, tap <strong>"Yes, I got it"</strong> in the app, or give the vendor the <strong>6-digit code</strong> shown on your order. Either one pays the vendor immediately</li>
+                                        <li>If something is wrong or it did not arrive, tap <strong>"Something wrong?"</strong>. The payment stays held while it is sorted out</li>
+                                        <li>If you do nothing, we ask you a second time. If you still do not report a problem, the payment is released to the vendor <strong>6 daytime hours</strong> after the order was marked arrived (the clock pauses from 6pm to 7am)</li>
                                     </ol>
                                 </div>
 
                                 <div className="mt-4 bg-destructive-soft border border-destructive/30 p-4 rounded-lg">
-                                    <h4 className="font-semibold text-destructive mb-2">Entering the Package PIN is the point of no return</h4>
+                                    <h4 className="font-semibold text-destructive mb-2">Confirming is the point of no return</h4>
                                     <ul className="list-disc pl-6 space-y-1 text-sm text-muted-foreground">
-                                        <li><strong>Inspect first, enter second:</strong> Entering the Package PIN tells us you have received the correct item in acceptable condition. Do not enter it while the courier is still holding the package or before you have opened it</li>
-                                        <li><strong>The 6-hour clock starts at PIN entry:</strong> After you enter the PIN, you have <strong>6 hours</strong> to raise a dispute before escrow releases automatically. Raise a dispute inside that window and the funds stay frozen while we investigate</li>
-                                        <li><strong>Problem? Do not enter the PIN:</strong> If the item is wrong, damaged, or missing, do not enter the Package PIN. Raise a dispute instead and your money stays in escrow</li>
-                                        <li><strong>Pickup orders:</strong> When you collect in person there is no 6-hour timer. Funds are released only when the vendor enters the OTP you show them</li>
+                                        <li><strong>Inspect first, confirm second:</strong> Confirming, or giving the vendor your code, tells us you have the correct item in acceptable condition. Do not do either while the courier is still holding the package or before you have opened it</li>
+                                        <li><strong>Problem? Don't confirm:</strong> If the item is wrong, damaged, or missing, report it instead and your money stays held</li>
+                                        <li><strong>Pickup orders:</strong> There is no automatic release. The vendor is paid when you confirm in the app or show them your code</li>
                                     </ul>
                                 </div>
 
                                 <p className="text-muted-foreground mt-4">
-                                    <strong>Never share the Package PIN or OTP before you have the item in your hands and have inspected it.</strong> A vendor or courier who pressures you for either code before handover is breaching our Vendor Agreement, refuse, and report it to us.
+                                    <strong>Never share your code before you have the item in your hands and have inspected it.</strong> A vendor or courier who pressures you for it before handover is breaching our Vendor Agreement. Refuse, and report it to us.
                                 </p>
                             </section>
 
@@ -164,22 +165,37 @@ const Terms = () => {
                                     5. Disputes and Refunds
                                 </h3>
                                 <p className="text-muted-foreground mb-3">
-                                    You may file a dispute if:
+                                    You may report a problem if:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li>You did not receive your item</li>
                                     <li>You received a wrong or different item</li>
                                     <li>The item arrived damaged</li>
                                     <li>The item significantly differs from the description</li>
+                                    <li>Items are missing from your order</li>
+                                    <li>You received someone else's order</li>
                                     <li>The item is counterfeit</li>
                                 </ul>
                                 <p className="text-muted-foreground mt-3">
-                                    <strong>When to file:</strong> Before entering the Package PIN, or within the <strong>6-hour</strong> window after entering it. Once escrow has released, we can still investigate and act against the vendor, but recovering funds becomes significantly harder.
+                                    <strong>When to report:</strong> Before you confirm the order, and before the payment is released automatically. Once the payment has been released we can still investigate and act against the vendor, but recovering funds becomes significantly harder.
+                                </p>
+                                <ul className="list-disc pl-6 space-y-2 text-muted-foreground mt-3">
+                                    <li><strong>Wrong, damaged, defective or not as described:</strong> The vendor is asked to offer a fix: a partial refund, a replacement, or a full refund once they collect the item. The vendor pays any delivery costs. If the vendor does not respond within <strong>48 hours</strong>, you are refunded in full. If you cannot agree within 48 hours, Solely decides</li>
+                                    <li><strong>Items missing:</strong> The vendor has <strong>36 hours</strong> to send them. If they do not, you choose a refund for the missing items or keep the order as it is</li>
+                                    <li><strong>Someone else's order:</strong> The vendor has <strong>24 hours</strong> to swap it, or you can ask for a full refund straight away</li>
+                                    <li><strong>Not received:</strong> If the vendor marked your order as arrived but you do not have it, Solely's team reviews it and the payment stays held</li>
+                                    <li><strong>Returns:</strong> Where an item is returned, the vendor arranges and pays for collection. Once you hand it over, the vendor has 48 hours to confirm it, or you are refunded automatically</li>
+                                    <li><strong>No change-of-mind returns:</strong> Once an order has shipped it cannot be cancelled or returned unless it is damaged, not as described, or not what you ordered. If you refuse a correct delivery, the vendor keeps the delivery fee and you are refunded the item price</li>
+                                    <li><strong>If you can't be reached:</strong> If the vendor reports that you are unavailable at delivery, we notify you and try to call you. If you do not respond within <strong>12 hours</strong>, the order is cancelled, the vendor keeps the delivery fee and you are refunded the item price</li>
+                                    <li><strong>Reviews of automatic decisions:</strong> Either you or the vendor can ask Solely to review an automatic decision within <strong>48 hours</strong></li>
+                                </ul>
+                                <p className="text-muted-foreground mt-3">
+                                    Refunds are processed to your original payment method. Where you are owed your full payment, the delivery fee is refunded along with the product price.
                                 </p>
                                 <p className="text-muted-foreground mt-3">
-                                    Our admin team will review disputes within <strong>3–5 business days</strong>. Refunds are processed to your original payment method when approved. Where a dispute is resolved in your favour, the delivery fee is refunded along with the product price.
+                                    <strong>Repeated false reports:</strong> Buyers who repeatedly lose disputes may have their account suspended from placing new orders.
                                 </p>
-                                <p className="text-muted-foreground mt-3">
+                                                                <p className="text-muted-foreground mt-3">
                                     <strong>Stolen goods:</strong> If you believe an item you received or saw listed is stolen, tell us using the <Link to="/report-listing" className="text-primary underline">Report a Listing</Link> form. We may suspend the listing and vendor and share relevant records with law enforcement or the lawful owner.
                                 </p>
                             </section>
@@ -202,7 +218,7 @@ const Terms = () => {
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li>Filing false disputes or fraudulent claims</li>
                                     <li>Attempting to bypass the escrow system, including agreeing to pay a vendor directly</li>
-                                    <li>Withholding the Package PIN or OTP after receiving the correct item, in order to obtain goods without paying</li>
+                                    <li>Falsely reporting a problem after receiving the correct item, in order to obtain goods without paying</li>
                                     <li>Harassing or threatening vendors</li>
                                     <li>Using the platform for illegal activities, including buying goods you know to be stolen</li>
                                     <li>Creating multiple accounts to abuse promotions</li>
@@ -287,34 +303,29 @@ const Terms = () => {
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                                     <li><strong>Delivery fee:</strong> Agree the delivery fee with the buyer in the in-app negotiation before the order is paid. Respond promptly, an agreement neither side completes will expire and the sale is lost</li>
                                     <li><strong>Confirmation:</strong> Accept or reject new orders within <strong>48 hours</strong></li>
-                                    <li><strong>Delivery:</strong> Arrange and deliver orders within <strong>5 days</strong> of confirmation. You are fully responsible for delivery logistics</li>
-                                    <li><strong>Package PIN:</strong> Write the order's 3-digit Package PIN on the package before it goes out. The buyer needs it to confirm receipt</li>
+                                    <li><strong>Shipping:</strong> Ship within <strong>8 daytime hours</strong> of accepting (aim for 3). Daytime means 7am to 6pm Kenya time; the clock pauses overnight, so you may accept at night and ship in the morning. Each update you send the buyer adds 3 hours, up to twice</li>
+                                    <li><strong>Packing list:</strong> Before shipping, confirm each item in the package and add a short description. The buyer sees it first; if they say it is wrong, shipping is paused for up to 2 hours while you sort it out</li>
+                                    <li><strong>Delivery:</strong> Deliver within the window for the distance: <strong>24 hours</strong> within the same town or county, <strong>48 hours</strong> to another county, <strong>72 hours</strong> to the coast or border counties, <strong>10 days</strong> elsewhere in East Africa. When we ask where an order is, reply with an update: each one adds 24 hours, up to three times, after which Solely steps in. You are fully responsible for delivery logistics</li>
                                 </ul>
 
                                 <div className="mt-4 bg-success-soft border border-success/30 p-4 rounded-lg mb-4">
                                     <h4 className="font-semibold text-success mb-2">How you get paid</h4>
                                     <ul className="list-disc pl-6 space-y-2 text-sm text-muted-foreground">
-                                        <li>The buyer inspects the item and enters the <strong>3-digit Package PIN</strong> from the package to confirm receipt</li>
-                                        <li>Solely then shows the buyer a <strong>6-digit OTP</strong>. Ask them for it and enter it on your Vendor Orders page to <strong>release your funds immediately</strong></li>
-                                        <li>If you never enter the OTP, escrow releases to you automatically <strong>6 hours</strong> after the buyer entered the Package PIN</li>
-                                        <li><strong>Pickup orders have no auto-release.</strong> For collections, funds move only when you enter the buyer's OTP, so always collect it at handover</li>
-                                        <li><strong>Do NOT</strong> pressure buyers into entering the Package PIN or handing over the OTP before they have received and inspected the product. Doing so is grounds for suspension</li>
+                                        <li>When the order arrives, mark it as arrived. The buyer is asked to confirm</li>
+                                        <li>When the buyer confirms in the app, or gives you their <strong>6-digit code</strong> to enter on your Orders page, your funds are <strong>released immediately</strong></li>
+                                        <li>If the buyer does not report a problem, the funds are released to you automatically <strong>6 daytime hours</strong> after you marked the order arrived</li>
+                                        <li><strong>Pickup orders have no auto-release.</strong> Funds move when the buyer confirms or you enter their code, so always collect it at handover</li>
+                                        <li><strong>Do NOT</strong> mark an order as arrived before it reaches the buyer, or pressure buyers into confirming or handing over their code before they have received and inspected the product. Doing so is grounds for suspension</li>
                                     </ul>
                                 </div>
 
                                 <div className="mt-4 space-y-3">
-                                    <h4 className="font-semibold text-foreground">Order Automation Rules</h4>
+                                    <h4 className="font-semibold text-foreground">Strikes and suspension</h4>
                                     <p className="text-muted-foreground bg-destructive-soft border border-destructive/30 p-3 rounded-lg">
-                                        <strong>Auto-Cancel (48 hours):</strong> Orders not confirmed by the vendor within 48 hours will be automatically cancelled and the buyer refunded.
+                                        You receive a <strong>strike</strong> if you accept an order and then miss the shipping or delivery deadline without sending an update (the buyer is refunded in full), or if you report a buyer as unavailable and Solely confirms they were there. Your first and second strikes come with a warning. <strong>Three strikes within 90 days suspends your shop</strong>: your listings are hidden and you cannot take new orders until Solely restores you. Orders you already have continue as normal. Strikes expire after 90 days. Cancelling an order yourself (which refunds the buyer in full) is not a strike.
                                     </p>
-                                    <p className="text-muted-foreground bg-primary-soft border border-primary/30 p-3 rounded-lg">
-                                        <strong>Auto-Dispute (5 days):</strong> If an order is confirmed but not marked as "Arrived" within 5 days, a dispute is automatically raised for admin review.
-                                    </p>
-                                    <p className="text-muted-foreground bg-success-soft border border-success/30 p-3 rounded-lg">
-                                        <strong>Auto-Release (6 hours after PIN):</strong> Once the buyer enters the Package PIN, escrow releases to you automatically after 6 hours if the OTP has not been entered. This protects you from a buyer who receives the goods and then goes quiet. It does not apply to pickup orders.
-                                    </p>
-                                    <p className="text-sm bg-muted border border-border p-3 rounded-lg text-muted-foreground mt-2">
-                                        <strong>Buyer won't enter the PIN?</strong> If a buyer has received the correct item but refuses to confirm, raise a dispute. Solely admin will review and release funds in your favour where the evidence supports it. If the item was genuinely wrong or damaged, take it back, the buyer will be refunded and no commission is charged.
+                                    <p className="text-muted-foreground bg-muted border border-border p-3 rounded-lg">
+                                        <strong>Buyer unavailable at delivery?</strong> Tap "Buyer not available?" on the order and please wait a while. We notify the buyer and Solely's team calls them (during support hours, 8am to 5pm). If they do not respond within 12 hours, the order is cancelled, you keep the delivery fee and the buyer is refunded the item price.
                                     </p>
                                 </div>
                             </section>
@@ -326,21 +337,26 @@ const Terms = () => {
                                 </h3>
                                 <h4 className="font-semibold text-foreground mb-2">Grounds for Dispute</h4>
                                 <p className="text-muted-foreground mb-3">
-                                    Buyers may file a dispute before entering the Package PIN, or within the 6-hour window after entering it, for the following reasons:
+                                    Buyers may report a problem before they confirm the order, and before the payment is released automatically, for the following reasons:
                                 </p>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
                                     <li><strong>Item Not Received:</strong> The package never arrived</li>
                                     <li><strong>Wrong Item:</strong> You sent the wrong size, colour, model, or product</li>
                                     <li><strong>Damaged/Defective:</strong> The item arrived damaged or significantly different from the description</li>
+                                    <li><strong>Missing Items:</strong> Part of the order was not in the package</li>
+                                    <li><strong>Someone Else's Order:</strong> The buyer received a package meant for another buyer</li>
                                     <li><strong>Counterfeit:</strong> The item is proven to be fake</li>
                                 </ul>
 
                                 <h4 className="font-semibold text-foreground mb-2">Resolution Process</h4>
                                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
-                                    <li>Vendors will be notified immediately when a dispute is raised</li>
-                                    <li>You must respond with supporting evidence (e.g., photos of the packed item, courier receipts) within 48 hours</li>
-                                    <li>Funds remain frozen in escrow during the investigation</li>
-                                    <li><strong>Solely Admin Decision:</strong> If the dispute is resolved in favour of the buyer, a full refund is issued including the delivery fee. If resolved in favour of the vendor, funds are released</li>
+                                    <li>You are notified immediately when a problem is reported, and the payment is held</li>
+                                    <li><strong>Wrong, damaged, defective or not as described:</strong> Offer a fix from the order within <strong>48 hours</strong>: a partial refund, a replacement, or a full refund once you collect the item. If you do not respond, the buyer is refunded in full. If you cannot agree within 48 hours, Solely decides</li>
+                                    <li><strong>Missing items:</strong> Send them within <strong>36 hours</strong>. If you do not, the buyer may choose a refund for those items</li>
+                                    <li><strong>Someone else's order:</strong> Swap it within <strong>24 hours</strong>, or the buyer is refunded</li>
+                                    <li><strong>Returns:</strong> Where it is your fault, you arrange and pay for collecting the item and any re-delivery. Once the buyer hands it back you have <strong>48 hours</strong> to confirm or dispute it, or the buyer is refunded automatically</li>
+                                    <li>You can send Solely your side, with photos of what you packed, at any time from the Problems page</li>
+                                    <li><strong>Solely Admin Decision:</strong> If resolved in favour of the buyer, a full refund is issued including the delivery fee. If resolved in favour of the vendor, funds are released. Either party can ask Solely to review an automatic decision within 48 hours</li>
                                 </ul>
 
                                 <div className="bg-muted border border-border p-4 rounded-lg">
@@ -379,7 +395,7 @@ const Terms = () => {
                                     <li>Misrepresent product condition (e.g., selling "thrifted" items as "new")</li>
                                     <li>Conduct or attempt to conduct transactions outside the Solely platform (e.g., asking buyers to "pay via M-Pesa directly")</li>
                                     <li><strong>Collect delivery fees outside the platform</strong> after agreeing a fee in the in-app negotiation, or ask the buyer for "top-up" on delivery</li>
-                                    <li>Pressure a buyer to enter the Package PIN or hand over the OTP before they have received and inspected the item</li>
+                                    <li>Mark an order as arrived before it reaches the buyer, or pressure a buyer to confirm or hand over their code before they have received and inspected the item</li>
                                     <li>Inflate prices to cover commission fees dishonestly</li>
                                     <li>Harass buyers or respond aggressively to reviews</li>
                                 </ul>

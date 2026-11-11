@@ -92,7 +92,7 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
 // Escapes user-controlled text before it's dropped into an HTML email body,
 // so a name/description/etc. containing markup renders as inert text
 // instead of live HTML in the recipient's inbox.
-function escapeHtml(value: unknown): string {
+export function escapeHtml(value: unknown): string {
   const str = value === null || value === undefined ? '' : String(value);
   return str
     .replace(/&/g, '&amp;')

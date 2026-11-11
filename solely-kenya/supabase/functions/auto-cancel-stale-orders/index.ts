@@ -18,6 +18,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendEmail, emailTemplates } from "../_shared/email-service.ts";
 import { getPlatformSetting } from "../_shared/platform-settings.ts";
+import { refundOrder } from "../_shared/order-money.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -82,41 +83,23 @@ Deno.serve(async (req: Request) => {
 
         for (const order of staleOrders) {
             try {
-                // 1. Cancel the order
+                // 1. Mark when it was cancelled
                 const { error: cancelError } = await supabase
                     .from("orders")
-                    .update({
-                        status: "cancelled_by_vendor",
-                        cancelled_at: new Date().toISOString(),
-                        vendor_notes: "Auto-cancelled: No vendor response within 48 hours",
-                    })
-                    .eq("id", order.id);
+                    .update({ cancelled_at: new Date().toISOString() })
+                    .eq("id", order.id)
+                    .eq("status", "pending_vendor_confirmation");
 
                 if (cancelError) {
                     throw new Error(`Failed to cancel order: ${cancelError.message}`);
                 }
 
-                // 2. Process actual IntaSend refund (this also updates escrow)
-                const refundResponse = await fetch(`${supabaseUrl}/functions/v1/process-refund`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${supabaseServiceKey}`,
-                    },
-                    body: JSON.stringify({
-                        orderId: order.id,
-                        reason: "Vendor did not respond within 48 hours",
-                    }),
-                });
-
-                const refundResult = await refundResponse.json();
-
-                if (!refundResponse.ok || !refundResult.success) {
-                    console.warn(`Refund warning for order ${order.id}:`, refundResult.error || "Unknown refund error");
-                    // Continue anyway - order is cancelled, manual intervention may be needed
-                } else {
-                    console.log(`IntaSend refund initiated for order ${order.id}`);
-                }
+                // 2. Refund through IntaSend and close the order out. (This
+                // used to call process-refund with the service key, which
+                // process-refund rejects as non-admin - so these buyers were
+                // emailed "refunded" but never actually refunded.)
+                await refundOrder(supabase, order.id, { reason: "vendor_no_response", finalStatus: "cancelled_by_vendor" });
+                console.log(`IntaSend refund initiated for order ${order.id}`);
 
                 // 3. Notify customer about auto-cancellation and refund
                 fetch(`${supabaseUrl}/functions/v1/notify-buyer-order-declined`, {

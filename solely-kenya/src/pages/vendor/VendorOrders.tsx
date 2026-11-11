@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from "react";
-import { celebrate } from "@/components/Celebration";
+import { useEffect, useMemo, useState } from "react";
 import { formatDistanceToNow, differenceInHours } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -8,28 +7,12 @@ import { Tables } from "@/integrations/supabase/types";
 import { clearAppBadge } from "@/lib/badge";
 import { VendorSidebar } from "@/components/vendor/VendorSidebar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/lib/toast";
-import { Check, ChevronDown, Clock, Package } from "lucide-react";
-import { edgeErrorMessage } from "@/lib/edgeError";
+import { ChevronDown, Clock, Package } from "lucide-react";
 import { LocationViewMap } from "@/components/LocationViewMap";
-import { DeliveryTrackingControl } from "@/components/DeliveryTrackingControl";
-import { ManualTrackingUpdate } from "@/components/tracking/ManualTrackingUpdate";
-import { DisputeChat } from "@/components/disputes/DisputeChat";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { VendorNextStep } from "@/components/orders/VendorNextStep";
+import { useOrderTimers, usePackingChecklists } from "@/lib/orderFlow";
 
 type OrderRecord = Tables<"orders"> & {
   order_items: Tables<"order_items">[];
@@ -43,41 +26,22 @@ type OrderRecord = Tables<"orders"> & {
   }>;
 };
 
-const statusColors: Record<string, "secondary" | "default" | "destructive" | "outline"> = {
-  pending_vendor_confirmation: "secondary",
-  accepted: "default",
-  arrived: "default",
-  delivered: "default",
-  completed: "default",
-  disputed: "destructive",
-  refunded: "destructive",
-  cancelled_by_vendor: "outline",
-  cancelled_by_customer: "outline",
-};
-
 const VendorOrders = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<OrderRecord[]>([]);
-  const [shippingNotes, setShippingNotes] = useState<Record<string, { courier: string; tracking: string; notes: string }>>({});
-  const [personalDelivery, setPersonalDelivery] = useState<Record<string, boolean>>({});
-  const [saving, setSaving] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(false);
-  const [orderToDecline, setOrderToDecline] = useState<OrderRecord | null>(null);
-  const [declineReason, setDeclineReason] = useState<string>("");
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
-  const shippingFormRef = useRef<HTMLDivElement>(null);
-
-  // OTP-related state
-  const [otpDialogOrder, setOtpDialogOrder] = useState<OrderRecord | null>(null);
-  const [otpInput, setOtpInput] = useState<string>("");
-  const [otpVerifying, setOtpVerifying] = useState(false);
-  const [generatedOtp, setGeneratedOtp] = useState<string | null>(null);
-  const [showGeneratedOtp, setShowGeneratedOtp] = useState(false);
-  // Title for the "code sent" dialog, which doubles as the confirmation that
-  // the order moved on (shipped / ready for pickup).
-  const [otpDialogTitle, setOtpDialogTitle] = useState("Delivery code sent");
   const [sortBy, setSortBy] = useState<string>("newest");
+
+  const { timers } = useOrderTimers(
+    useMemo(() => orders.filter((o) => ["accepted", "shipped", "arrived", "delivered", "disputed"].includes(o.status)).map((o) => o.id), [orders]),
+    orders,
+  );
+  const { checklists } = usePackingChecklists(
+    useMemo(() => orders.filter((o) => o.status === "accepted").map((o) => o.id), [orders]),
+    orders,
+  );
 
   const loadOrders = async () => {
     if (!user) return;
@@ -160,14 +124,6 @@ const VendorOrders = () => {
   };
 
 
-
-  // Helper function to calculate total paid
-  const getTotalPaid = (order: OrderRecord): number => {
-    if (!order.payments) return 0;
-    return order.payments
-      .filter((p) => p.status === "captured")
-      .reduce((sum, p) => sum + Number(p.amount_ksh), 0);
-  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -270,404 +226,13 @@ const VendorOrders = () => {
     });
   }, [orders, sortBy]);
 
-  const updateOrderStatus = async (orderId: string, patch: Partial<Tables<"orders">>) => {
-    const { error } = await supabase.from("orders").update(patch).eq("id", orderId);
-    if (error) throw error;
-    await loadOrders();
-  };
-
   // Helper to check if order is expired (48 hours passed)
   const isOrderExpired = (order: OrderRecord): boolean => {
     const hoursSinceOrder = differenceInHours(new Date(), new Date(order.created_at));
     return hoursSinceOrder >= 48;
   };
 
-  const handleAccept = async (order: OrderRecord) => {
-    // Validate order status
-    if (order.status !== "pending_vendor_confirmation") {
-      toast.error("This order cannot be accepted. It may have already been processed.");
-      return;
-    }
-
-    // Check if order has expired (48 hours passed)
-    if (isOrderExpired(order)) {
-      toast.error("This order has expired. It will be automatically cancelled and refunded to the buyer.");
-      return;
-    }
-
-    // With zone-based pricing, delivery fee is already included in total
-    // No need for vendor to set delivery charges
-
-    setSaving(true);
-    try {
-      // Get existing payment to check if it's already captured
-      const { data: existingPayment, error: paymentQueryError } = await supabase
-        .from("payments")
-        .select("id, gateway, status, amount_ksh")
-        .eq("order_id", order.id)
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      if (paymentQueryError) {
-        console.error("Error fetching payment:", paymentQueryError);
-        toast.error("Failed to verify payment status. Please try again.");
-        return;
-      }
-
-      if (!existingPayment) {
-        toast.error("No payment found for this order. Cannot accept order.");
-        return;
-      }
-
-      // With zone-based pricing, totals are already calculated at checkout
-      // No need to recalculate - just verify payment and accept
-      const currentTotal = order.total_ksh;
-      const currentShippingFee = order.shipping_fee_ksh;
-      const currentCommission = order.commission_amount;
-      const currentPayout = order.payout_amount;
-
-      // Verify order status hasn't changed (race condition check)
-      const { data: currentOrder, error: orderCheckError } = await supabase
-        .from("orders")
-        .select("status")
-        .eq("id", order.id)
-        .single();
-
-      if (orderCheckError || !currentOrder) {
-        toast.error("Failed to verify order status. Please refresh and try again.");
-        return;
-      }
-
-      if (currentOrder.status !== "pending_vendor_confirmation") {
-        toast.error("Order status has changed. Please refresh the page.");
-        await loadOrders();
-        return;
-      }
-
-      // Update order status to accepted (totals already set at checkout)
-      await updateOrderStatus(order.id, {
-        status: "accepted",
-        accepted_at: new Date().toISOString(),
-      });
-
-      // Notify buyer about order acceptance (non-blocking)
-      supabase.functions.invoke("notify-buyer-order-accepted", {
-        body: { orderId: order.id },
-      }).catch(err => console.log("Buyer acceptance notification failed (non-critical):", err));
-
-      // Update or create escrow transaction
-      const { data: existingEscrow, error: escrowCheckError } = await supabase
-        .from("escrow_transactions")
-        .select("id")
-        .eq("order_id", order.id)
-        .maybeSingle();
-
-      if (escrowCheckError) {
-        console.error("Error checking escrow:", escrowCheckError);
-      } else if (existingEscrow) {
-        // Escrow already exists, no update needed
-        console.log("Escrow already exists for order:", order.id);
-      } else {
-        // Create escrow if it doesn't exist
-        const { error: escrowCreateError } = await supabase
-          .from("escrow_transactions")
-          .insert({
-            order_id: order.id,
-            payment_id: existingPayment.id,
-            status: "held",
-            held_amount: currentTotal,
-            commission_amount: currentCommission,
-            release_amount: currentPayout,
-          });
-
-        if (escrowCreateError) {
-          console.error("Failed to create escrow:", escrowCreateError);
-          toast.warning("Order accepted, but payment protection didn't start", { description: "Please contact support so we can fix it." });
-        }
-      }
-
-      // Show success message and expand shipping section
-      const isPickup = order.order_shipping_details?.delivery_type === "pickup";
-      if (isPickup) {
-        toast.success("Order accepted", { description: "The buyer will collect it from you. Mark it ready when it is." });
-      } else {
-        toast.success("Order accepted", { description: "Add the delivery details below when you send it." });
-      }
-
-      // Auto-expand and scroll to shipping form
-      setExpandedOrderId(order.id);
-      setTimeout(() => {
-        shippingFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 100);
-    } catch (error) {
-      console.error("Error accepting order:", error);
-      toast.error("Couldn't accept the order", { description: "Please try again, or contact support if it keeps happening." });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Confirm and process decline with refund
-  const handleDecline = async (order: OrderRecord) => {
-    setSaving(true);
-    try {
-      // Update order status
-      await updateOrderStatus(order.id, {
-        status: "cancelled_by_vendor",
-        cancelled_at: new Date().toISOString(),
-      });
-
-      // Update escrow to released/refunded status
-      const { error: escrowError } = await supabase
-        .from("escrow_transactions")
-        .update({
-          status: "released",
-          released_at: new Date().toISOString(),
-        })
-        .eq("order_id", order.id);
-
-      if (escrowError) {
-        console.warn("Escrow update warning:", escrowError);
-      }
-
-      // Notify buyer about the decline and refund (non-blocking)
-      supabase.functions.invoke("notify-buyer-order-declined", {
-        body: {
-          orderId: order.id,
-          reason: declineReason,
-          isAutoDeclined: false,
-        },
-      }).catch(err => console.log("Buyer notification failed (non-critical):", err));
-
-      toast.success("Order declined", { description: "The buyer gets a full refund and an email." });
-      setOrderToDecline(null);
-    } catch (error) {
-      console.error(error);
-      toast.error("Couldn't decline the order", { description: "Please try again." });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleMarkShipped = async (order: OrderRecord) => {
-    const shipping = shippingNotes[order.id] ?? { courier: "", tracking: "", notes: "" };
-    const isPickup = order.order_shipping_details?.delivery_type === "pickup";
-    const isPersonal = personalDelivery[order.id] ?? false;
-    const isMarkingAsArrived = order.status === "shipped";
-
-    // Validate courier details only if it's NOT a pickup and NOT a personal delivery
-    // And only when initially marking as shipped (not when confirming arrival)
-    if (!isPickup && !isPersonal && !isMarkingAsArrived) {
-      if (!shipping.courier || !shipping.tracking) {
-        toast.error("Provide courier name and tracking number");
-        return;
-      }
-    }
-
-
-
-    setSaving(true);
-    const now = new Date();
-
-    // Determine next status and fields to update
-    let updates: Partial<Tables<"orders">> = {};
-    let shippingUpdates: Partial<Tables<"order_shipping_details">> = {};
-    let notificationType = "";
-    let successMsg = "";
-
-    if (isPickup) {
-      // Pickup Logic: Accepted -> Arrived (Ready for Pickup)
-      updates = {
-        status: "arrived",
-        vendor_confirmed: true,
-        shipped_at: now.toISOString(), // reuse shipped_at for "ready at" time
-        // No auto-release timer for pickup
-      };
-      // Courier details for pickup
-      shippingUpdates = {
-        courier_name: "Customer Pickup",
-        tracking_number: "N/A",
-        delivery_notes: shipping.notes || order.order_shipping_details?.delivery_notes || null,
-      }
-      notificationType = "notify-buyer-pickup-ready"; // Use specific pickup ready notification
-      successMsg = "Ready for pickup";
-    } else {
-      // Delivery Logic
-      if (order.status === "accepted") {
-        // Step 1: Accepted -> Shipped (In Transit)
-        let courierName = shipping.courier;
-        let trackingNumber = shipping.tracking;
-
-        if (isPersonal) {
-          courierName = "Personal Delivery (Vendor)";
-          trackingNumber = "Self-Delivered";
-        }
-
-        updates = {
-          status: "shipped", // NEW STATUS
-          shipped_at: now.toISOString(),
-        };
-
-        shippingUpdates = {
-          courier_name: courierName,
-          tracking_number: trackingNumber,
-          delivery_notes: shipping.notes || order.order_shipping_details?.delivery_notes || null,
-        };
-
-        notificationType = "notify-buyer-order-shipped";
-        successMsg = "Marked as shipped";
-      } else if (order.status === "shipped") {
-        // Step 2: Shipped -> Arrived (Delivered)
-        // 6 hours after marked arrived
-        const autoRelease = new Date(now.getTime() + 6 * 60 * 60 * 1000);
-
-        updates = {
-          status: "arrived",
-          vendor_confirmed: true,
-          auto_release_at: autoRelease.toISOString(),
-          // delivered_at could be set here effectively
-        };
-        // No need to update shipping details again unless changed, but assume previous details hold
-        notificationType = "notify-buyer-order-arrived"; // Need to ensure this exists or use generic
-        successMsg = "Marked as delivered";
-      }
-    }
-
-    try {
-      if (Object.keys(shippingUpdates).length > 0) {
-        const { error: shippingError } = await supabase
-          .from("order_shipping_details")
-          .update(shippingUpdates)
-          .eq("order_id", order.id);
-
-        if (shippingError) throw shippingError;
-      }
-
-      await updateOrderStatus(order.id, updates);
-
-      // IMPORTANT: Generate OTP FIRST (before sending notification email)
-      // This way the email will include the OTP code
-      const needsCode = updates.status === "shipped" || (isPickup && updates.status === "arrived");
-      const codeSent = needsCode ? await handleGenerateOtp(order.id, false, successMsg) : false;
-
-      // Notify buyer about shipment (non-blocking) - AFTER OTP is generated
-      // The notification function will fetch the OTP from the database
-      if (notificationType) {
-        supabase.functions.invoke(notificationType, {
-          body: { orderId: order.id },
-        }).catch(err => console.log(`Notification ${notificationType} failed (non-critical):`, err));
-      }
-
-      // When a code went out, its dialog is the confirmation. Otherwise a toast.
-      if (!needsCode) {
-        toast.success(successMsg, { description: "The buyer has been told and can now confirm they got it." });
-      } else if (!codeSent) {
-        toast.error(`${successMsg}, but the delivery code wasn't sent`, {
-          description: "Open the order and tap Resend code.",
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Couldn't update the order", { description: "Nothing was changed. Please try again." });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleFieldChange = (orderId: string, field: "courier" | "tracking" | "notes", value: string) => {
-    setShippingNotes((prev) => ({
-      ...prev,
-      [orderId]: {
-        courier: prev[orderId]?.courier ?? "",
-        tracking: prev[orderId]?.tracking ?? "",
-        notes: prev[orderId]?.notes ?? "",
-        [field]: value,
-      },
-    }));
-  };
-
-  // Generate OTP when marking as shipped/ready for pickup
-  const handleGenerateOtp = async (orderId: string, isResend: boolean = false, title = "Delivery code sent"): Promise<boolean> => {
-    try {
-      setSaving(true);
-      const { data, error } = await supabase.functions.invoke('generate-delivery-otp', {
-        body: { orderId, isResend }
-      });
-
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || 'Failed to generate OTP');
-
-
-      // If resending, also trigger the email notification
-      if (isResend) {
-        // Fetch order to determine notification type
-        const order = orders.find(o => o.id === orderId);
-        if (order) {
-          const isPickup = (order.order_shipping_details as any)?.delivery_type === "pickup";
-          const notificationType = isPickup ? "notify-buyer-pickup-ready" : "notify-buyer-order-shipped";
-
-          // Send the notification email with the new OTP
-          supabase.functions.invoke(notificationType, {
-            body: { orderId }
-          }).catch(err => console.log(`Resend notification failed (non-critical):`, err));
-        }
-        toast.success("New code sent to buyer", { description: "The old code no longer works." });
-      } else {
-        // Confirmation dialog (the code itself is never shown to the vendor).
-        setOtpDialogTitle(title);
-        setShowGeneratedOtp(true);
-      }
-
-      await loadOrders();
-      return true;
-    } catch (error) {
-      console.error("Error generating OTP:", error);
-      if (isResend) toast.error("Couldn't send a new code", { description: "Please try again." });
-      return false;
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Verify OTP entered by vendor (collected from buyer)
-  const handleVerifyOtp = async () => {
-    if (!otpDialogOrder || !otpInput) return;
-
-    // Validate 6 digits
-    if (!/^\d{6}$/.test(otpInput)) {
-      toast.error("Please enter a valid 6-digit code");
-      return;
-    }
-
-    try {
-      setOtpVerifying(true);
-      const { data, error } = await supabase.functions.invoke('verify-delivery-otp', {
-        body: { orderId: otpDialogOrder.id, otp: otpInput }
-      });
-
-      if (error) throw new Error(await edgeErrorMessage(error, "We couldn't verify that code. Please try again."));
-
-      if (data?.success) {
-        celebrate({
-          title: "Delivery confirmed",
-          amount: data.payoutAmount ? `KES ${Number(data.payoutAmount).toLocaleString()}` : undefined,
-          subtitle: "The funds have been released to your Solely balance.",
-          cta: "Nice!",
-        });
-        setOtpDialogOrder(null);
-        setOtpInput("");
-        await loadOrders();
-      } else {
-        toast.error(data?.error || "Invalid code. Please check and try again.");
-      }
-    } catch (error) {
-      console.error("Error verifying OTP:", error);
-      toast.error(error, { retry: handleVerifyOtp });
-    } finally {
-      setOtpVerifying(false);
-    }
-  };
+  const refreshAll = () => loadOrders();
 
   // ── Status helpers ──────────────────────────────────────────────────────────
   const STATUS_PILL: Record<string, string> = {
@@ -867,135 +432,24 @@ const VendorOrders = () => {
 
                         </>)}
 
-                        {/* PENDING: Accept / Decline / Expired */}
-                        {order.status === "pending_vendor_confirmation" && (
-                          isOrderExpired(order) ? (
-                            // Order is older than 48 hours, auto-refund already triggered
-                            <div className="rounded-xl border border-muted bg-muted/50 p-4 space-y-1.5">
-                              <div className="flex items-center gap-2">
-                                <Clock size={16} strokeWidth={1.75} className="text-muted-foreground" />
-                                <p className="text-sm font-semibold text-muted-foreground">Missed Order - Refund Processed</p>
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                This order wasn't accepted within 48 hours. The buyer has been automatically refunded and notified.
-                              </p>
+                        {isExpired ? (
+                          <div className="rounded-xl border border-muted bg-muted/50 p-4 space-y-1.5">
+                            <div className="flex items-center gap-2">
+                              <Clock size={16} strokeWidth={1.75} className="text-muted-foreground" />
+                              <p className="text-sm font-semibold text-muted-foreground">Missed order, refunded</p>
                             </div>
-                          ) : (
-                            <div className="rounded-xl border border-primary/30 bg-primary-soft p-4 space-y-3">
-                              <div className="flex items-center justify-between">
-                                <p className="text-sm font-semibold text-primary-strong ">New Order Request</p>
-                                {(() => {
-                                  const h = differenceInHours(new Date(), new Date(order.created_at));
-                                  return h >= 24 && <Badge variant="destructive" className="text-xs">{Math.max(0, 48-h)}h left</Badge>;
-                                })()}
-                              </div>
-                              <p className="text-xs text-primary-strong ">Delivery fee is already included. Review and respond.</p>
-                              <div className="flex gap-2">
-                                <Button className="flex-1 h-10 text-sm" onClick={() => handleAccept(order)} disabled={saving}>
-                                  {saving ? "Accepting…" : "Accept"}
-                                </Button>
-                                <Button variant="outline" className="flex-1 h-10 text-sm text-destructive border-destructive/30 hover:bg-destructive/10"
-                                  onClick={() => { setDeclineReason(""); setOrderToDecline(order); }} disabled={saving}>
-                                  Can't Fulfill
-                                </Button>
-                              </div>
-                            </div>
-                          )
-                        )}
-
-                        {/* ACCEPTED: Ship form */}
-                        {order.status === "accepted" && (
-                          <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-4" ref={expandedOrderId === order.id ? shippingFormRef : null}>
-
-                            <p className="text-sm font-semibold">{isPickup ? "Mark Ready for Pickup" : "Ship the Order"}</p>
-                            {!isPickup && (
-                              <>
-                                <div className="flex items-center gap-2 text-sm">
-                                  <input type="checkbox" id={`pd-${order.id}`} className="h-4 w-4 rounded"
-                                    checked={personalDelivery[order.id] ?? false}
-                                    onChange={e => setPersonalDelivery(prev => ({ ...prev, [order.id]: e.target.checked }))} />
-                                  <Label htmlFor={`pd-${order.id}`} className="cursor-pointer">I'll deliver this myself</Label>
-                                </div>
-                                {!(personalDelivery[order.id] ?? false) && (
-                                  <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-1">
-                                      <Label htmlFor={`courier-${order.id}`} className="text-xs">Courier</Label>
-                                      <Input id={`courier-${order.id}`} placeholder="e.g. DHL, G4S" className="h-9 text-sm"
-                                        value={shippingNotes[order.id]?.courier ?? ""}
-                                        onChange={e => handleFieldChange(order.id, "courier", e.target.value)} />
-                                    </div>
-                                    <div className="space-y-1">
-                                      <Label htmlFor={`tracking-${order.id}`} className="text-xs">Tracking #</Label>
-                                      <Input id={`tracking-${order.id}`} placeholder="Tracking number" className="h-9 text-sm"
-                                        value={shippingNotes[order.id]?.tracking ?? ""}
-                                        onChange={e => handleFieldChange(order.id, "tracking", e.target.value)} />
-                                    </div>
-                                  </div>
-                                )}
-                                {(personalDelivery[order.id] ?? false) && (
-                                  <DeliveryTrackingControl orderId={order.id}
-                                    isCurrentlyTracking={order.order_shipping_details?.delivery_tracking_enabled || false} />
-                                )}
-                              </>
-                            )}
-                            <div className="space-y-1">
-                              <Label htmlFor={`notes-${order.id}`} className="text-xs">Notes (optional)</Label>
-                              <Textarea id={`notes-${order.id}`} className="text-sm resize-none"
-                                placeholder={isPickup ? "e.g. 'Ready at front desk'" : "Details for the buyer"}
-                                value={shippingNotes[order.id]?.notes ?? ""}
-                                onChange={e => handleFieldChange(order.id, "notes", e.target.value)} />
-                            </div>
-                            <Button className="w-full h-10 text-sm" onClick={() => handleMarkShipped(order)}
-                              disabled={saving}>
-                              {saving ? "Updating…" : isPickup ? "Mark Ready for Pickup" : "Mark as Shipped"}
-                            </Button>
-                          </div>
-                        )}
-
-                        {/* SHIPPED */}
-                        {order.status === "shipped" && (
-                          <div className="rounded-xl border border-border bg-muted p-4 space-y-3">
-                            <p className="text-sm font-semibold text-foreground ">
-                              In transit
-                              {order.shipped_at && <span className="font-normal text-xs ml-2 opacity-70">· shipped {formatDistanceToNow(new Date(order.shipped_at), { addSuffix: true })}</span>}
+                            <p className="text-xs text-muted-foreground">
+                              This order wasn't accepted within 48 hours, so the buyer was refunded automatically.
                             </p>
-                            {order.order_shipping_details?.courier_name && <p className="text-xs text-muted-foreground">Courier: {order.order_shipping_details.courier_name}</p>}
-                            <p className="text-xs text-foreground ">Ask the buyer for their 6-digit code when you hand over the item.</p>
-                            <div className="flex gap-2">
-                              <Button className="flex-1 h-9 text-sm" onClick={() => { setOtpDialogOrder(order); setOtpInput(""); }}>Enter Code</Button>
-                              <Button variant="outline" className="flex-1 h-9 text-sm" onClick={() => handleGenerateOtp(order.id, true)} disabled={saving}>Resend Code</Button>
-                            </div>
                           </div>
-                        )}
-
-                        {/* MANUAL TRACKING UPDATE */}
-                        {(order.status === "accepted" || order.status === "shipped") && (
-                          <div className="mt-4">
-                            <ManualTrackingUpdate orderId={order.id} />
-                          </div>
-                        )}
-
-                        {/* ARRIVED */}
-                        {order.status === "arrived" && (
-                          <div className="rounded-xl border border-border bg-muted p-4 space-y-3">
-                            <p className="text-sm font-semibold text-foreground ">
-                              {isPickup ? "Ready for pickup" : "Delivered"}
-                            </p>
-                            <p className="text-xs text-foreground ">
-                              {isPickup ? "Ask the buyer for their 6-digit code when they collect." : "Enter the buyer's code to confirm delivery and release funds."}
-                            </p>
-                            <div className="flex gap-2">
-                              <Button className="flex-1 h-9 text-sm" onClick={() => { setOtpDialogOrder(order); setOtpInput(""); }}>Enter Code</Button>
-                              <Button variant="outline" className="flex-1 h-9 text-sm" onClick={() => handleGenerateOtp(order.id, true)} disabled={saving}>Resend Code</Button>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* DISPUTE CHAT */}
-                        {order.status === "disputed" && order.disputes?.[0] && (
-                          <div className="mt-4">
-                            <DisputeChat disputeId={order.disputes[0].id} currentUserRole="vendor" />
-                          </div>
+                        ) : (
+                          <VendorNextStep
+                            order={order}
+                            timers={timers[order.id]}
+                            checklist={checklists[order.id]}
+                            hasDispute={!!order.disputes?.length}
+                            onChanged={refreshAll}
+                          />
                         )}
 
                       </div>
@@ -1008,96 +462,6 @@ const VendorOrders = () => {
         </main>
       </div>
 
-      {/* Decline Dialog */}
-      <AlertDialog open={!!orderToDecline} onOpenChange={(open) => { if (!open) { setOrderToDecline(null); setDeclineReason(""); } }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Can't Fulfill This Order?</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-4">
-                <p>Cancelling order <strong>#{orderToDecline?.id.slice(0, 8)}</strong>.</p>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Reason:</label>
-                  <select className="w-full p-2 border rounded-md bg-background text-foreground text-sm"
-                    value={declineReason} onChange={(e) => setDeclineReason(e.target.value)}>
-                    <option value="">Select a reason…</option>
-                    <option value="out_of_stock">Out of stock</option>
-                    <option value="wrong_size">Size not available</option>
-                    <option value="pricing_error">Pricing error</option>
-                    <option value="cannot_deliver">Can't deliver to location</option>
-                    <option value="damaged_item">Item damaged</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <p className="text-sm font-medium">Full refund of KES {orderToDecline?.total_ksh.toLocaleString()} will be processed.</p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row gap-3 sm:gap-3 mt-2">
-            <AlertDialogCancel disabled={saving} className="flex-1 mt-0" onClick={() => { setOrderToDecline(null); setDeclineReason(""); }}>
-              Keep Order
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => orderToDecline && handleDecline(orderToDecline)}
-              disabled={saving || !declineReason}
-              className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {saving ? "Processing…" : "Can't Fulfill"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* OTP Entry Dialog */}
-      <AlertDialog open={!!otpDialogOrder} onOpenChange={(open) => { if (!open) { setOtpDialogOrder(null); setOtpInput(""); } }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Enter the buyer's delivery code</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-4">
-                <p>6-digit code for order <strong>#{otpDialogOrder?.id.slice(0, 8)}</strong>.</p>
-                <Input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={6}
-                  placeholder="• • • • • •" value={otpInput}
-                  onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="text-center text-2xl tracking-[0.5em] font-mono h-14" autoFocus />
-                <p className="text-xs text-muted-foreground">Funds release to your wallet immediately after verification.</p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex gap-2 mt-4">
-            <AlertDialogCancel disabled={otpVerifying} className="flex-1 mt-0">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleVerifyOtp(); }}
-              disabled={otpVerifying || otpInput.length !== 6} className="flex-1">
-              {otpVerifying ? "Verifying…" : "Confirm Delivery"}
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* OTP Generated Dialog */}
-      <AlertDialog open={showGeneratedOtp} onOpenChange={setShowGeneratedOtp}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-success text-success-foreground">
-                <Check size={16} strokeWidth={2.5} />
-              </span>
-              {otpDialogTitle}
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                <p>A 6-digit code was sent to the buyer via email and is on their Orders page.</p>
-                <p className="rounded-lg bg-muted p-3 text-sm text-foreground">
-                  When you hand over the item, ask the buyer for their code and enter it here. That releases your payment.
-                </p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex justify-end mt-4">
-            <AlertDialogAction onClick={() => setShowGeneratedOtp(false)}>Done</AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

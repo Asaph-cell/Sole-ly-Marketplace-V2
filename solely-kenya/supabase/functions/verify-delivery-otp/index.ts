@@ -1,40 +1,34 @@
 /**
- * Verify 6-Digit OTP & Release Funds (V2)
+ * Verify 6-Digit OTP & Release Funds
  *
- * Called when the VENDOR enters the 6-digit OTP shown on the buyer's screen.
- * The buyer receives this OTP after entering the 3-digit Package PIN.
- * If OTP matches:
- * 1. Order status → 'completed'
- * 2. Escrow → 'released'
- * 3. Payout record created for the vendor
- * 4. Funds transferred to vendor's IntaSend wallet
- *
- * Works for BOTH delivery and pickup orders.
- * For pickup: buyer enters PIN (skipped), gets OTP, shows vendor → vendor enters here.
+ * Called when the VENDOR enters the 6-digit code the buyer gives them at
+ * handover. The buyer sees the code on their order once it's marked
+ * arrived (or ready for pickup). A matching code completes the order and
+ * pays the vendor immediately, through the same releaseOrder path as the
+ * buyer's "Yes, I got it" tap and the 6h auto-release.
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { rateLimit } from "../_shared/rate-limit.ts";
 import { requireUserId, authErrorResponse } from "../_shared/auth.ts";
-import { getCommissionRatePercent } from "../_shared/platform-settings.ts";
+import { releaseOrder } from "../_shared/order-money.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
 serve(async (req: Request) => {
-    // Handle CORS preflight
     if (req.method === "OPTIONS") {
         return new Response(null, { headers: corsHeaders });
     }
 
     try {
-        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
         // Verified by Supabase Auth, not just decoded: a forged token is rejected here.
         const userId = await requireUserId(req, supabase);
@@ -44,233 +38,42 @@ serve(async (req: Request) => {
             ?? await rateLimit(req, corsHeaders, { name: "otp-user", max: 20, windowSeconds: 3600, identity: userId, failClosed: true });
         if (limited) return limited;
 
-        if (!orderId) throw new Error('Missing orderId');
-        if (!otp) throw new Error('Missing OTP');
+        if (!orderId) return json({ success: false, error: "Missing order" }, 400);
+        if (!otp || !/^\d{6}$/.test(otp)) return json({ success: false, error: "Enter the buyer's 6-digit code." }, 400);
 
-        // Validate OTP format (6 digits)
-        if (!/^\d{6}$/.test(otp)) {
-            throw new Error('Invalid OTP format - must be 6 digits');
-        }
-
-        // Fetch order with escrow info
         const { data: order, error: orderError } = await supabase
             .from("orders")
-            .select("*, escrow_transactions(*)")
+            .select("id, vendor_id, status, delivery_otp")
             .eq("id", orderId)
             .single();
 
-        if (orderError || !order) throw new Error('Order not found');
-        if (order.vendor_id !== userId) throw new Error('Unauthorized — not your order');
-        if (order.status === 'completed') throw new Error('Order already completed');
-
-        // Order must be in 'delivered' status (buyer already entered the PIN)
-        const validStatuses = ['delivered', 'arrived', 'shipped']; // backwards-compat
-        if (!validStatuses.includes(order.status)) {
-            throw new Error(`Cannot verify OTP for order in status: ${order.status}. Buyer must receive package first.`);
+        if (orderError || !order) return json({ success: false, error: "Order not found" }, 404);
+        if (order.vendor_id !== userId) return json({ success: false, error: "This isn't your order." }, 403);
+        if (order.status === "completed") return json({ success: false, error: "This order is already complete." }, 409);
+        if (order.status === "disputed") {
+            return json({ success: false, error: "The buyer reported a problem with this order, so payment is on hold until it's sorted." }, 409);
         }
-
-        // Check if OTP exists
+        if (!["arrived", "shipped"].includes(order.status)) {
+            return json({ success: false, error: "Mark the order as arrived first." }, 409);
+        }
         if (!order.delivery_otp) {
-            throw new Error('No OTP available for this order. Buyer must enter the Package PIN first.');
+            return json({ success: false, error: "Mark the order as arrived so the buyer gets their code." }, 409);
         }
-
-        // Check if OTP was already verified
-        if (order.otp_verified_at) {
-            throw new Error('OTP already verified for this order');
-        }
-
-        // Verify OTP matches
         if (order.delivery_otp !== otp) {
-            console.log(`OTP mismatch for order ${orderId}: expected ${order.delivery_otp}, got ${otp}`);
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    error: "Invalid OTP. Please check the code and try again."
-                }),
-                { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
+            return json({ success: false, error: "That code doesn't match. Check it with the buyer and try again." }, 400);
         }
 
-        console.log(`OTP verified for order ${orderId}. Proceeding with fund release.`);
+        const result = await releaseOrder(supabase, orderId, { note: "Funds released via vendor OTP entry", otpVerified: true });
 
-        const now = new Date().toISOString();
-
-        // A. Update Order - mark as completed with OTP verification
-        const { error: updateOrderError } = await supabase
-            .from("orders")
-            .update({
-                status: "completed",
-                buyer_confirmed: true,
-                vendor_confirmed: true,
-                completed_at: now,
-                otp_verified_at: now,
-            })
-            .eq("id", orderId);
-
-        if (updateOrderError) throw updateOrderError;
-
-        // B. Update Escrow
-        const { error: updateEscrowError } = await supabase
-            .from("escrow_transactions")
-            .update({
-                status: "released",
-                released_at: now,
-            })
-            .eq("order_id", orderId);
-
-        if (updateEscrowError) {
-            console.error('Escrow update failed (non-critical):', updateEscrowError);
-        }
-
-        // C. Create Payout Record
-        const currentRate = order.commission_rate ?? await getCommissionRatePercent(supabase);
-        const payoutAmount = order.payout_amount ?? (order.total_ksh * (1 - currentRate / 100));
-        const commissionAmount = order.commission_amount ?? (order.total_ksh * (currentRate / 100));
-
-        console.log(`Creating payout: vendor=${order.vendor_id}, order=${orderId}, amount=${payoutAmount}`);
-
-        const { error: payoutError } = await supabase
-            .from("payouts")
-            .insert({
-                vendor_id: order.vendor_id,
-                order_id: orderId,
-                amount_ksh: payoutAmount,
-                commission_amount: commissionAmount,
-                status: "pending",
-                method: "mpesa"
-            });
-
-        if (payoutError) {
-            console.error('Failed to create payout record:', payoutError);
-        } else {
-            console.log(`Payout created for order ${orderId}: ${payoutAmount} KES`);
-        }
-
-        // D. Record commission in ledger
-        const { error: commissionError } = await supabase
-            .from("commission_ledger")
-            .insert({
-                order_id: orderId,
-                vendor_id: order.vendor_id,
-                commission_rate: currentRate,
-                commission_amount: commissionAmount,
-                notes: "Funds released via vendor OTP entry",
-            });
-
-        if (commissionError) {
-            console.error("Failed to record commission:", commissionError);
-        }
-
-        // E. Transfer funds to vendor's IntaSend wallet (AWAITED to prevent balance desync)
-        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-        
-        console.log(`[Verify OTP] Triggering transfer-to-vendor-wallet for order ${orderId}...`);
-        try {
-            const transferResponse = await fetch(`${supabaseUrl}/functions/v1/transfer-to-vendor-wallet`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${serviceRoleKey}`,
-                },
-                body: JSON.stringify({ order_id: orderId }),
-            });
-            
-            const transferResult = await transferResponse.json().catch(() => null);
-            
-            if (!transferResponse.ok || transferResult?.error) {
-                console.error(`[Verify OTP] IntaSend wallet transfer FAILED for order ${orderId}:`, transferResult);
-                // Roll back the DB balance since the real money didn't move
-                const { data: currentBal } = await supabase
-                    .from('vendor_balances')
-                    .select('pending_balance, total_earned')
-                    .eq('vendor_id', order.vendor_id)
-                    .single();
-                
-                if (currentBal) {
-                    const correctedBalance = Math.max(0, (currentBal.pending_balance || 0) - payoutAmount);
-                    const correctedEarned = Math.max(0, (currentBal.total_earned || 0) - payoutAmount);
-                    await supabase
-                        .from('vendor_balances')
-                        .update({
-                            pending_balance: correctedBalance,
-                            total_earned: correctedEarned,
-                            updated_at: new Date().toISOString(),
-                        })
-                        .eq('vendor_id', order.vendor_id);
-                    console.warn(`[Verify OTP] Rolled back DB balance by ${payoutAmount} for vendor ${order.vendor_id} (${currentBal.pending_balance} -> ${correctedBalance})`);
-                }
-            } else {
-                console.log(`[Verify OTP] Transfer successful for order ${orderId}`);
-            }
-        } catch (err) {
-            console.error('[Verify OTP] Failed to trigger transfer:', err);
-        }
-
-        // E2. Send completion email notifications (non-blocking)
-        console.log(`[Verify OTP] Triggering notify-order-completed for order ${orderId}...`);
-        fetch(`${supabaseUrl}/functions/v1/notify-order-completed`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${serviceRoleKey}`,
-            },
-            body: JSON.stringify({ orderId: orderId }),
-        }).catch(err => console.error('[Verify OTP] Failed to trigger notifications:', err));
-
-        // F. Decrement Stock for each order item
-        const { data: orderItems, error: itemsError } = await supabase
-            .from("order_items")
-            .select("product_id, quantity")
-            .eq("order_id", orderId);
-
-        if (itemsError) {
-            console.error("Failed to fetch order items for stock update:", itemsError);
-        } else if (orderItems && orderItems.length > 0) {
-            console.log(`Updating stock for ${orderItems.length} items`);
-            for (const item of orderItems) {
-                const { data: product, error: productError } = await supabase
-                    .from("products")
-                    .select("stock")
-                    .eq("id", item.product_id)
-                    .single();
-
-                if (productError || !product) {
-                    console.error(`Failed to fetch product ${item.product_id}:`, productError);
-                    continue;
-                }
-
-                if (product.stock !== null && typeof product.stock === "number") {
-                    const newStock = Math.max(0, product.stock - item.quantity);
-                    const { error: updateError } = await supabase
-                        .from("products")
-                        .update({ stock: newStock })
-                        .eq("id", item.product_id);
-
-                    if (updateError) {
-                        console.error(`Failed to update stock for product ${item.product_id}:`, updateError);
-                    } else {
-                        console.log(`Stock updated for product ${item.product_id}: ${product.stock} -> ${newStock}`);
-                    }
-                }
-            }
-        }
-
-        return new Response(
-            JSON.stringify({
-                success: true,
-                message: "Delivery confirmed! Funds have been released to your account.",
-                payoutAmount: payoutAmount,
-            }),
-            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-
+        return json({
+            success: true,
+            message: "Delivery confirmed! Funds have been released to your account.",
+            payoutAmount: result.payout,
+        });
     } catch (error) {
         const unauthorized = authErrorResponse(error, corsHeaders);
         if (unauthorized) return unauthorized;
         console.error("Error verifying delivery OTP:", error);
-        return new Response(
-            JSON.stringify({ error: error instanceof Error ? error.message : "Internal Server Error" }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return json({ success: false, error: "Something went wrong on our side. Please try again." }, 500);
     }
 });
