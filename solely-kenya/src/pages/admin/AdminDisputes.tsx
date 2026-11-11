@@ -24,6 +24,9 @@ import { DisputeChat } from "@/components/disputes/DisputeChat";
 import { cn } from "@/lib/utils";
 import { useSignedEvidence } from "@/lib/disputeEvidence";
 import { formatDistanceToNow } from "date-fns";
+import { invokeAdminAction } from "@/lib/edgeError";
+import { formatDue, problemLabel } from "@/lib/orderFlow";
+import { PhoneCall } from "lucide-react";
 
 interface Dispute {
     id: string;
@@ -40,10 +43,38 @@ interface Dispute {
     vendor_evidence_urls?: string[] | null;
     vendor_response?: string | null;
     vendor_response_at?: string | null;
+    dispute_type?: string | null;
+    stage?: string | null;
+    raised_by?: string | null;
+    escalation_reason?: string | null;
+    appeal_requested_at?: string | null;
+    appeal_requested_by?: string | null;
     customer?: { full_name: string; email: string };
     vendor?: { full_name: string; email: string; store_name: string };
     order?: { total_ksh: number; created_at: string };
 }
+
+interface UnavailableClaim {
+    id: string;
+    order_id: string;
+    due_at: string;
+    meta: { attempt?: number; note?: string };
+    order?: { vendor_id: string; order_shipping_details?: ShippingContact[] | ShippingContact | null };
+}
+type ShippingContact = { recipient_name: string | null; phone: string | null };
+
+const STAGE_TEXT: Record<string, string> = {
+    negotiating: "Working it out",
+    awaiting_fix: "Vendor fixing",
+    fix_sent: "Fix sent",
+    awaiting_return: "Return pending",
+    return_handed: "Item handed back",
+    buyer_choice: "Buyer choosing",
+    with_admin: "Needs you",
+    resolved: "Resolved",
+};
+
+const needsAdmin = (d: Dispute) => d.stage === "with_admin" || (!!d.appeal_requested_at && d.stage === "resolved");
 
 type ResolutionType = 'full_refund_penalty' | 'partial_refund' | 'release_funds' | 'close_dismiss';
 
@@ -58,7 +89,9 @@ const AdminDisputes = () => {
     const vendorEvidence = useSignedEvidence(selectedDispute?.vendor_evidence_urls);
     const [resolving, setResolving] = useState(false);
     const [resolutionNotes, setResolutionNotes] = useState("");
-    const [filter, setFilter] = useState("all");
+    const [filter, setFilter] = useState("decide");
+    const [claims, setClaims] = useState<UnavailableClaim[]>([]);
+    const [rejecting, setRejecting] = useState<string | null>(null);
     const [showResolutionDialog, setShowResolutionDialog] = useState(false);
     const [resolutionType, setResolutionType] = useState<ResolutionType | null>(null);
     const [partialAmount, setPartialAmount] = useState("");
@@ -97,6 +130,15 @@ const AdminDisputes = () => {
 
             if (error) throw error;
             setDisputes(data as any);
+
+            // "Buyer unavailable" claims waiting for Solely to call the buyer.
+            const { data: claimRows } = await (supabase as any)
+                .from("order_timers")
+                .select("id, order_id, due_at, meta, order:orders(vendor_id, order_shipping_details(recipient_name, phone))")
+                .eq("kind", "buyer_unavailable")
+                .eq("status", "active")
+                .order("created_at", { ascending: true });
+            setClaims((claimRows ?? []) as UnavailableClaim[]);
 
             const disputeIdParam = searchParams.get("dispute");
             if (disputeIdParam) {
@@ -180,8 +222,23 @@ const AdminDisputes = () => {
         }
     };
 
+    const rejectClaim = async (orderId: string) => {
+        setRejecting(orderId);
+        try {
+            await invokeAdminAction({ action: "reject_buyer_unavailable", targetId: orderId, reason: "Buyer confirmed by phone they were available" });
+            toast({ title: "Claim rejected", description: "The vendor got a strike and has been asked to deliver." });
+            setClaims(c => c.filter(x => x.order_id !== orderId));
+        } catch (e: any) {
+            toast({ title: "Error", description: e.message, variant: "destructive" });
+        } finally {
+            setRejecting(null);
+        }
+    };
+
     const filteredDisputes = disputes.filter(d => {
         if (filter === "all") return true;
+        if (filter === "decide") return needsAdmin(d);
+        if (filter === "open") return !d.status.startsWith("resolved") && d.status !== "closed";
         if (filter === "resolved") return d.status.startsWith("resolved");
         return d.status === filter;
     });
@@ -200,10 +257,10 @@ const AdminDisputes = () => {
                         {/* Filter pills */}
                         <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none mb-3">
                             {[
-                                { id: "all", label: "All" },
+                                { id: "decide", label: `Needs you (${disputes.filter(needsAdmin).length})` },
                                 { id: "open", label: "Open" },
-                                { id: "under_review", label: "In Review" },
-                                { id: "resolved", label: "Resolved" }
+                                { id: "resolved", label: "Resolved" },
+                                { id: "all", label: "All" }
                             ].map(f => (
                                 <button
                                     key={f.id}
@@ -219,6 +276,30 @@ const AdminDisputes = () => {
                                 </button>
                             ))}
                         </div>
+
+                        {claims.length > 0 && (
+                            <div className="rounded-xl border border-destructive/30 bg-destructive-soft p-3 mb-3 space-y-2">
+                                <p className="text-xs font-semibold flex items-center gap-1.5"><PhoneCall size={13} /> Call these buyers now</p>
+                                <p className="text-[11px] text-muted-foreground">The vendor says the buyer is unavailable. If the buyer was actually there, tap "Buyer was there" (the vendor gets a strike).</p>
+                                {claims.map(c => {
+                                    const ship = Array.isArray(c.order?.order_shipping_details) ? c.order?.order_shipping_details[0] : c.order?.order_shipping_details;
+                                    return (
+                                        <div key={c.id} className="flex items-center justify-between gap-2 rounded-lg bg-card border border-border px-3 py-2">
+                                            <div className="min-w-0 text-xs">
+                                                <p className="font-medium">#{c.order_id.slice(0, 8)} · {ship?.recipient_name ?? "Buyer"}{c.meta?.attempt && c.meta.attempt > 1 ? ` · attempt ${c.meta.attempt}` : ""}</p>
+                                                <p className="text-muted-foreground">
+                                                    {ship?.phone ? <a className="underline" href={`tel:${ship.phone}`}>{ship.phone}</a> : "No phone"} · cancels {formatDue(c.due_at)}
+                                                </p>
+                                                {c.meta?.note && <p className="text-muted-foreground truncate">Vendor: "{c.meta.note}"</p>}
+                                            </div>
+                                            <Button size="sm" variant="outline" className="h-7 text-[11px] shrink-0" disabled={rejecting === c.order_id} onClick={() => rejectClaim(c.order_id)}>
+                                                {rejecting === c.order_id ? "..." : "Buyer was there"}
+                                            </Button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
 
                         {filteredDisputes.length === 0 ? (
                             <div className="rounded-xl border border-border bg-card">
@@ -248,7 +329,7 @@ const AdminDisputes = () => {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between gap-2">
                                                 <p className="text-xs font-medium text-foreground truncate">
-                                                    #{d.order_id.substring(0, 8)} · {d.reason.replace(/_/g, " ")}
+                                                    #{d.order_id.substring(0, 8)} · {d.dispute_type ? problemLabel(d.dispute_type) : d.reason.replace(/_/g, " ")}
                                                 </p>
                                                 <span className="text-[10px] text-muted-foreground flex-shrink-0">
                                                     {formatDistanceToNow(new Date(d.opened_at), { addSuffix: true })}
@@ -259,6 +340,7 @@ const AdminDisputes = () => {
                                             </p>
                                             <p className="text-[11px] text-muted-foreground">
                                                 {formatCurrency(d.order?.total_ksh || 0)}
+                                                {d.stage && <span className={cn("ml-2", needsAdmin(d) && "text-destructive font-medium")}>· {d.appeal_requested_at && d.stage === "resolved" ? "Appeal" : STAGE_TEXT[d.stage] ?? d.stage}</span>}
                                             </p>
                                         </div>
                                         <ChevronRight size={13} strokeWidth={1.5} className="text-muted-foreground flex-shrink-0 mt-1 shrink-0" />
@@ -276,7 +358,7 @@ const AdminDisputes = () => {
                                 <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
                                     <div>
                                         <p className="text-xs font-medium text-foreground">
-                                            #{selectedDispute.order_id.substring(0, 8)} · {selectedDispute.reason.replace(/_/g, " ")}
+                                            #{selectedDispute.order_id.substring(0, 8)} · {selectedDispute.dispute_type ? problemLabel(selectedDispute.dispute_type) : selectedDispute.reason.replace(/_/g, " ")}
                                         </p>
                                         <p className="text-[11px] text-muted-foreground mt-0.5">
                                             {selectedDispute.customer?.full_name} vs {selectedDispute.vendor?.store_name || selectedDispute.vendor?.full_name} · {formatCurrency(selectedDispute.order?.total_ksh || 0)}
@@ -290,6 +372,16 @@ const AdminDisputes = () => {
                                     </div>
                                     <StatusPill status={selectedDispute.status} />
                                 </div>
+
+                                {(selectedDispute.description || selectedDispute.escalation_reason || selectedDispute.appeal_requested_at) && (
+                                    <div className="px-4 py-3 border-b border-border shrink-0 space-y-1.5 text-xs">
+                                        {selectedDispute.description && <p><span className="text-muted-foreground">Buyer said: </span>{selectedDispute.description}</p>}
+                                        {selectedDispute.escalation_reason && <p><span className="text-muted-foreground">Why it's with you: </span>{selectedDispute.escalation_reason}</p>}
+                                        {selectedDispute.appeal_requested_at && (
+                                            <p className="text-destructive">The {selectedDispute.appeal_requested_by} asked for a review of the automatic decision ("{selectedDispute.resolution_notes}"). Money has already moved, so any change has to be handled by hand.</p>
+                                        )}
+                                    </div>
+                                )}
 
                                 {/* Evidence & vendor response */}
                                 {(selectedDispute.buyer_evidence_urls?.length || selectedDispute.vendor_evidence_urls?.length || selectedDispute.vendor_response) && (

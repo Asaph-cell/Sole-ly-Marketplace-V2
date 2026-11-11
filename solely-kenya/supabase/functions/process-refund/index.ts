@@ -1,28 +1,24 @@
 /**
- * Process Refund via IntaSend
- * 
- * Called when admin resolves a dispute with refund action.
- * Uses IntaSend's Chargeback API to initiate refund.
+ * Process Refund (admin)
+ *
+ * Lets an admin refund an order by hand. The IntaSend chargeback and all
+ * the bookkeeping live in _shared/order-money.ts (refundOrder), which the
+ * dispute system's own refunds also use - internal callers call that
+ * directly rather than going through this endpoint.
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { refundOrder } from "../_shared/order-money.ts";
+import { UserError } from "../_shared/errors.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Map our dispute reasons to IntaSend's accepted reasons
-const mapReasonToIntaSend = (reason: string): string => {
-    const mapping: Record<string, string> = {
-        "no_delivery": "Delayed delivery",
-        "wrong_item": "Wrong service",
-        "damaged": "Other",
-        "other": "Other",
-    };
-    return mapping[reason] || "Other";
-};
+const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
@@ -31,175 +27,46 @@ serve(async (req: Request) => {
 
     try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
         const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-        const intaSendSecretKey = Deno.env.get("INTASEND_SECRET_KEY");
-
-        if (!intaSendSecretKey) {
-            throw new Error("INTASEND_SECRET_KEY not configured");
-        }
 
         // ── SECURITY: Verify caller is an authenticated admin ──────────────────
         const authHeader = req.headers.get("Authorization");
-        if (!authHeader) {
-            return new Response(
-                JSON.stringify({ success: false, error: "Unauthorized" }),
-                { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-        }
+        if (!authHeader) return json({ success: false, error: "Unauthorized" }, 401);
 
-        // Verify the JWT belongs to a real user
         const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
             global: { headers: { Authorization: authHeader } },
         });
         const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-        if (authError || !user) {
-            return new Response(
-                JSON.stringify({ success: false, error: "Unauthorized" }),
-                { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-        }
+        if (authError || !user) return json({ success: false, error: "Unauthorized" }, 401);
 
-        // Verify the user holds the admin role
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
         const { data: adminRole } = await supabase
             .from("user_roles")
             .select("role")
             .eq("user_id", user.id)
             .eq("role", "admin")
-            .single();
-
+            .maybeSingle();
         if (!adminRole) {
             console.warn(`[Refund] Non-admin user ${user.id} attempted to call process-refund`);
-            return new Response(
-                JSON.stringify({ success: false, error: "Forbidden: admin access required" }),
-                { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
+            return json({ success: false, error: "Forbidden: admin access required" }, 403);
         }
         // ── END SECURITY ───────────────────────────────────────────────────────
 
-        const { orderId, disputeId, reason, refundAmount } = await req.json();
+        const { orderId, reason, refundAmount } = await req.json();
+        if (!orderId) return json({ success: false, error: "orderId is required" }, 400);
 
-        if (!orderId) {
-            throw new Error("orderId is required");
-        }
-
-        console.log(`[Refund] Admin ${user.id} processing refund for order: ${orderId}`);
-
-
-
-        // 1. Fetch payment record to get transaction_id
-        const { data: payment, error: paymentError } = await supabase
-            .from("payments")
-            .select("id, transaction_id, amount_ksh, status, gateway")
-            .eq("order_id", orderId)
-            .order("created_at", { ascending: true })
-            .limit(1)
-            .single();
-
-        if (paymentError || !payment) {
-            console.error("[Refund] Payment not found:", paymentError);
-            throw new Error("Payment record not found for this order");
-        }
-
-        if (payment.status === "refunded") {
-            console.log("[Refund] Payment already refunded");
-            return new Response(
-                JSON.stringify({ success: true, message: "Payment already refunded", alreadyRefunded: true }),
-                { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-        }
-
-        if (!payment.transaction_id) {
-            console.error("[Refund] No transaction_id found on payment");
-            throw new Error("Cannot process refund: No transaction reference found. This order may have been placed before the webhook fix.");
-        }
-
-        // 2. Call IntaSend Chargeback API
-        console.log(`[Refund] Calling IntaSend chargeback API for invoice: ${payment.transaction_id}`);
-
-        const chargebackPayload = {
-            invoice: payment.transaction_id,
-            amount: refundAmount ? Number(refundAmount) : Number(payment.amount_ksh),
-            reason: mapReasonToIntaSend(reason || "other"),
-        };
-
-        console.log("[Refund] Chargeback payload:", JSON.stringify(chargebackPayload));
-
-        const response = await fetch("https://api.intasend.com/api/v1/chargebacks/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${intaSendSecretKey}`,
-            },
-            body: JSON.stringify(chargebackPayload),
+        console.log(`[Refund] Admin ${user.id} refunding order ${orderId}`);
+        const result = await refundOrder(supabase, orderId, {
+            amount: refundAmount ? Number(refundAmount) : undefined,
+            reason: reason || "other",
         });
 
-        const responseText = await response.text();
-        console.log("[Refund] IntaSend response:", responseText);
-
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch {
-            console.error("[Refund] Invalid JSON response from IntaSend");
-            throw new Error("IntaSend returned invalid response");
-        }
-
-        if (!response.ok) {
-            const errorMessage = data?.detail || data?.message || data?.error || "Refund request failed";
-            console.error("[Refund] IntaSend error:", errorMessage);
-            throw new Error(`IntaSend: ${errorMessage}`);
-        }
-
-        console.log("[Refund] IntaSend chargeback created successfully");
-
-        // 3. Update payment status
-        const { error: updateError } = await supabase
-            .from("payments")
-            .update({
-                status: "refunded",
-                refunded_at: new Date().toISOString(),
-            })
-            .eq("id", payment.id);
-
-        if (updateError) {
-            console.error("[Refund] Failed to update payment status:", updateError);
-            // Don't throw - refund was initiated at IntaSend
-        }
-
-        // 4. Update order status if not already refunded
-        await supabase
-            .from("orders")
-            .update({ status: "refunded" })
-            .eq("id", orderId);
-
-        // 5. Update escrow if exists
-        await supabase
-            .from("escrow_transactions")
-            .update({
-                status: "refunded",
-                refunded_at: new Date().toISOString()
-            })
-            .eq("order_id", orderId);
-
-        return new Response(
-            JSON.stringify({
-                success: true,
-                message: "Refund initiated successfully",
-                chargebackId: data.id || null,
-            }),
-            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-
+        return json({ success: true, message: "Refund initiated successfully", ...result });
     } catch (error) {
         console.error("[Refund] Error:", error);
-        return new Response(
-            JSON.stringify({
-                success: false,
-                error: error instanceof Error ? error.message : "Refund processing failed"
-            }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return json({
+            success: false,
+            error: error instanceof Error ? error.message : "Refund processing failed",
+        }, error instanceof UserError ? 409 : 500);
     }
 });

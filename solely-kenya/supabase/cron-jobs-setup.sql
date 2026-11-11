@@ -34,42 +34,27 @@ SELECT cron.schedule(
 );
 
 -- ================================================================
--- 2. AUTO-RELEASE ESCROW
+-- 2. ORDER ENGINE (dispute & delivery clocks)
 -- ================================================================
--- Runs every 10 minutes
--- Releases escrow funds 24 hours after order marked "arrived"
--- Only for delivery orders (pickup orders have no time limit)
--- ================================================================
-
-SELECT cron.schedule(
-    'auto-release-escrow',
-    '*/10 * * * *', -- Every 10 minutes
-    $$
-    SELECT
-      net.http_post(
-          url:='https://cqcklvdblhcdowisjnsf.supabase.co/functions/v1/auto-release-escrow',
-          headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"}'::jsonb,
-          body:='{}'::jsonb
-      ) as request_id;
-    $$
-);
-
--- ================================================================
--- 3. AUTO-DISPUTE UNDELIVERED ORDERS
--- ================================================================
--- Runs every hour
--- Creates dispute for orders not marked "arrived" within 5 days
--- Admin will follow up with vendor (buyer might be okay with delay)
--- Skips pickup orders (no time limits)
+-- Runs every 5 minutes. Drives every order clock in order_timers:
+-- ship deadline (A1), delivery window (A4), 6h payment release,
+-- packing-checklist holds, dispute response/negotiation windows,
+-- fixes, returns and "buyer unavailable" grace periods.
+-- See docs/DISPUTE_SYSTEM_SPEC.md.
+--
+-- Replaces the old 'auto-release-escrow' and 'auto-dispute-undelivered'
+-- jobs - unschedule those first (their functions no longer exist):
+--   SELECT cron.unschedule('auto-release-escrow');
+--   SELECT cron.unschedule('auto-dispute-undelivered');
 -- ================================================================
 
 SELECT cron.schedule(
-    'auto-dispute-undelivered',
-    '0 * * * *', -- Every hour at minute 0
+    'order-engine',
+    '*/5 * * * *', -- Every 5 minutes
     $$
     SELECT
       net.http_post(
-          url:='https://cqcklvdblhcdowisjnsf.supabase.co/functions/v1/auto-refund-unshipped',
+          url:='https://cqcklvdblhcdowisjnsf.supabase.co/functions/v1/order-engine',
           headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"}'::jsonb,
           body:='{}'::jsonb
       ) as request_id;
@@ -89,9 +74,11 @@ SELECT * FROM cron.job;
 -- Run these if you need to remove/update a cron job
 
 -- SELECT cron.unschedule('auto-cancel-stale-orders');
+-- SELECT cron.unschedule('order-engine');
+-- Retired jobs (functions deleted 2026-10-07), remove if still scheduled:
 -- SELECT cron.unschedule('auto-release-escrow');
 -- SELECT cron.unschedule('auto-dispute-undelivered');
--- SELECT cron.unschedule('auto-refund-unshipped'); -- Old job, remove if exists
+-- SELECT cron.unschedule('auto-refund-unshipped');
 
 -- ================================================================
 -- NOTES
@@ -104,10 +91,12 @@ SELECT * FROM cron.job;
 -- ================================================================
 
 -- ================================================================
--- TIMELINE SUMMARY (as of December 2024)
+-- TIMELINE SUMMARY (as of October 2026)
 -- ================================================================
 -- Vendor Confirmation: 48 hours → auto-cancel + refund
--- Delivery Window: 5 days → auto-dispute for admin review
--- Buyer Verification: 24 hours after "arrived" → auto-release
--- Pickup Orders: No time limits (exempt from auto-release)
+-- Ship after accepting: 8 daytime hours → refund + vendor strike
+-- Delivery: 24-72h by distance (10 days East Africa) → refund + strike
+-- Payment release: 6 daytime hours after "arrived" → paid to vendor
+-- Pickup Orders: no auto-release
+-- All windows are editable in Admin > Settings.
 -- ================================================================

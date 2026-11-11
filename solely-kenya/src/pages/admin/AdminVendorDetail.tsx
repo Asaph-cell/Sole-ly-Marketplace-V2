@@ -9,6 +9,7 @@ import { Star, Scale, ClipboardList, Package, History, ArrowRight, ShieldCheck, 
 import { toKenyanIntl, formatKenyanPhone } from "@/lib/phone";
 import { formatDistanceToNow, format } from "date-fns";
 import { VerificationReview } from "@/components/admin/VerificationReview";
+import { VendorStrikesCard } from "@/components/admin/VendorStrikesCard";
 
 interface VendorProfile {
   id: string;
@@ -236,6 +237,8 @@ const AdminVendorDetail = () => {
         submittedAt={profile.kyc_submitted_at}
         onReviewed={loadAll}
       />
+
+      <VendorStrikesCard vendorId={profile.id} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Rating trend */}

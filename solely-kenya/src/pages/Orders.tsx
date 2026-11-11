@@ -8,14 +8,14 @@ import { Tables } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { DisputeChat } from "@/components/disputes/DisputeChat";
 import { toast } from "@/lib/toast";
 import { OrderReviewDialog } from "@/components/OrderReviewDialog";
-import { OrderConfirmationModal } from "@/components/OrderConfirmationModal";
 import { OrderReceipt } from "@/components/OrderReceipt";
 import { LiveDeliveryTracker } from "@/components/LiveDeliveryTracker";
 import { TrackingTimeline } from "@/components/tracking/TrackingTimeline";
-import { Phone, MessageCircle, PhoneCall, CheckCircle, Download, Lock } from "lucide-react";
+import { BuyerNextStep } from "@/components/orders/BuyerNextStep";
+import { useOrderTimers, usePackingChecklists } from "@/lib/orderFlow";
+import { Phone, MessageCircle, PhoneCall, CheckCircle, Download, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,7 @@ type OrderRecord = Tables<"orders"> & {
   order_items: Tables<"order_items">[];
   order_shipping_details: Tables<"order_shipping_details"> | null;
   payments?: Tables<"payments">[];
+  disputes?: Tables<"disputes">[] | Tables<"disputes"> | null;
 };
 
 // Helper component for contact vendor button with multiple options
@@ -91,18 +92,19 @@ const ContactVendorButton = ({ phoneNumber, className = "" }: { phoneNumber: str
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pending_payment: { label: "Payment pending", variant: "secondary" },
-  pending_vendor_confirmation: { label: "Awaiting vendor", variant: "secondary" },
-  accepted: { label: "Vendor accepted", variant: "default" },
-  shipped: { label: "In Transit", variant: "default" },
+  pending_vendor_confirmation: { label: "Awaiting seller", variant: "secondary" },
+  accepted: { label: "Being packed", variant: "default" },
+  shipped: { label: "On the way", variant: "default" },
   arrived: { label: "Arrived", variant: "default" },
-  delivered: { label: "Delivered", variant: "default" },
+  delivered: { label: "Arrived", variant: "default" },
   completed: { label: "Completed", variant: "default" },
-  disputed: { label: "In dispute", variant: "destructive" },
+  disputed: { label: "Problem reported", variant: "destructive" },
   refunded: { label: "Refunded", variant: "outline" },
-  cancelled_by_vendor: { label: "Declined by Vendor", variant: "destructive" },
+  cancelled_by_vendor: { label: "Cancelled", variant: "destructive" },
   cancelled_by_customer: { label: "Cancelled", variant: "outline" },
 };
 
+const firstDispute = (o: OrderRecord) => (Array.isArray(o.disputes) ? o.disputes[0] : o.disputes) ?? null;
 
 const Orders = () => {
   const { user, loading } = useAuth();
@@ -114,10 +116,19 @@ const Orders = () => {
   const [selectedOrderForReview, setSelectedOrderForReview] = useState<OrderRecord | null>(null);
   const [vendorProfiles, setVendorProfiles] = useState<Record<string, any>>({});
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
-  const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
-  const [selectedOrderForConfirmation, setSelectedOrderForConfirmation] = useState<OrderRecord | null>(null);
   const [receiptOrder, setReceiptOrder] = useState<OrderRecord | null>(null);
   const [reviewedOrders, setReviewedOrders] = useState<Set<string>>(new Set());
+  const [detailsOpen, setDetailsOpen] = useState<Set<string>>(new Set());
+
+  const activeIds = useMemo(
+    () => orders.filter((o) => !["completed", "refunded", "cancelled_by_vendor", "cancelled_by_customer", "pending_payment"].includes(o.status)).map((o) => o.id),
+    [orders],
+  );
+  const { timers } = useOrderTimers(activeIds, orders);
+  const { checklists } = usePackingChecklists(
+    useMemo(() => orders.filter((o) => o.status === "accepted").map((o) => o.id), [orders]),
+    orders,
+  );
 
   // Poll for payment status when returning from IntaSend (webhook may be delayed)
   useEffect(() => {
@@ -148,7 +159,7 @@ const Orders = () => {
           clearInterval(pollInterval);
           celebrate({
             title: 'Payment confirmed',
-            subtitle: 'Your money is held safely in escrow until you receive your order. The seller has been notified.',
+            subtitle: 'Your money is held safely until you receive your order. The seller has been notified.',
             cta: 'Track my order',
           });
           // Clear URL params and refresh
@@ -232,6 +243,8 @@ const Orders = () => {
     setRefreshing(false);
   };
 
+  const refreshAll = () => fetchOrders();
+
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
@@ -261,10 +274,6 @@ const Orders = () => {
             event: '*',
             schema: 'public',
             table: 'payments',
-            // We can't filter by order customer_id directly on payments table
-            // But we can listen to general payment events and rely on fetchOrders to filter
-            // Or use a more specific filter if possible. 
-            // For now, refreshing on any visible payment change is acceptable for this user scope.
           },
           () => {
             fetchOrders();
@@ -278,62 +287,6 @@ const Orders = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, user]);
-
-  // Open confirmation modal instead of direct action
-  const handleConfirmDelivery = (order: OrderRecord) => {
-    setSelectedOrderForConfirmation(order);
-    setConfirmationModalOpen(true);
-  };
-
-  const handleConfirmationSuccess = () => {
-    // The order isn't actually "completed" yet at this point (that only
-    // happens later via auto-release-escrow or the vendor OTP flow, both of
-    // which send the completion email themselves), so there's nothing to
-    // notify here.
-    setConfirmationModalOpen(false);
-    setSelectedOrderForConfirmation(null);
-    fetchOrders();
-  };
-
-  const handleOpenDispute = async (order: OrderRecord) => {
-    const description = window.prompt("Describe the issue (required)");
-    if (!description) return;
-
-    try {
-      const { error } = await supabase.from("disputes").insert({
-        order_id: order.id,
-        customer_id: order.customer_id,
-        vendor_id: order.vendor_id,
-        reason: "other",
-        description,
-      });
-
-      if (error) throw error;
-
-      await supabase.from("orders").update({ status: "disputed" }).eq("id", order.id);
-
-      // Notify vendor and buyer
-      const { data: disputeData } = await supabase
-        .from("disputes")
-        .select("id")
-        .eq("order_id", order.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (disputeData) {
-        supabase.functions.invoke("notify-dispute-filed", {
-          body: { disputeId: disputeData.id },
-        });
-      }
-
-      toast.success("Dispute submitted. Solely support will reach out.");
-      fetchOrders();
-    } catch (error) {
-      console.error("Failed to open dispute", error);
-      toast.error("Could not open dispute");
-    }
-  };
 
   const handlePayDeliveryFee = async (order: OrderRecord) => {
     // Calculate remaining amount (delivery fee)
@@ -379,70 +332,61 @@ const Orders = () => {
     }
   };
 
-  // Helper to check if order has pending/failed payment and needs retry
-  const needsPaymentRetry = (order: OrderRecord): boolean => {
-    const totalPaid = order.payments
-      ?.filter((p: any) => p.status === 'captured' || p.status === 'completed')
-      .reduce((sum: number, p: any) => sum + Number(p.amount_ksh), 0) || 0;
-    return totalPaid < order.total_ksh;
+  const printReceipt = (order: OrderRecord) => {
+    setReceiptOrder(order);
+    // Use setTimeout to ensure state is set before printing
+    setTimeout(() => {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        const receiptContent = document.getElementById('receipt-print-area');
+        if (receiptContent) {
+          printWindow.document.write(`
+            <html>
+              <head>
+                <title>Receipt - ${order.id.slice(0, 8)}</title>
+                <style>
+                  body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+                  .receipt { max-width: 800px; margin: 0 auto; }
+                  table { width: 100%; border-collapse: collapse; }
+                  th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+                  .text-right { text-align: right; }
+                  .text-center { text-align: center; }
+                  .font-bold { font-weight: bold; }
+                  .text-green-600 { color: #16a34a; }
+                  .bg-green-50 { background-color: #f0fdf4; padding: 16px; border-radius: 8px; }
+                  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+                </style>
+              </head>
+              <body>${receiptContent.innerHTML}</body>
+            </html>
+          `);
+          printWindow.document.close();
+          printWindow.print();
+        }
+      }
+      setReceiptOrder(null);
+    }, 100);
   };
 
-  const upcomingActions = useMemo(() => {
-    return orders.filter((order) => {
-      // For pickup, STRICTLY require vendor_confirmed (which is set when vendor marks as Ready)
-      const isPickup = (order.order_shipping_details as any)?.delivery_type === "pickup";
-      if (isPickup) {
-        return order.status === "arrived" && order.vendor_confirmed && !order.buyer_confirmed;
-      }
-      return order.status === "arrived" && !order.buyer_confirmed;
+  const toggleDetails = (id: string) =>
+    setDetailsOpen((s) => {
+      const next = new Set(s);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
     });
-  }, [orders]);
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <div className="container mx-auto px-4 py-10 space-y-6">
+      <div className="container mx-auto px-4 py-10 space-y-6 max-w-3xl">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">My Orders</h1>
-            <p className="text-muted-foreground">Track escrow-protected purchases and manage deliveries.</p>
+            <p className="text-muted-foreground">Your money is held safely until you have your order.</p>
           </div>
-          <Button variant="ghost" onClick={fetchOrders} disabled={refreshing}>
+          <Button variant="ghost" onClick={refreshAll} disabled={refreshing}>
             {refreshing ? "Refreshing..." : "Refresh"}
           </Button>
         </div>
-
-        {upcomingActions.length > 0 && (
-          <Card className="border-primary/40">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-primary text-lg">Awaiting your confirmation</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              {upcomingActions.map((order) => {
-                const isPickup = (order.order_shipping_details as any)?.delivery_type === "pickup";
-                return (
-                  <div key={order.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span>
-                        {isPickup
-                          ? `Order #${order.id.slice(0, 8)} is ready for pickup`
-                          : `Order #${order.id.slice(0, 8)} arrived ${order.shipped_at ? formatDistanceToNow(new Date(order.shipped_at), { addSuffix: true }) : "recently"}`
-                        }
-                      </span>
-                      <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
-                        {isPickup ? "I Have Collected My Order" : "I Have Received My Delivery"}
-                      </Button>
-                    </div>
-                    {isPickup && (
-                      <p className="text-xs text-muted-foreground bg-primary-soft p-2 rounded border border-primary/30">
-                        <strong>Collect it first.</strong> Tap "I Have Collected My Order" only once it's in your hands.
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-        )}
 
         {orders.length === 0 ? (
           <Card className="p-10 text-center">
@@ -455,139 +399,77 @@ const Orders = () => {
               const isHighlighted = orderId && order.id === orderId;
               const status = statusLabels[order.status] ?? { label: order.status, variant: "secondary" };
               const isPickup = (order.order_shipping_details as any)?.delivery_type === "pickup";
+              const storeName = vendorProfiles[order.vendor_id]?.store_name || "The seller";
 
               const totalPaid = order.payments
                 ?.filter((p: any) => p.status === 'captured' || p.status === 'completed')
                 .reduce((sum: number, p: any) => sum + Number(p.amount_ksh), 0) || 0;
               const pendingAmount = order.total_ksh - totalPaid;
-              const hasPendingBalance = pendingAmount > 1; // Tolerance for float errors
+              const hasPendingBalance = order.status === "pending_payment" && pendingAmount > 1; // Tolerance for float errors
+              const showDetails = detailsOpen.has(order.id);
 
-              // Override status display if payment is pending
               const displayStatus = hasPendingBalance
                 ? { label: "Payment Pending", variant: "destructive" as const }
                 : status;
 
               return (
                 <Card key={order.id} className={isHighlighted ? "border-primary" : undefined}>
-                  <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <CardTitle className="text-lg">Order #{order.id.slice(0, 8)}</CardTitle>
-                      <p className="text-sm text-muted-foreground">
+                  <CardHeader className="flex flex-row items-start justify-between gap-3 pb-3">
+                    <div className="min-w-0">
+                      <CardTitle className="text-base">{storeName} · #{order.id.slice(0, 8)}</CardTitle>
+                      <p className="text-xs text-muted-foreground">
                         Placed {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
                       </p>
                     </div>
-                    <Badge variant={displayStatus.variant}>{displayStatus.label}</Badge>
+                    <Badge variant={displayStatus.variant} className="shrink-0">{displayStatus.label}</Badge>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="space-y-2 text-sm">
-                      {order.order_items?.map((item) => (
-                        <div key={item.id} className="flex justify-between">
-                          <span>{item.quantity} × {item.product_name}</span>
-                          <span>KES {(item.quantity * item.unit_price_ksh).toLocaleString()}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex justify-between text-sm text-muted-foreground border-t pt-2 mt-2">
-                      <span>Subtotal</span>
-                      <span className="font-medium">KES {order.subtotal_ksh.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Delivery Fee</span>
-                      <span className="font-medium">
-                        {order.shipping_fee_ksh > 0 ? `KES ${order.shipping_fee_ksh.toLocaleString()}` : "FREE"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm text-muted-foreground border-t pt-2 mt-2">
-                      <span>Total Order Value</span>
-                      <span className="font-semibold text-foreground">KES {order.total_ksh.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Paid</span>
-                      <span className="font-semibold text-success">KES {totalPaid.toLocaleString()}</span>
+                    <div className="text-sm">
+                      <p className="text-muted-foreground truncate">
+                        {order.order_items?.map((item) => `${item.quantity}× ${item.product_name}`).join(", ")}
+                      </p>
+                      <p className="font-semibold mt-0.5">KES {order.total_ksh.toLocaleString()}</p>
                     </div>
 
-                    {/* Payment Status Section */}
-                    {hasPendingBalance ? (
+                    {hasPendingBalance && (
                       <div className="bg-destructive-soft p-4 rounded-lg border border-destructive/30 space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="destructive">Payment Required</Badge>
-                        </div>
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-destructive ">Amount to pay</span>
+                          <span className="text-destructive font-medium">Payment not completed</span>
                           <span className="text-destructive font-bold">KES {pendingAmount.toLocaleString()}</span>
                         </div>
-                        <p className="text-xs text-destructive ">
-                          Your payment was not completed. Please ensure you have sufficient funds and retry.
-                        </p>
-                        <Button
-                          size="sm"
-                          className="w-full"
-                          variant="destructive"
-                          onClick={() => handlePayDeliveryFee(order)}
-                          disabled={processingPayment === order.id}
-                        >
+                        <Button size="sm" className="w-full" variant="destructive"
+                          onClick={() => handlePayDeliveryFee(order)} disabled={processingPayment === order.id}>
                           {processingPayment === order.id ? "Processing..." : "Retry Payment"}
                         </Button>
                       </div>
-                    ) : order.status === "pending_vendor_confirmation" ? (
-                      <div className="bg-success-soft p-3 rounded-lg border border-success/30">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="default" className="bg-success">Payment Complete</Badge>
-                        </div>
-                        <p className="text-sm text-success mt-2">
-                          Payment received. Waiting for the seller to confirm.
-                        </p>
-                      </div>
-                    ) : order.status === "cancelled_by_vendor" ? (
-                      <div className="bg-destructive-soft p-4 rounded-lg border border-destructive/30">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="destructive">Order Declined</Badge>
-                        </div>
-                        <p className="text-sm text-destructive font-medium">
-                          The vendor has declined this order.
-                        </p>
-                        <p className="text-sm text-destructive mt-1">
-                          A full refund has been initiated. If you paid via M-Pesa, expect a reversal shortly.
-                        </p>
-                      </div>
-                    ) : null}
+                    )}
 
-                    {order.order_shipping_details && (
-                      <div className="bg-muted rounded-lg p-4 text-sm">
-                        {(order.order_shipping_details as any)?.delivery_type === "pickup" ? (
-                          <>
-                            <p className="font-medium mb-2">Pickup Order - {order.order_shipping_details.recipient_name}</p>
-                            <p className="text-muted-foreground mb-3">
-                              You will collect this order from the vendor's location. Contact the vendor to arrange pickup time.
-                            </p>
-                            {order.order_shipping_details.phone && (
-                              <p className="mb-2 text-xs text-muted-foreground">Your contact: {order.order_shipping_details.phone}</p>
-                            )}
-                            {vendorProfiles[order.vendor_id]?.whatsapp_number && (
-                              <ContactVendorButton phoneNumber={vendorProfiles[order.vendor_id].whatsapp_number} className="mt-2" />
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            <p className="font-medium mb-2">Shipping to {order.order_shipping_details.recipient_name}</p>
-                            <p>{order.order_shipping_details.address_line1}</p>
-                            {order.order_shipping_details.address_line2 && <p>{order.order_shipping_details.address_line2}</p>}
-                            <p>
-                              {order.order_shipping_details.city}
-                              {(order.order_shipping_details as any)?.county ? `, ${(order.order_shipping_details as any).county}` : ""}
-                            </p>
-                            {order.order_shipping_details.delivery_notes && (
-                              <p className="text-muted-foreground mt-2">Note: {order.order_shipping_details.delivery_notes}</p>
-                            )}
-                            {vendorProfiles[order.vendor_id]?.whatsapp_number && (
-                              <ContactVendorButton phoneNumber={vendorProfiles[order.vendor_id].whatsapp_number} className="mt-3" />
-                            )}
-                          </>
-                        )}
+                    {order.status === "cancelled_by_vendor" && (
+                      <div className="bg-muted p-3 rounded-lg text-sm">
+                        {storeName} cancelled this order. You've been refunded in full.
                       </div>
                     )}
 
-                    {/* Live Delivery Tracking - Only show when order is shipped and tracking is active */}
+                    {order.status === "refunded" && !firstDispute(order) && (
+                      <div className="bg-muted p-3 rounded-lg text-sm">
+                        This order was refunded{Number((order as any).refunded_ksh) > 0 ? ` (KES ${Number((order as any).refunded_ksh).toLocaleString()})` : ""}.
+                      </div>
+                    )}
+
+                    <BuyerNextStep
+                      order={order}
+                      storeName={storeName}
+                      timers={timers[order.id]}
+                      checklist={checklists[order.id]}
+                      hasDispute={!!firstDispute(order)}
+                      onChanged={refreshAll}
+                      onConfirmed={() => {
+                        refreshAll();
+                        setSelectedOrderForReview(order);
+                        setReviewDialogOpen(true);
+                      }}
+                    />
+
                     {order.status === "shipped" && !isPickup && (
                       <LiveDeliveryTracker
                         orderId={order.id}
@@ -595,123 +477,75 @@ const Orders = () => {
                       />
                     )}
 
-                    {/* Milestone Tracking Timeline */}
-                    <TrackingTimeline orderId={order.id} />
-
-                    {/* Dispute Chat */}
-                    {order.status === "disputed" && (order as any).disputes?.[0] && (
-                      <div className="mt-4">
-                        <DisputeChat disputeId={(order as any).disputes[0].id} currentUserRole="buyer" />
-                      </div>
-                    )}
-
-                    {/* Delivery OTP Display - Show to buyer when order is shipped or arrived */}
-                    {(order.status === "shipped" || order.status === "arrived") && (order as any).delivery_otp && (
-                      <div className="bg-muted p-4 rounded-lg border border-border">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Lock size={18} strokeWidth={1.75} className="text-foreground " />
-                          <p className="font-semibold text-foreground ">Your Delivery Code</p>
-                        </div>
-                        <div className="bg-card dark:bg-background p-4 rounded-lg text-center">
-                          <p className="text-3xl font-mono font-bold tracking-widest text-foreground ">
-                            {(order as any).delivery_otp}
-                          </p>
-                        </div>
-                        <p className="text-sm text-foreground mt-3">
-                          <strong>Important:</strong> Share this code with the vendor when they deliver your order.
-                          This confirms you received your order and releases payment to the vendor.
-                        </p>
-                        {isPickup && (
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Show this code to the vendor when you collect your order.
-                          </p>
+                    {order.status === "completed" && (
+                      <div className="flex flex-wrap gap-3">
+                        <Button size="sm" variant="outline" onClick={() => printReceipt(order)}>
+                          <Download size={16} strokeWidth={1.5} className=" mr-1" />
+                          Download Receipt
+                        </Button>
+                        {reviewedOrders.has(order.id) ? (
+                          <div className="flex items-center gap-2 text-sm text-success">
+                            <CheckCircle size={16} strokeWidth={1.5} />
+                            Thank you for your review!
+                          </div>
+                        ) : (
+                          <Button size="sm" onClick={() => { setSelectedOrderForReview(order); setReviewDialogOpen(true); }}>
+                            Leave Review
+                          </Button>
                         )}
                       </div>
                     )}
 
-                    <div className="flex flex-wrap gap-3">
-                      {(order.status === "arrived" || order.status === "shipped") && !order.buyer_confirmed && (
-                        // For pickup, ensure vendor has actually confirmed (marked as ready)
-                        (!isPickup || order.vendor_confirmed) && (
-                          <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
-                            {isPickup ? "I Have Collected My Order" : "I Have Received My Delivery"}
-                          </Button>
-                        )
-                      )}
-                      {order.status === "delivered" && !order.buyer_confirmed && (
-                        <Button size="sm" onClick={() => handleConfirmDelivery(order)}>
-                          {isPickup ? "I Have Collected My Order" : "I Have Received My Delivery"}
-                        </Button>
-                      )}
-                      {order.status === "completed" && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setReceiptOrder(order);
-                              // Use setTimeout to ensure state is set before printing
-                              setTimeout(() => {
-                                const printWindow = window.open('', '_blank');
-                                if (printWindow) {
-                                  const receiptContent = document.getElementById('receipt-print-area');
-                                  if (receiptContent) {
-                                    printWindow.document.write(`
-                                      <html>
-                                        <head>
-                                          <title>Receipt - ${order.id.slice(0, 8)}</title>
-                                          <style>
-                                            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-                                            .receipt { max-width: 800px; margin: 0 auto; }
-                                            table { width: 100%; border-collapse: collapse; }
-                                            th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-                                            .text-right { text-align: right; }
-                                            .text-center { text-align: center; }
-                                            .font-bold { font-weight: bold; }
-                                            .text-green-600 { color: #16a34a; }
-                                            .bg-green-50 { background-color: #f0fdf4; padding: 16px; border-radius: 8px; }
-                                            @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-                                          </style>
-                                        </head>
-                                        <body>${receiptContent.innerHTML}</body>
-                                      </html>
-                                    `);
-                                    printWindow.document.close();
-                                    printWindow.print();
-                                  }
-                                }
-                                setReceiptOrder(null);
-                              }, 100);
-                            }}
-                          >
-                            <Download size={16} strokeWidth={1.5} className=" mr-1" />
-                            Download Receipt
-                          </Button>
-                          {reviewedOrders.has(order.id) ? (
-                            <div className="flex items-center gap-2 text-sm text-success">
-                              <CheckCircle size={16} strokeWidth={1.5}  />
-                              Thank you for your review!
+                    <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground" onClick={() => toggleDetails(order.id)}>
+                      Order details
+                      <ChevronDown size={14} className={`transition-transform ${showDetails ? "rotate-180" : ""}`} />
+                    </button>
+
+                    {showDetails && (
+                      <div className="space-y-4">
+                        <div className="space-y-1.5 text-sm">
+                          {order.order_items?.map((item) => (
+                            <div key={item.id} className="flex justify-between">
+                              <span>{item.quantity} × {item.product_name}</span>
+                              <span>KES {(item.quantity * item.unit_price_ksh).toLocaleString()}</span>
                             </div>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={() => {
-                                setSelectedOrderForReview(order);
-                                setReviewDialogOpen(true);
-                              }}
-                            >
-                              Leave Review
-                            </Button>
-                          )}
-                        </>
-                      )}
-                      {order.status !== "disputed" && order.status !== "refunded" && order.status !== "completed" && (
-                        <Button size="sm" variant="destructive" onClick={() => handleOpenDispute(order)}>
-                          Report a problem
-                        </Button>
-                      )}
-                    </div>
+                          ))}
+                          <div className="flex justify-between text-muted-foreground border-t pt-1.5">
+                            <span>Delivery</span>
+                            <span>{order.shipping_fee_ksh > 0 ? `KES ${order.shipping_fee_ksh.toLocaleString()}` : "FREE"}</span>
+                          </div>
+                          <div className="flex justify-between font-semibold">
+                            <span>Total</span>
+                            <span>KES {order.total_ksh.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between text-muted-foreground">
+                            <span>Paid</span>
+                            <span className="text-success">KES {totalPaid.toLocaleString()}</span>
+                          </div>
+                        </div>
+
+                        {order.order_shipping_details && (
+                          <div className="bg-muted rounded-lg p-3 text-sm space-y-1">
+                            {isPickup ? (
+                              <p>Pickup order. Collect it from the seller.</p>
+                            ) : (
+                              <>
+                                <p className="font-medium">Delivering to {order.order_shipping_details.recipient_name}</p>
+                                <p className="text-muted-foreground">
+                                  {order.order_shipping_details.address_line1}
+                                  {order.order_shipping_details.city ? `, ${order.order_shipping_details.city}` : ""}
+                                </p>
+                              </>
+                            )}
+                            {vendorProfiles[order.vendor_id]?.whatsapp_number && (
+                              <ContactVendorButton phoneNumber={vendorProfiles[order.vendor_id].whatsapp_number} className="mt-2" />
+                            )}
+                          </div>
+                        )}
+
+                        <TrackingTimeline orderId={order.id} />
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
@@ -739,22 +573,6 @@ const Orders = () => {
         />
       )}
 
-      {/* Order Confirmation Modal */}
-      {selectedOrderForConfirmation && user && (
-        <OrderConfirmationModal
-          open={confirmationModalOpen}
-          onClose={() => {
-            setConfirmationModalOpen(false);
-            setSelectedOrderForConfirmation(null);
-          }}
-          orderId={selectedOrderForConfirmation.id}
-          vendorId={selectedOrderForConfirmation.vendor_id}
-          customerId={user.id}
-          onSuccess={handleConfirmationSuccess}
-          isPickup={(selectedOrderForConfirmation.order_shipping_details as any)?.delivery_type === 'pickup'}
-        />
-      )}
-
       {/* Hidden Receipt Print Area */}
       {receiptOrder && (
         <div id="receipt-print-area" style={{ position: 'absolute', left: '-9999px', top: 0 }}>
@@ -766,5 +584,3 @@ const Orders = () => {
 };
 
 export default Orders;
-
-

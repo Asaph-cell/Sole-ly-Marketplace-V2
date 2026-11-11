@@ -3,6 +3,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { rateLimit } from "../_shared/rate-limit.ts";
 import { sendEmail, emailTemplates } from "../_shared/email-service.ts";
 import { getPlatformSetting } from "../_shared/platform-settings.ts";
+import { addStrike, suspendVendor } from "../_shared/strikes.ts";
+import { deliverClock, releaseClock, startTimer } from "../_shared/timers.ts";
+import { loadParties, notify } from "../_shared/notify.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,7 +21,13 @@ type AdminAction =
   | "restore_vendor"
   | "update_platform_setting"
   | "promote_to_admin"
-  | "revoke_admin";
+  | "revoke_admin"
+  | "add_strike"
+  | "void_strike"
+  | "suspend_vendor"
+  | "unsuspend_vendor"
+  | "unsuspend_buyer"
+  | "reject_buyer_unavailable";
 
 interface AdminActionRequest {
   action: AdminAction;
@@ -89,7 +98,7 @@ serve(async (req) => {
     // a logging failure shouldn't fail an otherwise-successful admin action.
     const logActivity = async (
       actionType: string,
-      targetType: "product" | "vendor" | "dispute",
+      targetType: "product" | "vendor" | "dispute" | "buyer" | "order",
       vendorId: string | null,
       details: Record<string, unknown>
     ) => {
@@ -249,6 +258,98 @@ serve(async (req) => {
           new_role: "vendor",
         });
         result.message = "Vendor access restored";
+        break;
+      }
+
+      // ── Strikes & suspension (dispute system) ──
+      case "add_strike": {
+        const count = await addStrike(serviceClient, targetId!, null, "admin", reason?.trim() || undefined);
+        await logActivity("add_strike", "vendor", targetId!, { reason: reason ?? null, active_strikes: count });
+        result.message = `Strike added (${count} active)`;
+        break;
+      }
+
+      case "void_strike": {
+        const { data: strike, error } = await serviceClient
+          .from("vendor_strikes")
+          .update({ voided_at: new Date().toISOString(), voided_by: user.id, void_reason: reason ?? null })
+          .eq("id", targetId)
+          .is("voided_at", null)
+          .select("vendor_id, reason")
+          .maybeSingle();
+        if (error) throw error;
+        if (!strike) throw new Error("Strike not found or already removed");
+        await logActivity("void_strike", "vendor", strike.vendor_id, { strike_id: targetId, strike_reason: strike.reason, void_reason: reason ?? null });
+        result.message = "Strike removed";
+        break;
+      }
+
+      case "suspend_vendor": {
+        if (!reason?.trim()) throw new Error("A reason is required to suspend a vendor");
+        await suspendVendor(serviceClient, targetId!, reason.trim());
+        await logActivity("suspend_vendor", "vendor", targetId!, { reason });
+        result.message = "Vendor suspended";
+        break;
+      }
+
+      case "unsuspend_vendor": {
+        const { error } = await serviceClient
+          .from("profiles")
+          .update({ suspended_at: null, suspension_reason: null })
+          .eq("id", targetId);
+        if (error) throw error;
+        await logActivity("unsuspend_vendor", "vendor", targetId!, { reason: reason ?? null });
+        result.message = "Vendor restored. Their listings are visible again.";
+        break;
+      }
+
+      case "unsuspend_buyer": {
+        const { error } = await serviceClient
+          .from("account_bans")
+          .update({ lifted_at: new Date().toISOString() })
+          .eq("user_id", targetId)
+          .is("lifted_at", null);
+        if (error) throw error;
+        await logActivity("unsuspend_buyer", "buyer", null, { reason: reason ?? null });
+        result.message = "Buyer can place orders again";
+        break;
+      }
+
+      case "reject_buyer_unavailable": {
+        // Solely called the buyer and they were there: cancel the claim,
+        // strike the vendor, and give the delivery a fresh window.
+        const { data: timer } = await serviceClient
+          .from("order_timers")
+          .update({ status: "cancelled", resolved_at: new Date().toISOString() })
+          .eq("order_id", targetId)
+          .eq("kind", "buyer_unavailable")
+          .eq("status", "active")
+          .select("id")
+          .maybeSingle();
+        if (!timer) throw new Error("There's no open 'buyer unavailable' claim on this order");
+
+        const { data: order } = await serviceClient.from("orders").select("vendor_id, status").eq("id", targetId).single();
+        await addStrike(serviceClient, order!.vendor_id, targetId!, "false_buyer_unavailable", reason ?? undefined);
+        if (order!.status === "shipped") {
+          const clock = await deliverClock(serviceClient, targetId!, new Date(), 24);
+          await startTimer(serviceClient, targetId!, "deliver", clock.due, { schedule: clock.schedule });
+        } else if (order!.status === "arrived") {
+          const clock = await releaseClock(serviceClient, new Date());
+          await startTimer(serviceClient, targetId!, "release", clock.due, { schedule: clock.schedule });
+        }
+
+        const p = await loadParties(serviceClient, targetId!);
+        await notify(serviceClient, p, "vendor", {
+          subject: `Claim rejected: order #${p.shortId}`,
+          lines: ["Solely spoke to the buyer and they were available, so your 'buyer unavailable' report was rejected and your shop received a strike.", "Please deliver the order."],
+          push: true,
+        });
+        await notify(serviceClient, p, "buyer", {
+          subject: `We've sorted it: order #${p.shortId}`,
+          lines: [`Thanks for confirming. ${p.storeName} has been asked to deliver your order.`],
+        });
+        await logActivity("reject_buyer_unavailable", "order", order!.vendor_id, { order_id: targetId, reason: reason ?? null });
+        result.message = "Claim rejected and the vendor got a strike";
         break;
       }
 

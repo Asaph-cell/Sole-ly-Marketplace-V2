@@ -13,8 +13,8 @@ export interface PlatformSettingsValues {
   maintenanceBannerEnabled: boolean;
   maintenanceBannerMessage: string;
   vendorConfirmHours: number;
-  autoDisputeDays: number;
-  pinReleaseHours: number;
+  shipDeadlineHours: number;
+  releaseWindowHours: number;
   minimumAutoPayoutKsh: number;
   payoutFeeSchedule: PayoutFeeTier[];
 }
@@ -26,8 +26,8 @@ export const DEFAULT_PLATFORM_SETTINGS: PlatformSettingsValues = {
   maintenanceBannerEnabled: false,
   maintenanceBannerMessage: "We're making some updates right now. Everything still works, but you might notice a few changes.",
   vendorConfirmHours: 48,
-  autoDisputeDays: 5,
-  pinReleaseHours: 6,
+  shipDeadlineHours: 8,
+  releaseWindowHours: 6,
   minimumAutoPayoutKsh: 10000,
   payoutFeeSchedule: [
     { max_ksh: 100, fee_ksh: 10 },
@@ -43,8 +43,8 @@ const KEY_MAP: Record<keyof PlatformSettingsValues, string> = {
   maintenanceBannerEnabled: "maintenance_banner_enabled",
   maintenanceBannerMessage: "maintenance_banner_message",
   vendorConfirmHours: "vendor_confirm_hours",
-  autoDisputeDays: "auto_dispute_days",
-  pinReleaseHours: "pin_release_hours",
+  shipDeadlineHours: "ship_deadline_hours",
+  releaseWindowHours: "release_window_hours",
   minimumAutoPayoutKsh: "minimum_auto_payout_ksh",
   payoutFeeSchedule: "payout_fee_schedule",
 };

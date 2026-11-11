@@ -78,7 +78,7 @@ const PrivacyPolicy = () => {
                             <li>Order history and purchase details, including the agreed delivery fee</li>
                             <li>Payment transaction IDs (we do not store full card numbers)</li>
                             <li>M-Pesa payment references</li>
-                            <li>Package PINs and delivery OTP codes generated to confirm handover</li>
+                            <li>Delivery codes, packing lists and package photos used to confirm handover</li>
                             <li>GPS coordinates and map links (if you choose to share your location pin)</li>
                             <li>Dispute, refund, and stolen-item records</li>
                             <li>Vendor payout, wallet balance, and withdrawal records</li>
@@ -123,7 +123,7 @@ const PrivacyPolicy = () => {
                         <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
                             <li>Sending order confirmations and status updates</li>
                             <li>Notifying you about disputes and resolutions</li>
-                            <li>Sending Package PINs and delivery OTP codes to confirm handover</li>
+                            <li>Sending delivery codes, packing lists and delivery reminders (by email, push notification or SMS) to confirm handover</li>
                             <li>Sending push notifications for order status updates (if opted in)</li>
                             <li>Sending payout notifications to vendors</li>
                             <li>Responding to customer support inquiries</li>
@@ -151,7 +151,7 @@ const PrivacyPolicy = () => {
                         <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
                             <li><strong>Auto-cancellation:</strong> If a vendor does not accept your order within the confirmation window, the order is cancelled and you are refunded</li>
                             <li><strong>Auto-dispute:</strong> If a confirmed order is not marked as arrived within the delivery window, a dispute is raised automatically for our team to review</li>
-                            <li><strong>Auto-release of escrow:</strong> After you confirm receipt by entering the Package PIN, escrowed funds are released to the vendor once the release window elapses, even if the vendor never enters your OTP</li>
+                            <li><strong>Automatic decisions:</strong> When an order is marked arrived and you don't report a problem within the release window, payment is released to the vendor. When a vendor misses a shipping or delivery deadline without an update, you're refunded and the vendor may receive a strike. Either party can ask Solely to review an automatic decision within 48 hours</li>
                             <li><strong>Auto-payout:</strong> Vendor balances above a set threshold are paid out to the registered M-Pesa number automatically</li>
                         </ul>
                         <div className="bg-muted border border-border p-4 rounded-lg">
